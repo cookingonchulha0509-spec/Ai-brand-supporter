@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BrandAI | Neural Support Studio</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        black: '#000000',
+                        dark: '#0a0a0a',
+                        accent: {
+                            primary: '#6366f1',
+                            secondary: '#a855f7',
+                            emerald: '#10b981',
+                            rose: '#f43f5e'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #000000;
+            color: #ffffff;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass-card {
+            background: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .auth-slider {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 4px;
+            display: flex;
+        }
+
+        .auth-slider .slider-pill {
+            position: absolute;
+            top: 4px; bottom: 4px; left: 4px;
+            width: calc(50% - 4px);
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border-radius: 0.8rem;
+            transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+            z-index: 0;
+        }
+
+        .input-pro {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        .input-pro:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
+            outline: none;
+        }
+
+        @keyframes premiumReveal {
+            from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+        .animate-reveal { animation: premiumReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .btn-gradient-pro {
+            background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+            background-size: 200% auto;
+            transition: 0.5s;
+        }
+        .btn-gradient-pro:hover { background-position: right center; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .error-field { border-color: #f43f5e !important; animation: shake 0.3s ease-in-out; }
+
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="selection:bg-accent-primary/30">
+
+    <!-- Global Notifications -->
+    <div id="toast-bin" class="fixed top-6 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-sm space-y-3 pointer-events-none"></div>
+
+    <!-- Auth Section -->
+    <section id="auth-view" class="min-h-screen flex items-center justify-center px-6">
+        <div class="w-full max-w-[400px] animate-reveal">
+            <div class="text-center mb-10">
+                <div class="inline-flex w-16 h-16 bg-white/5 border border-white/10 rounded-2xl items-center justify-center mb-6">
+                    <i class="fas fa-brain text-3xl text-accent-primary"></i>
+                </div>
+                <h1 class="text-4xl font-extrabold tracking-tight">BrandAI Hub</h1>
+                <p class="text-slate-500 font-medium">Professional Intelligence Gateway</p>
+            </div>
+
+            <div class="auth-slider mb-8 h-14">
+                <div id="slider-bg" class="slider-pill"></div>
+                <button onclick="switchAuth('login')" class="flex-1 relative z-10 text-sm font-bold">Sign In</button>
+                <button onclick="switchAuth('signup')" class="flex-1 relative z-10 text-sm font-bold">Register</button>
+            </div>
+
+            <div class="space-y-4">
+                <input type="email" id="auth-email" class="w-full input-pro p-5 rounded-2xl text-sm" placeholder="Email Address">
+                <input type="password" id="auth-pass" class="w-full input-pro p-5 rounded-2xl text-sm" placeholder="Password">
+                
+                <button onclick="performAuth()" id="auth-btn" class="w-full btn-gradient-pro py-5 rounded-2xl font-bold text-sm shadow-xl shadow-accent-primary/20">
+                    Connect Terminal
+                </button>
+
+                <div class="relative py-4 text-center">
+                    <span class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-700">Enterprise Access</span>
+                </div>
+
+                <button onclick="googleAuth()" class="w-full bg-white text-black py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 hover:bg-slate-100 transition">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5">
+                    Continue with Google
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Shell -->
+    <div id="app-shell" class="hidden">
+        
+        <header class="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 px-6 py-4">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 btn-gradient-pro rounded-xl flex items-center justify-center">
+                        <i class="fas fa-robot text-white"></i>
+                    </div>
+                    <span class="text-2xl font-extrabold tracking-tighter">BrandAI</span>
+                </div>
+                <button onclick="signOut()" class="text-[10px] font-bold text-slate-500 hover:text-white uppercase tracking-widest transition">log out</button>
+            </div>
+        </header>
+
+        <main class="pt-28 pb-32 px-6 max-w-7xl mx-auto">
+            
+            <!-- Grid View -->
+            <section id="home-view" class="animate-reveal">
+                <div class="flex items-end justify-between mb-12">
+                    <div>
+                        <h2 class="text-5xl font-extrabold tracking-tighter">Directory</h2>
+                        <p class="text-slate-500 font-medium">ai support agents active across your ecosystem.</p>
+                    </div>
+                </div>
+                <div id="brands-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cards are loaded here dynamically -->
+                </div>
+            </section>
+
+            <!-- Deployment Studio -->
+            <section id="creator-view" class="hidden animate-reveal max-w-4xl mx-auto">
+                <div class="mb-10">
+                    <h2 class="text-4xl font-extrabold tracking-tight">AI Studio</h2>
+                    <p class="text-slate-500">Train and deploy your brand-specific neural model.</p>
+                </div>
+
+                <div class="glass-card p-8 md:p-12 rounded-[2.5rem] space-y-10">
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3 border-b border-white/5 pb-4">
+                            <i class="fas fa-id-card text-accent-primary"></i>
+                            <h4 class="font-bold text-lg">Identity & Analysis</h4>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Brand Name</label>
+                                <input type="text" id="b-name" class="w-full input-pro p-4 rounded-xl text-sm" placeholder="e.g. Nexus Global">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Website URL (Required)</label>
+                                <input type="url" id="b-url" class="w-full input-pro p-4 rounded-xl text-sm" placeholder="https://yourbrand.com">
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Brand Logo URL (Optional)</label>
+                            <input type="text" id="b-logo" class="w-full input-pro p-4 rounded-xl text-sm" placeholder="https://image-link.com/logo.png">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Neural Knowledge Base</label>
+                            <textarea id="b-kb" rows="5" class="w-full input-pro p-5 rounded-2xl text-sm resize-none" placeholder="Paste your brand info, FAQs, and policies here for the AI to analyze..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3 border-b border-white/5 pb-4">
+                            <i class="fas fa-headset text-accent-emerald"></i>
+                            <h4 class="font-bold text-lg">Escalation Channels</h4>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">WhatsApp Bridge</label>
+                                <input type="text" id="b-wa" class="w-full input-pro p-4 rounded-xl text-sm" placeholder="+91 0000000000">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Support Email</label>
+                                <input type="email" id="b-email" class="w-full input-pro p-4 rounded-xl text-sm" placeholder="care@brand.com">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="deployAgent()" id="deploy-btn" class="w-full btn-gradient-pro py-5 rounded-2xl font-bold text-lg shadow-2xl">
+                        Synthesize & Deploy AI
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Chat View -->
+        <section id="chat-view" class="hidden fixed inset-0 z-[100] bg-black flex flex-col">
+            <header class="p-6 bg-black border-b border-white/5 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button onclick="showSection('home-view')" class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+                    <div>
+                        <h4 id="active-brand-name" class="text-xl font-bold tracking-tight">Agent</h4>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-accent-emerald rounded-full animate-pulse"></span>
+                            <span class="text-[10px] font-bold text-accent-emerald uppercase tracking-widest">ai support Sync Active</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div id="chat-stream" class="flex-1 overflow-y-auto p-6 space-y-8 max-w-4xl mx-auto w-full"></div>
+            <div class="p-6 bg-black border-t border-white/5">
+                <div class="max-w-4xl mx-auto flex items-center gap-3 bg-white/5 p-2 pr-4 rounded-[2rem]">
+                    <input type="text" id="chat-input" class="flex-1 bg-transparent border-none outline-none p-4 text-sm" placeholder="Ask anything in any language...">
+                    <button onclick="dispatchMessage()" class="w-12 h-12 btn-gradient-pro rounded-2xl flex items-center justify-center"><i class="fas fa-paper-plane text-xs"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navbar -->
+        <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-sm glass-card p-4 rounded-full flex justify-around items-center z-40">
+            <button onclick="showSection('home-view')" class="flex flex-col items-center gap-1 group">
+                <i class="fas fa-th-large text-xl text-accent-primary transition group-active:scale-75"></i>
+                <span class="text-[8px] font-black uppercase tracking-widest text-slate-500">Explore</span>
+            </button>
+            <button onclick="showSection('creator-view')" class="flex flex-col items-center gap-1 group">
+                <i class="fas fa-wand-magic-sparkles text-xl text-slate-500 transition group-active:scale-75"></i>
+                <span class="text-[8px] font-black uppercase tracking-widest text-slate-500">Studio</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 opacity-30">
+                <i class="fas fa-brain text-xl text-slate-500"></i>
+                <span class="text-[8px] font-black uppercase tracking-widest text-slate-500">Neural</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        // --- Firebase Init ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBsqN79Fzb80pfxbX3N0Oq_LcLt8mfAidc",
+            authDomain: "trder-f0be8.firebaseapp.com",
+            databaseURL: "https://trder-f0be8-default-rtdb.firebaseio.com",
+            projectId: "trder-f0be8",
+            storageBucket: "trder-f0be8.firebasestorage.app",
+            messagingSenderId: "563351880166",
+            appId: "1:563351880166:web:571a888237d91f83871627"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+        const GROQ_KEY = "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";
+
+        let userState = null;
+        let activeAgent = null;
+        let authMode = 'login';
+
+        // --- Core Logic ---
+
+        function notify(msg, type = 'err') {
+            const bin = document.getElementById('toast-bin');
+            const t = document.createElement('div');
+            t.className = `glass-card p-4 rounded-2xl flex items-center gap-3 animate-reveal border-l-4 ${type === 'err' ? 'border-accent-rose' : 'border-accent-emerald'}`;
+            t.innerHTML = `
+                <i class="fas ${type === 'err' ? 'fa-shield-halved text-accent-rose' : 'fa-check-circle text-accent-emerald'}"></i> 
+                <div>
+                    <p class="text-[10px] font-black uppercase opacity-50">${type === 'err' ? 'System Firewall' : 'System Success'}</p>
+                    <p class="text-xs font-bold">${msg}</p>
+                </div>`;
+            bin.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 500); }, 4000);
+        }
+
+        function switchAuth(m) {
+            authMode = m;
+            document.getElementById('slider-bg').style.transform = m === 'login' ? 'translateX(0)' : 'translateX(100%)';
+            document.getElementById('auth-btn').innerText = m === 'login' ? 'Connect Terminal' : 'Initialize Identity';
+        }
+
+        async function performAuth() {
+            const email = document.getElementById('auth-email');
+            const pass = document.getElementById('auth-pass');
+            if(!email.value || !pass.value) return email.classList.add('error-field');
+
+            const btn = document.getElementById('auth-btn');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Securing Link...`;
+
+            try {
+                if(authMode === 'login') await auth.signInWithEmailAndPassword(email.value, pass.value);
+                else await auth.createUserWithEmailAndPassword(email.value, pass.value);
+            } catch(e) {
+                notify(e.message, 'err');
+                btn.innerText = 'Connect Terminal';
+            }
+        }
+
+        function googleAuth() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(e => notify(e.message, 'err'));
+        }
+
+        function signOut() { auth.signOut().then(() => location.reload()); }
+
+        function showSection(id) {
+            ['auth-view', 'home-view', 'creator-view', 'chat-view'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if(id === 'home-view' && userState) loadAgents();
+        }
+
+        async function deployAgent() {
+            if(!userState) return notify("Session Expired. Please Re-login.");
+
+            const name = document.getElementById('b-name');
+            const url = document.getElementById('b-url');
+            const kb = document.getElementById('b-kb');
+            const logo = document.getElementById('b-logo');
+            const wa = document.getElementById('b-wa');
+            const email = document.getElementById('b-email');
+
+            if(!name.value || !url.value || !kb.value) {
+                [name, url, kb].forEach(f => !f.value && f.classList.add('error-field'));
+                return notify('Identity, Website & Knowledge Base are required.');
+            }
+
+            const btn = document.getElementById('deploy-btn');
+            btn.innerHTML = `<i class="fas fa-atom fa-spin"></i> Synthesizing Neural Pathways...`;
+
+            const data = {
+                name: name.value,
+                url: url.value,
+                kb: kb.value,
+                logo: logo.value || 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
+                wa: wa.value || 'N/A',
+                email: email.value || 'N/A',
+                ts: Date.now()
+            };
+
+            try {
+                // Individual User Path taaki data turant load ho
+                await db.ref(`brands/${userState.uid}`).push(data);
+                notify('ai support Agent Deployed Successfully', 'success');
+                
+                // Reset Fields
+                [name, url, kb, logo, wa, email].forEach(i => i.value = '');
+                showSection('home-view');
+            } catch(e) {
+                notify(e.message, 'err');
+            }
+            btn.innerText = "Synthesize & Deploy AI";
+        }
+
+        function loadAgents() {
+            const grid = document.getElementById('brands-grid');
+            db.ref(`brands/${userState.uid}`).on('value', snap => {
+                grid.innerHTML = '';
+                if(!snap.exists()) {
+                    grid.innerHTML = `<div class="col-span-full py-20 text-center opacity-30"><i class="fas fa-box-open text-4xl mb-4"></i><p>No neural agents found. Deploy one from Studio.</p></div>`;
+                    return;
+                }
+                snap.forEach(child => {
+                    const b = child.val();
+                    grid.innerHTML += `
+                        <div onclick="initiateChat('${child.key}', '${b.name}')" class="glass-card p-8 rounded-[2rem] cursor-pointer hover:border-accent-primary transition-all group relative overflow-hidden">
+                            <div class="flex items-start justify-between mb-6">
+                                <div class="w-14 h-14 bg-white/5 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">
+                                    <img src="${b.logo}" class="w-full h-full object-cover group-hover:scale-110 transition-transform" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1162/1162456.png'">
+                                </div>
+                                <div class="bg-accent-emerald/10 text-accent-emerald text-[8px] font-black px-2 py-1 rounded-full uppercase">help and support</div>
+                            </div>
+                            <h3 class="text-2xl font-bold mb-1 tracking-tight">${b.name}</h3>
+                            <p class="text-[10px] font-medium text-slate-500 uppercase tracking-widest truncate">${b.url.replace('https://','')}</p>
+                            <div class="mt-8 flex items-center justify-between">
+                                <span class="text-[10px] font-black text-accent-primary group-hover:tracking-[0.1em] transition-all uppercase">help and support<i class="fas fa-arrow-right ml-1"></i></span>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        async function initiateChat(id, name) {
+            activeAgent = { id, name };
+            document.getElementById('active-brand-name').innerText = name;
+            document.getElementById('chat-stream').innerHTML = '';
+            showSection('chat-view');
+            
+            pushMsg('assistant', `Synchronized with **${name}** knowledge base. Listening for queries...`);
+
+            db.ref(`chats/${userState.uid}/${id}`).limitToLast(10).once('value', s => {
+                s.forEach(m => pushMsg(m.val().role, m.val().content));
+            });
+        }
+
+        function pushMsg(role, content) {
+            const stream = document.getElementById('chat-stream');
+            const isUser = role === 'user';
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'} animate-reveal`;
+            msgDiv.innerHTML = `
+                <div class="max-w-[85%] ${isUser ? 'btn-gradient-pro text-white rounded-3xl rounded-tr-none' : 'glass-card border border-white/10 text-slate-300 rounded-3xl rounded-tl-none'} px-6 py-4 text-sm leading-relaxed shadow-xl">
+                    ${content}
+                </div>
+            `;
+            stream.appendChild(msgDiv);
+            stream.scrollTop = stream.scrollHeight;
+        }
+
+        async function dispatchMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            pushMsg('user', text);
+            input.value = '';
+
+            const snap = await db.ref(`brands/${userState.uid}/${activeAgent.id}`).once('value');
+            const b = snap.val();
+
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "llama-3.3-70b-versatile",
+                        messages: [
+                            { 
+                                role: "system", 
+                                content: `You are a professional AI Assistant for the brand "${b.name}".
+                                ANALYZE THIS WEBSITE: ${b.url}. 
+                                KNOWLEDGE BASE: ${b.kb}. 
+                                
+                                RULES:
+                                1. LANGUAGE MIRROR: If the user talks in Hindi/Hinglish, reply in Hindi. If English, reply in English.
+                                2. SITE EXPERT: Answer everything based on ${b.url} and the Knowledge Base provided. Be specific.
+                                3. ESCALATION: For human help, give WhatsApp ${b.wa} and Email ${b.email}.
+                                4. STYLE: Professional and concise.` 
+                            },
+                            { role: "user", content: text }
+                        ]
+                    })
+                });
+                const d = await res.json();
+                const ai = d.choices[0].message.content;
+                pushMsg('assistant', ai);
+                
+                db.ref(`chats/${userState.uid}/${activeAgent.id}`).push({ role: 'user', content: text });
+                db.ref(`chats/${userState.uid}/${activeAgent.id}`).push({ role: 'assistant', content: ai });
+            } catch(e) {
+                pushMsg('assistant', "Neural link lost. Please check connection.");
+            }
+        }
+
+        // --- Auth Observer ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                userState = user;
+                document.getElementById('app-shell').classList.remove('hidden');
+                showSection('home-view');
+            } else {
+                userState = null;
+                document.getElementById('app-shell').classList.add('hidden');
+                showSection('auth-view');
+            }
+        });
+
+        document.querySelectorAll('input, textarea').forEach(el => {
+            el.addEventListener('input', () => el.classList.remove('error-field'));
+        });
+    </script>
+</body>
+</html>
