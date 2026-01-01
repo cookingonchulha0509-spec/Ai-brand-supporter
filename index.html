@@ -7,6 +7,7 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
@@ -89,15 +90,32 @@
         }
         .btn-gradient-pro:hover { background-position: right center; }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        .error-field { border-color: #f43f5e !important; animation: shake 0.3s ease-in-out; }
+        .error-field { border-color: #f43f5e !important; }
 
-        /* Public Mode Hiding */
-        .public-hidden { display: none !important; }
+        /* --- PUBLIC MODE LOCKDOWN CSS --- */
+        /* Used when ?u= & id= are present */
+        body.public-mode #main-header,
+        body.public-mode #main-nav,
+        body.public-mode #logout-btn,
+        body.public-mode #chat-back-btn,
+        body.public-mode #auth-view {
+            display: none !important;
+        }
+        
+        body.public-mode #app-shell {
+            display: block !important;
+        }
+
+        body.public-mode main {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        
+        body.public-mode #chat-view {
+            position: relative; 
+            height: 100vh; 
+            z-index: 9999;
+        }
 
         ::-webkit-scrollbar { display: none; }
     </style>
@@ -147,7 +165,7 @@
     <!-- App Shell -->
     <div id="app-shell" class="hidden">
         
-        <!-- Header -->
+        <!-- Header (Hidden in Public Mode) -->
         <header id="main-header" class="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 px-6 py-4">
             <div class="max-w-7xl mx-auto flex justify-between items-center">
                 <div class="flex items-center gap-3">
@@ -182,7 +200,8 @@
                     <p class="text-slate-500">Train and deploy your brand-specific neural model.</p>
                 </div>
 
-                <div class="glass-card p-8 md:p-12 rounded-[2.5rem] space-y-10">
+                <!-- Create Agent Form -->
+                <div class="glass-card p-8 md:p-12 rounded-[2.5rem] space-y-10 mb-12">
                     <div class="space-y-6">
                         <div class="flex items-center gap-3 border-b border-white/5 pb-4">
                             <i class="fas fa-id-card text-accent-primary"></i>
@@ -229,6 +248,16 @@
                         Synthesize & Deploy AI
                     </button>
                 </div>
+
+                <!-- Studio: Bot Management List (New Feature) -->
+                <div class="mb-10 mt-12">
+                    <h3 class="text-2xl font-extrabold tracking-tight mb-6 flex items-center gap-3">
+                        <i class="fas fa-network-wired text-accent-secondary"></i> Neural Configuration
+                    </h3>
+                    <div id="studio-agent-list" class="space-y-4">
+                        <!-- List populated by JS -->
+                    </div>
+                </div>
             </section>
         </main>
 
@@ -236,8 +265,8 @@
         <section id="chat-view" class="hidden fixed inset-0 z-[100] bg-black flex flex-col">
             <header class="p-6 bg-black border-b border-white/5 flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <!-- Back button hidden in public mode -->
-                    <button id="chat-back-btn" onclick="showSection('home-view')" class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+                    <!-- Back button hidden in public mode via CSS -->
+                    <button id="chat-back-btn" onclick="showSection('home-view')" class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition"><i class="fas fa-arrow-left"></i></button>
                     <div>
                         <h4 id="active-brand-name" class="text-xl font-bold tracking-tight">Agent</h4>
                         <div class="flex items-center gap-2">
@@ -250,13 +279,13 @@
             <div id="chat-stream" class="flex-1 overflow-y-auto p-6 space-y-8 max-w-4xl mx-auto w-full"></div>
             <div class="p-6 bg-black border-t border-white/5">
                 <div class="max-w-4xl mx-auto flex items-center gap-3 bg-white/5 p-2 pr-4 rounded-[2rem]">
-                    <input type="text" id="chat-input" class="flex-1 bg-transparent border-none outline-none p-4 text-sm" placeholder="Ask anything in any language...">
+                    <input type="text" id="chat-input" class="flex-1 bg-transparent border-none outline-none p-4 text-sm" placeholder="Ask anything..." autocomplete="off">
                     <button onclick="dispatchMessage()" class="w-12 h-12 btn-gradient-pro rounded-2xl flex items-center justify-center"><i class="fas fa-paper-plane text-xs"></i></button>
                 </div>
             </div>
         </section>
 
-        <!-- Navbar -->
+        <!-- Navbar (Hidden in Public Mode) -->
         <nav id="main-nav" class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-sm glass-card p-4 rounded-full flex justify-around items-center z-40">
             <button onclick="showSection('home-view')" class="flex flex-col items-center gap-1 group">
                 <i class="fas fa-th-large text-xl text-accent-primary transition group-active:scale-75"></i>
@@ -266,47 +295,47 @@
                 <i class="fas fa-wand-magic-sparkles text-xl text-slate-500 transition group-active:scale-75"></i>
                 <span class="text-[8px] font-black uppercase tracking-widest text-slate-500">Studio</span>
             </button>
-            <button class="flex flex-col items-center gap-1 opacity-30">
-                <i class="fas fa-brain text-xl text-slate-500"></i>
-                <span class="text-[8px] font-black uppercase tracking-widest text-slate-500">Neural</span>
-            </button>
         </nav>
     </div>
 
     <script>
         // --- Firebase Init ---
         const firebaseConfig = {
-  apiKey: "AIzaSyBiHHb4uZH_D2dWN2zgIJzjlFeO0fvYvPY",
-  authDomain: "ai-brand-supporter.firebaseapp.com",
-  databaseURL: "https://ai-brand-supporter-default-rtdb.firebaseio.com",
-  projectId: "ai-brand-supporter",
-  storageBucket: "ai-brand-supporter.firebasestorage.app",
-  messagingSenderId: "257519339474",
-  appId: "1:257519339474:web:a99c8b207e02c23b5fea0b"
-};
+            apiKey: "AIzaSyBiHHb4uZH_D2dWN2zgIJzjlFeO0fvYvPY",
+            authDomain: "ai-brand-supporter.firebaseapp.com",
+            databaseURL: "https://ai-brand-supporter-default-rtdb.firebaseio.com",
+            projectId: "ai-brand-supporter",
+            storageBucket: "ai-brand-supporter.firebasestorage.app",
+            messagingSenderId: "257519339474",
+            appId: "1:257519339474:web:a99c8b207e02c23b5fea0b"
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const auth = firebase.auth();
         const GROQ_KEY = "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";
 
+        // --- State Management ---
         let userState = null;
         let activeAgent = null;
         let authMode = 'login';
 
-        // --- Public Access Logic & URL Detection ---
+        // --- Public Access Logic Detection ---
         const urlParams = new URLSearchParams(window.location.search);
-        // Using 'u' for User/Owner and 'id' for Agent as requested
         const publicOwnerId = urlParams.get('u'); 
         const publicAgentId = urlParams.get('id'); 
         const isPublicMode = (publicOwnerId && publicAgentId);
+
+        // Immediate CSS Injection for Public Mode to prevent UI Flash
+        if(isPublicMode) {
+            document.body.classList.add('public-mode');
+        }
 
         // Helper to get correct path owner
         function getOwnerId() {
             return isPublicMode ? publicOwnerId : (userState ? userState.uid : null);
         }
 
-        // --- Core Logic ---
-
+        // --- UI Functions ---
         function notify(msg, type = 'err') {
             const bin = document.getElementById('toast-bin');
             const t = document.createElement('div');
@@ -352,115 +381,130 @@
         function signOut() { auth.signOut().then(() => location.reload()); }
 
         function showSection(id) {
+            if(isPublicMode) return; // Locked in public mode
             ['auth-view', 'home-view', 'creator-view', 'chat-view'].forEach(s => document.getElementById(s).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
-            if(id === 'home-view' && userState && !isPublicMode) loadAgents();
+            
+            // Refresh lists if entering needed sections
+            if(id === 'home-view' || id === 'creator-view') loadAgents();
         }
 
-        // --- Robust Copy Function (HTTP + HTTPS) ---
         function secureCopy(text) {
-            // Method 1: Modern Async Clipboard (HTTPS)
             if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(text).then(() => {
-                    notify("Public Link Copied to Clipboard", "success");
-                }).catch(() => {
-                    notify("Clipboard Access Denied", "err");
-                });
+                navigator.clipboard.writeText(text).then(() => notify("Public Link Copied", "success"))
+                .catch(() => notify("Clipboard Access Denied", "err"));
             } else {
-                // Method 2: Fallback `execCommand` (HTTP / Non-secure)
                 const textArea = document.createElement("textarea");
                 textArea.value = text;
-                textArea.style.position = "fixed";
-                textArea.style.left = "-9999px";
-                textArea.style.top = "0";
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                    notify("Public Link Copied (Fallback)", "success");
-                } catch (err) {
-                    notify("Copy Failed. Please copy manually.", "err");
-                }
+                textArea.style.position = "fixed"; textArea.style.left = "-9999px";
+                document.body.appendChild(textArea); textArea.focus(); textArea.select();
+                try { document.execCommand('copy'); notify("Public Link Copied", "success"); } 
+                catch (err) { notify("Copy Failed", "err"); }
                 document.body.removeChild(textArea);
             }
         }
 
-        function copyPublicLink(agentId, e) {
-            e.stopPropagation(); // Prevent opening chat when clicking share
+        function copyPublicLink(agentId) {
             if(!userState) return;
-            // Constructing URL with ?id=AGENT_ID&u=USER_ID
             const url = `${window.location.origin}${window.location.pathname}?id=${agentId}&u=${userState.uid}`;
             secureCopy(url);
         }
 
+        // --- Core Logic ---
+
         async function deployAgent() {
-            if(!userState) return notify("Session Expired. Please Re-login.");
+            if(!userState) return notify("Session Expired");
+            const fields = ['b-name', 'b-url', 'b-kb', 'b-logo', 'b-wa', 'b-email'];
+            const vals = {};
+            fields.forEach(f => vals[f] = document.getElementById(f).value);
 
-            const name = document.getElementById('b-name');
-            const url = document.getElementById('b-url');
-            const kb = document.getElementById('b-kb');
-            const logo = document.getElementById('b-logo');
-            const wa = document.getElementById('b-wa');
-            const email = document.getElementById('b-email');
-
-            if(!name.value || !url.value || !kb.value) {
-                [name, url, kb].forEach(f => !f.value && f.classList.add('error-field'));
-                return notify('Identity, Website & Knowledge Base are required.');
-            }
+            if(!vals['b-name'] || !vals['b-url'] || !vals['b-kb']) return notify('Identity, Website & Knowledge Base are required.');
 
             const btn = document.getElementById('deploy-btn');
-            btn.innerHTML = `<i class="fas fa-atom fa-spin"></i> Synthesizing Neural Pathways...`;
+            btn.innerHTML = `<i class="fas fa-atom fa-spin"></i> Synthesizing...`;
 
             const data = {
-                name: name.value,
-                url: url.value,
-                kb: kb.value,
-                logo: logo.value || 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
-                wa: wa.value || 'N/A',
-                email: email.value || 'N/A',
+                name: vals['b-name'],
+                url: vals['b-url'],
+                kb: vals['b-kb'],
+                logo: vals['b-logo'] || 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
+                wa: vals['b-wa'] || 'N/A',
+                email: vals['b-email'] || 'N/A',
                 ts: Date.now()
             };
 
             try {
                 await db.ref(`brands/${userState.uid}`).push(data);
-                notify('ai support Agent Deployed Successfully', 'success');
-                [name, url, kb, logo, wa, email].forEach(i => i.value = '');
-                showSection('home-view');
+                notify('Agent Deployed', 'success');
+                fields.forEach(f => document.getElementById(f).value = '');
+                showSection('home-view'); // Switch to home to see it
             } catch(e) {
                 notify(e.message, 'err');
             }
             btn.innerText = "Synthesize & Deploy AI";
         }
 
+        function deleteAgent(agentId) {
+            if(confirm('Terminate this neural node permanently?')) {
+                db.ref(`brands/${userState.uid}/${agentId}`).remove()
+                .then(() => notify('Agent Terminated', 'success'))
+                .catch(e => notify(e.message, 'err'));
+            }
+        }
+
+        // Unified loading for Directory and Studio List
         function loadAgents() {
-            if(isPublicMode) return; 
+            if(isPublicMode || !userState) return; 
 
             const grid = document.getElementById('brands-grid');
+            const studioList = document.getElementById('studio-agent-list');
+
             db.ref(`brands/${userState.uid}`).on('value', snap => {
                 grid.innerHTML = '';
+                studioList.innerHTML = '';
+
                 if(!snap.exists()) {
-                    grid.innerHTML = `<div class="col-span-full py-20 text-center opacity-30"><i class="fas fa-box-open text-4xl mb-4"></i><p>No neural agents found. Deploy one from Studio.</p></div>`;
+                    grid.innerHTML = `<div class="col-span-full py-10 text-center opacity-30"><p>No agents active.</p></div>`;
+                    studioList.innerHTML = `<div class="p-4 border border-white/10 rounded-xl text-center text-slate-500 text-sm">No active neural nodes. Create one above.</div>`;
                     return;
                 }
+
                 snap.forEach(child => {
                     const b = child.val();
+                    const id = child.key;
+
+                    // 1. Populate Directory Card
                     grid.innerHTML += `
-                        <div onclick="initiateChat('${child.key}', '${b.name}')" class="glass-card p-8 rounded-[2rem] cursor-pointer hover:border-accent-primary transition-all group relative overflow-hidden">
+                        <div onclick="initiateChat('${id}', '${b.name}')" class="glass-card p-8 rounded-[2rem] cursor-pointer hover:border-accent-primary transition-all group relative overflow-hidden">
                             <div class="flex items-start justify-between mb-6">
                                 <div class="w-14 h-14 bg-white/5 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">
-                                    <img src="${b.logo}" class="w-full h-full object-cover group-hover:scale-110 transition-transform" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1162/1162456.png'">
+                                    <img src="${b.logo}" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1162/1162456.png'">
                                 </div>
-                                <div class="flex gap-2">
-                                    <!-- Share Button with new secureCopy -->
-                                    <button onclick="copyPublicLink('${child.key}', event)" class="w-8 h-8 rounded-full bg-white/10 hover:bg-accent-primary flex items-center justify-center transition"><i class="fas fa-share-nodes text-xs"></i></button>
-                                    <div class="bg-accent-emerald/10 text-accent-emerald text-[8px] font-black px-2 py-1 rounded-full uppercase flex items-center">active</div>
-                                </div>
+                                <div class="bg-accent-emerald/10 text-accent-emerald text-[8px] font-black px-2 py-1 rounded-full uppercase">active</div>
                             </div>
                             <h3 class="text-2xl font-bold mb-1 tracking-tight">${b.name}</h3>
-                            <p class="text-[10px] font-medium text-slate-500 uppercase tracking-widest truncate">${b.url.replace('https://','')}</p>
+                            <p class="text-[10px] font-medium text-slate-500 uppercase tracking-widest truncate">${b.url}</p>
                             <div class="mt-8 flex items-center justify-between">
-                                <span class="text-[10px] font-black text-accent-primary group-hover:tracking-[0.1em] transition-all uppercase">help and support<i class="fas fa-arrow-right ml-1"></i></span>
+                                <span class="text-[10px] font-black text-accent-primary group-hover:tracking-[0.1em] transition-all uppercase">Open Terminal<i class="fas fa-arrow-right ml-1"></i></span>
+                            </div>
+                        </div>
+                    `;
+
+                    // 2. Populate Studio Configuration List
+                    studioList.innerHTML += `
+                        <div class="glass-card p-4 rounded-xl flex items-center justify-between group">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-white/5 rounded-lg overflow-hidden">
+                                    <img src="${b.logo}" class="w-full h-full object-cover">
+                                </div>
+                                <div>
+                                    <h5 class="font-bold text-sm">${b.name}</h5>
+                                    <p class="text-[10px] text-slate-500 truncate max-w-[150px]">${id}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="copyPublicLink('${id}')" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-accent-primary text-xs font-bold transition">Copy Link</button>
+                                <button onclick="deleteAgent('${id}')" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-accent-rose text-white/50 hover:text-white transition flex items-center justify-center"><i class="fas fa-trash text-xs"></i></button>
                             </div>
                         </div>
                     `;
@@ -472,24 +516,20 @@
             activeAgent = { id, name };
             document.getElementById('active-brand-name').innerText = name;
             document.getElementById('chat-stream').innerHTML = '';
-            showSection('chat-view');
             
-            // Public Mode UI: Hide Navigation and Back Buttons
-            if(isPublicMode) {
-                document.getElementById('chat-back-btn').classList.add('hidden');
-                document.getElementById('main-nav').classList.add('public-hidden');
-                document.getElementById('logout-btn').classList.add('public-hidden');
-            } else {
-                document.getElementById('chat-back-btn').classList.remove('hidden');
-                document.getElementById('main-nav').classList.remove('public-hidden');
-                document.getElementById('logout-btn').classList.remove('public-hidden');
+            // Force show chat view (hide others logic handled by showSection or CSS)
+            document.getElementById('chat-view').classList.remove('hidden');
+            if(!isPublicMode) {
+                document.getElementById('home-view').classList.add('hidden');
+                document.getElementById('creator-view').classList.add('hidden');
             }
 
-            pushMsg('assistant', `Synchronized with **${name}** knowledge base. Listening for queries...`);
+            pushMsg('assistant', `Synchronized with **${name}**. How can I help?`);
 
             const ownerId = getOwnerId();
             if(!ownerId) return;
 
+            // Load history
             db.ref(`chats/${ownerId}/${id}`).limitToLast(10).once('value', s => {
                 s.forEach(m => pushMsg(m.val().role, m.val().content));
             });
@@ -518,9 +558,8 @@
             input.value = '';
 
             const ownerId = getOwnerId();
-            if(!ownerId) return notify("Connection Error: No Owner ID found.");
+            if(!ownerId) return notify("Connection Error");
 
-            // Fetch details from Owner's path
             const snap = await db.ref(`brands/${ownerId}/${activeAgent.id}`).once('value');
             const b = snap.val();
 
@@ -533,15 +572,13 @@
                         messages: [
                             { 
                                 role: "system", 
-                                content: `You are a professional AI Assistant for the brand "${b.name}".
-                                ANALYZE THIS WEBSITE: ${b.url}. 
-                                KNOWLEDGE BASE: ${b.kb}. 
-                                
-                                RULES:
-                                1. LANGUAGE MIRROR: If the user talks in Hindi/Hinglish, reply in Hindi. If English, reply in English.
-                                2. SITE EXPERT: Answer everything based on ${b.url} and the Knowledge Base provided. Be specific.
-                                3. ESCALATION: For human help, give WhatsApp ${b.wa} and Email ${b.email}.
-                                4. STYLE: Professional and concise.` 
+                                content: `You are a professional AI Assistant for "${b.name}".
+                                WEBSITE: ${b.url}. 
+                                DATA: ${b.kb}. 
+                                CONTEXT:
+                                1. Reply in the user's language (Hindi/English).
+                                2. Use ONLY the provided data.
+                                3. If stuck, provide WhatsApp: ${b.wa} or Email: ${b.email}.` 
                             },
                             { role: "user", content: text }
                         ]
@@ -551,47 +588,43 @@
                 const ai = d.choices[0].message.content;
                 pushMsg('assistant', ai);
                 
-                // Saving to Owner's DB
+                // Save Chat (Optional: disable for public if privacy needed, keeping for now)
                 db.ref(`chats/${ownerId}/${activeAgent.id}`).push({ role: 'user', content: text });
                 db.ref(`chats/${ownerId}/${activeAgent.id}`).push({ role: 'assistant', content: ai });
             } catch(e) {
-                console.error(e);
-                pushMsg('assistant', "Neural link lost. Please check connection.");
+                pushMsg('assistant', "Neural link unstable.");
             }
         }
 
-        // --- Auth Observer ---
+        // --- Entry Point Logic ---
         auth.onAuthStateChanged(user => {
             if (isPublicMode) {
-                // PUBLIC MODE: Bypass Auth Screen
-                userState = user; // Allow basic access (likely null if not logged in)
-                document.getElementById('app-shell').classList.remove('hidden');
+                // PUBLIC MODE: Strictly hide auth and load chat
+                userState = user; // Might be null, that's fine
                 document.getElementById('auth-view').classList.add('hidden');
+                document.getElementById('app-shell').classList.remove('hidden');
                 
-                // Directly load the specific agent using the public params
+                // Fetch public agent details
                 db.ref(`brands/${publicOwnerId}/${publicAgentId}`).once('value').then(snap => {
                     if(snap.exists()) {
                         initiateChat(publicAgentId, snap.val().name);
                     } else {
-                        notify("Invalid Public Link or Agent Deleted", "err");
+                        document.body.innerHTML = "<div style='color:white;text-align:center;padding:50px;font-family:sans-serif'>Invalid or Deleted Neural Link.</div>";
                     }
                 });
 
             } else if (user) {
-                // ADMIN MODE
+                // ADMIN MODE: Logged in
                 userState = user;
                 document.getElementById('app-shell').classList.remove('hidden');
+                document.getElementById('auth-view').classList.add('hidden');
                 showSection('home-view');
             } else {
-                // LOGGED OUT
+                // LOGGED OUT: Show Auth
                 userState = null;
                 document.getElementById('app-shell').classList.add('hidden');
-                showSection('auth-view');
+                document.getElementById('auth-view').classList.remove('hidden');
             }
-        });
-
-        document.querySelectorAll('input, textarea').forEach(el => {
-            el.addEventListener('input', () => el.classList.remove('error-field'));
         });
     </script>
 </body>
