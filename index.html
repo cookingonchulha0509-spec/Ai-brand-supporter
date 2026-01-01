@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BrandAI | Neural Support Studio</title>
+    <title>BrandAI | Support</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -48,22 +48,25 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .auth-slider {
-            position: relative;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 1rem;
-            padding: 4px;
-            display: flex;
+        /* --- Chat Bubble Styles (WhatsApp Feel) --- */
+        .bubble-ai {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-top-left-radius: 4px;
+            border-top-right-radius: 20px;
+            border-bottom-right-radius: 20px;
+            border-bottom-left-radius: 20px;
+            color: #e2e8f0;
         }
 
-        .auth-slider .slider-pill {
-            position: absolute;
-            top: 4px; bottom: 4px; left: 4px;
-            width: calc(50% - 4px);
+        .bubble-user {
             background: linear-gradient(135deg, #6366f1, #a855f7);
-            border-radius: 0.8rem;
-            transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1);
-            z-index: 0;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 4px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         }
 
         .input-pro {
@@ -78,10 +81,10 @@
         }
 
         @keyframes premiumReveal {
-            from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
-            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .animate-reveal { animation: premiumReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-reveal { animation: premiumReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         .btn-gradient-pro {
             background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
@@ -98,24 +101,22 @@
         body.public-mode #main-nav,
         body.public-mode #logout-btn,
         body.public-mode #chat-back-btn,
-        body.public-mode #auth-view {
+        body.public-mode #auth-view,
+        body.public-mode #home-view,
+        body.public-mode #creator-view {
             display: none !important;
         }
         
-        body.public-mode #app-shell {
-            display: block !important;
-        }
-
-        body.public-mode main {
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-        }
-        
+        body.public-mode #app-shell,
         body.public-mode #chat-view {
-            position: relative; 
-            height: 100vh; 
+            display: block !important;
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
             z-index: 9999;
         }
+
+        body.public-mode main { padding: 0 !important; }
 
         ::-webkit-scrollbar { display: none; }
     </style>
@@ -136,8 +137,8 @@
                 <p class="text-slate-500 font-medium">Professional Intelligence Gateway</p>
             </div>
 
-            <div class="auth-slider mb-8 h-14">
-                <div id="slider-bg" class="slider-pill"></div>
+            <div class="auth-slider mb-8 h-14 relative bg-white/5 rounded-2xl p-1 flex">
+                <div id="slider-bg" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl transition-all duration-300"></div>
                 <button onclick="switchAuth('login')" class="flex-1 relative z-10 text-sm font-bold">Sign In</button>
                 <button onclick="switchAuth('signup')" class="flex-1 relative z-10 text-sm font-bold">Register</button>
             </div>
@@ -261,26 +262,35 @@
             </section>
         </main>
 
-        <!-- Chat View -->
+        <!-- Chat View (Unified for Public & Admin) -->
         <section id="chat-view" class="hidden fixed inset-0 z-[100] bg-black flex flex-col">
-            <header class="p-6 bg-black border-b border-white/5 flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <!-- Back button hidden in public mode via CSS -->
-                    <button id="chat-back-btn" onclick="showSection('home-view')" class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition"><i class="fas fa-arrow-left"></i></button>
+            <!-- Header (Dynamic) -->
+            <header class="p-4 bg-black/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between z-20">
+                <div class="flex items-center gap-3">
+                    <button id="chat-back-btn" onclick="showSection('home-view')" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 mr-1"><i class="fas fa-arrow-left text-sm"></i></button>
+                    
+                    <!-- New WhatsApp-style Header Info -->
+                    <div class="relative w-10 h-10 rounded-full bg-white/10 overflow-hidden border border-white/10">
+                        <img id="chat-header-img" class="w-full h-full object-cover" src="">
+                    </div>
                     <div>
-                        <h4 id="active-brand-name" class="text-xl font-bold tracking-tight">Agent</h4>
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 bg-accent-emerald rounded-full animate-pulse"></span>
-                            <span class="text-[10px] font-bold text-accent-emerald uppercase tracking-widest">ai support Sync Active</span>
+                        <h4 id="active-brand-name" class="font-bold text-base tracking-tight leading-tight">Agent</h4>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 bg-accent-emerald rounded-full animate-pulse"></span>
+                            <span class="text-[10px] font-medium text-accent-emerald/80">Online</span>
                         </div>
                     </div>
                 </div>
             </header>
-            <div id="chat-stream" class="flex-1 overflow-y-auto p-6 space-y-8 max-w-4xl mx-auto w-full"></div>
-            <div class="p-6 bg-black border-t border-white/5">
-                <div class="max-w-4xl mx-auto flex items-center gap-3 bg-white/5 p-2 pr-4 rounded-[2rem]">
-                    <input type="text" id="chat-input" class="flex-1 bg-transparent border-none outline-none p-4 text-sm" placeholder="Ask anything..." autocomplete="off">
-                    <button onclick="dispatchMessage()" class="w-12 h-12 btn-gradient-pro rounded-2xl flex items-center justify-center"><i class="fas fa-paper-plane text-xs"></i></button>
+            
+            <!-- Chat Area -->
+            <div id="chat-stream" class="flex-1 overflow-y-auto p-4 space-y-6 max-w-4xl mx-auto w-full pb-6"></div>
+            
+            <!-- Input Area -->
+            <div class="p-4 bg-black border-t border-white/5 z-20">
+                <div class="max-w-4xl mx-auto flex items-end gap-3 bg-white/5 p-2 pr-2 rounded-[1.5rem] border border-white/5 focus-within:border-accent-primary/50 transition-colors">
+                    <textarea id="chat-input" rows="1" class="flex-1 bg-transparent border-none outline-none p-3 text-sm max-h-24 resize-none" placeholder="Type a message..." autocomplete="off"></textarea>
+                    <button onclick="dispatchMessage()" class="w-11 h-11 btn-gradient-pro rounded-full flex-shrink-0 flex items-center justify-center shadow-lg transform active:scale-90 transition"><i class="fas fa-paper-plane text-xs text-white"></i></button>
                 </div>
             </div>
         </section>
@@ -472,10 +482,9 @@
                 snap.forEach(child => {
                     const b = child.val();
                     const id = child.key;
-
-                    // 1. Populate Directory Card
+                    // Fix: passed logo to initiateChat for correct header display
                     grid.innerHTML += `
-                        <div onclick="initiateChat('${id}', '${b.name}')" class="glass-card p-8 rounded-[2rem] cursor-pointer hover:border-accent-primary transition-all group relative overflow-hidden">
+                        <div onclick="initiateChat('${id}', '${b.name}', '${b.logo}')" class="glass-card p-8 rounded-[2rem] cursor-pointer hover:border-accent-primary transition-all group relative overflow-hidden">
                             <div class="flex items-start justify-between mb-6">
                                 <div class="w-14 h-14 bg-white/5 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">
                                     <img src="${b.logo}" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1162/1162456.png'">
@@ -490,12 +499,12 @@
                         </div>
                     `;
 
-                    // 2. Populate Studio Configuration List
                     studioList.innerHTML += `
                         <div class="glass-card p-4 rounded-xl flex items-center justify-between group">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 bg-white/5 rounded-lg overflow-hidden">
                                     <img src="${b.logo}" class="w-full h-full object-cover">
+                                    <img src="${b.logo}" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1162/1162456.png'">
                                 </div>
                                 <div>
                                     <h5 class="font-bold text-sm">${b.name}</h5>
@@ -512,12 +521,18 @@
             });
         }
 
-        async function initiateChat(id, name) {
+        // Updated InitiateChat to accept logo and update header
+        async function initiateChat(id, name, logo) {
             activeAgent = { id, name };
             document.getElementById('active-brand-name').innerText = name;
+            
+            // Header Image Update
+            const img = document.getElementById('chat-header-img');
+            img.src = logo || 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png';
+            img.onerror = function() { this.src = 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png'; };
+
             document.getElementById('chat-stream').innerHTML = '';
             
-            // Force show chat view (hide others logic handled by showSection or CSS)
             document.getElementById('chat-view').classList.remove('hidden');
             if(!isPublicMode) {
                 document.getElementById('home-view').classList.add('hidden');
@@ -539,9 +554,13 @@
             const stream = document.getElementById('chat-stream');
             const isUser = role === 'user';
             const msgDiv = document.createElement('div');
+            
+            // Format line breaks
+            content = content.replace(/\n/g, '<br>');
+            
             msgDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'} animate-reveal`;
             msgDiv.innerHTML = `
-                <div class="max-w-[85%] ${isUser ? 'btn-gradient-pro text-white rounded-3xl rounded-tr-none' : 'glass-card border border-white/10 text-slate-300 rounded-3xl rounded-tl-none'} px-6 py-4 text-sm leading-relaxed shadow-xl">
+                <div class="${isUser ? 'bubble-user' : 'bubble-ai'} max-w-[85%] px-5 py-3 text-[15px] leading-relaxed shadow-sm">
                     ${content}
                 </div>
             `;
@@ -556,6 +575,10 @@
 
             pushMsg('user', text);
             input.value = '';
+            input.style.height = 'auto'; // Reset height
+            
+            // KEYBOARD FIX: Keep focus on input
+            input.focus();
 
             const ownerId = getOwnerId();
             if(!ownerId) return notify("Connection Error");
@@ -588,7 +611,7 @@
                 const ai = d.choices[0].message.content;
                 pushMsg('assistant', ai);
                 
-                // Save Chat (Optional: disable for public if privacy needed, keeping for now)
+                // Save Chat
                 db.ref(`chats/${ownerId}/${activeAgent.id}`).push({ role: 'user', content: text });
                 db.ref(`chats/${ownerId}/${activeAgent.id}`).push({ role: 'assistant', content: ai });
             } catch(e) {
@@ -596,18 +619,26 @@
             }
         }
 
+        // Auto-resize textarea for mobile friendliness
+        document.getElementById('chat-input').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
         // --- Entry Point Logic ---
         auth.onAuthStateChanged(user => {
             if (isPublicMode) {
                 // PUBLIC MODE: Strictly hide auth and load chat
-                userState = user; // Might be null, that's fine
-                document.getElementById('auth-view').classList.add('hidden');
+                userState = user; 
+                document.getElementById('auth-view').remove(); // Completely remove auth view
                 document.getElementById('app-shell').classList.remove('hidden');
                 
                 // Fetch public agent details
                 db.ref(`brands/${publicOwnerId}/${publicAgentId}`).once('value').then(snap => {
                     if(snap.exists()) {
-                        initiateChat(publicAgentId, snap.val().name);
+                        const d = snap.val();
+                        // Call initiateChat with correct logo
+                        initiateChat(publicAgentId, d.name, d.logo);
                     } else {
                         document.body.innerHTML = "<div style='color:white;text-align:center;padding:50px;font-family:sans-serif'>Invalid or Deleted Neural Link.</div>";
                     }
