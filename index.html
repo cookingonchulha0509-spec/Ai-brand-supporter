@@ -96,6 +96,9 @@
         }
         .error-field { border-color: #f43f5e !important; animation: shake 0.3s ease-in-out; }
 
+        /* Public Mode Hiding */
+        .public-hidden { display: none !important; }
+
         ::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -144,7 +147,8 @@
     <!-- App Shell -->
     <div id="app-shell" class="hidden">
         
-        <header class="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 px-6 py-4">
+        <!-- Header -->
+        <header id="main-header" class="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 px-6 py-4">
             <div class="max-w-7xl mx-auto flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 btn-gradient-pro rounded-xl flex items-center justify-center">
@@ -152,7 +156,7 @@
                     </div>
                     <span class="text-2xl font-extrabold tracking-tighter">BrandAI</span>
                 </div>
-                <button onclick="signOut()" class="text-[10px] font-bold text-slate-500 hover:text-white uppercase tracking-widest transition">log out</button>
+                <button id="logout-btn" onclick="signOut()" class="text-[10px] font-bold text-slate-500 hover:text-white uppercase tracking-widest transition">log out</button>
             </div>
         </header>
 
@@ -232,7 +236,8 @@
         <section id="chat-view" class="hidden fixed inset-0 z-[100] bg-black flex flex-col">
             <header class="p-6 bg-black border-b border-white/5 flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <button onclick="showSection('home-view')" class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+                    <!-- Back button hidden in public mode -->
+                    <button id="chat-back-btn" onclick="showSection('home-view')" class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
                     <div>
                         <h4 id="active-brand-name" class="text-xl font-bold tracking-tight">Agent</h4>
                         <div class="flex items-center gap-2">
@@ -252,7 +257,7 @@
         </section>
 
         <!-- Navbar -->
-        <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-sm glass-card p-4 rounded-full flex justify-around items-center z-40">
+        <nav id="main-nav" class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-sm glass-card p-4 rounded-full flex justify-around items-center z-40">
             <button onclick="showSection('home-view')" class="flex flex-col items-center gap-1 group">
                 <i class="fas fa-th-large text-xl text-accent-primary transition group-active:scale-75"></i>
                 <span class="text-[8px] font-black uppercase tracking-widest text-slate-500">Explore</span>
@@ -271,14 +276,14 @@
     <script>
         // --- Firebase Init ---
         const firebaseConfig = {
-            apiKey: "AIzaSyBsqN79Fzb80pfxbX3N0Oq_LcLt8mfAidc",
-            authDomain: "trder-f0be8.firebaseapp.com",
-            databaseURL: "https://trder-f0be8-default-rtdb.firebaseio.com",
-            projectId: "trder-f0be8",
-            storageBucket: "trder-f0be8.firebasestorage.app",
-            messagingSenderId: "563351880166",
-            appId: "1:563351880166:web:571a888237d91f83871627"
-        };
+  apiKey: "AIzaSyBiHHb4uZH_D2dWN2zgIJzjlFeO0fvYvPY",
+  authDomain: "ai-brand-supporter.firebaseapp.com",
+  databaseURL: "https://ai-brand-supporter-default-rtdb.firebaseio.com",
+  projectId: "ai-brand-supporter",
+  storageBucket: "ai-brand-supporter.firebasestorage.app",
+  messagingSenderId: "257519339474",
+  appId: "1:257519339474:web:a99c8b207e02c23b5fea0b"
+};
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const auth = firebase.auth();
@@ -287,6 +292,18 @@
         let userState = null;
         let activeAgent = null;
         let authMode = 'login';
+
+        // --- Public Access Logic & URL Detection ---
+        const urlParams = new URLSearchParams(window.location.search);
+        // Using 'u' for User/Owner and 'id' for Agent as requested
+        const publicOwnerId = urlParams.get('u'); 
+        const publicAgentId = urlParams.get('id'); 
+        const isPublicMode = (publicOwnerId && publicAgentId);
+
+        // Helper to get correct path owner
+        function getOwnerId() {
+            return isPublicMode ? publicOwnerId : (userState ? userState.uid : null);
+        }
 
         // --- Core Logic ---
 
@@ -337,7 +354,44 @@
         function showSection(id) {
             ['auth-view', 'home-view', 'creator-view', 'chat-view'].forEach(s => document.getElementById(s).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
-            if(id === 'home-view' && userState) loadAgents();
+            if(id === 'home-view' && userState && !isPublicMode) loadAgents();
+        }
+
+        // --- Robust Copy Function (HTTP + HTTPS) ---
+        function secureCopy(text) {
+            // Method 1: Modern Async Clipboard (HTTPS)
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    notify("Public Link Copied to Clipboard", "success");
+                }).catch(() => {
+                    notify("Clipboard Access Denied", "err");
+                });
+            } else {
+                // Method 2: Fallback `execCommand` (HTTP / Non-secure)
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                textArea.style.top = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    notify("Public Link Copied (Fallback)", "success");
+                } catch (err) {
+                    notify("Copy Failed. Please copy manually.", "err");
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function copyPublicLink(agentId, e) {
+            e.stopPropagation(); // Prevent opening chat when clicking share
+            if(!userState) return;
+            // Constructing URL with ?id=AGENT_ID&u=USER_ID
+            const url = `${window.location.origin}${window.location.pathname}?id=${agentId}&u=${userState.uid}`;
+            secureCopy(url);
         }
 
         async function deployAgent() {
@@ -369,11 +423,8 @@
             };
 
             try {
-                // Individual User Path taaki data turant load ho
                 await db.ref(`brands/${userState.uid}`).push(data);
                 notify('ai support Agent Deployed Successfully', 'success');
-                
-                // Reset Fields
                 [name, url, kb, logo, wa, email].forEach(i => i.value = '');
                 showSection('home-view');
             } catch(e) {
@@ -383,6 +434,8 @@
         }
 
         function loadAgents() {
+            if(isPublicMode) return; 
+
             const grid = document.getElementById('brands-grid');
             db.ref(`brands/${userState.uid}`).on('value', snap => {
                 grid.innerHTML = '';
@@ -398,7 +451,11 @@
                                 <div class="w-14 h-14 bg-white/5 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">
                                     <img src="${b.logo}" class="w-full h-full object-cover group-hover:scale-110 transition-transform" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1162/1162456.png'">
                                 </div>
-                                <div class="bg-accent-emerald/10 text-accent-emerald text-[8px] font-black px-2 py-1 rounded-full uppercase">help and support</div>
+                                <div class="flex gap-2">
+                                    <!-- Share Button with new secureCopy -->
+                                    <button onclick="copyPublicLink('${child.key}', event)" class="w-8 h-8 rounded-full bg-white/10 hover:bg-accent-primary flex items-center justify-center transition"><i class="fas fa-share-nodes text-xs"></i></button>
+                                    <div class="bg-accent-emerald/10 text-accent-emerald text-[8px] font-black px-2 py-1 rounded-full uppercase flex items-center">active</div>
+                                </div>
                             </div>
                             <h3 class="text-2xl font-bold mb-1 tracking-tight">${b.name}</h3>
                             <p class="text-[10px] font-medium text-slate-500 uppercase tracking-widest truncate">${b.url.replace('https://','')}</p>
@@ -417,9 +474,23 @@
             document.getElementById('chat-stream').innerHTML = '';
             showSection('chat-view');
             
+            // Public Mode UI: Hide Navigation and Back Buttons
+            if(isPublicMode) {
+                document.getElementById('chat-back-btn').classList.add('hidden');
+                document.getElementById('main-nav').classList.add('public-hidden');
+                document.getElementById('logout-btn').classList.add('public-hidden');
+            } else {
+                document.getElementById('chat-back-btn').classList.remove('hidden');
+                document.getElementById('main-nav').classList.remove('public-hidden');
+                document.getElementById('logout-btn').classList.remove('public-hidden');
+            }
+
             pushMsg('assistant', `Synchronized with **${name}** knowledge base. Listening for queries...`);
 
-            db.ref(`chats/${userState.uid}/${id}`).limitToLast(10).once('value', s => {
+            const ownerId = getOwnerId();
+            if(!ownerId) return;
+
+            db.ref(`chats/${ownerId}/${id}`).limitToLast(10).once('value', s => {
                 s.forEach(m => pushMsg(m.val().role, m.val().content));
             });
         }
@@ -446,7 +517,11 @@
             pushMsg('user', text);
             input.value = '';
 
-            const snap = await db.ref(`brands/${userState.uid}/${activeAgent.id}`).once('value');
+            const ownerId = getOwnerId();
+            if(!ownerId) return notify("Connection Error: No Owner ID found.");
+
+            // Fetch details from Owner's path
+            const snap = await db.ref(`brands/${ownerId}/${activeAgent.id}`).once('value');
             const b = snap.val();
 
             try {
@@ -476,20 +551,39 @@
                 const ai = d.choices[0].message.content;
                 pushMsg('assistant', ai);
                 
-                db.ref(`chats/${userState.uid}/${activeAgent.id}`).push({ role: 'user', content: text });
-                db.ref(`chats/${userState.uid}/${activeAgent.id}`).push({ role: 'assistant', content: ai });
+                // Saving to Owner's DB
+                db.ref(`chats/${ownerId}/${activeAgent.id}`).push({ role: 'user', content: text });
+                db.ref(`chats/${ownerId}/${activeAgent.id}`).push({ role: 'assistant', content: ai });
             } catch(e) {
+                console.error(e);
                 pushMsg('assistant', "Neural link lost. Please check connection.");
             }
         }
 
         // --- Auth Observer ---
         auth.onAuthStateChanged(user => {
-            if (user) {
+            if (isPublicMode) {
+                // PUBLIC MODE: Bypass Auth Screen
+                userState = user; // Allow basic access (likely null if not logged in)
+                document.getElementById('app-shell').classList.remove('hidden');
+                document.getElementById('auth-view').classList.add('hidden');
+                
+                // Directly load the specific agent using the public params
+                db.ref(`brands/${publicOwnerId}/${publicAgentId}`).once('value').then(snap => {
+                    if(snap.exists()) {
+                        initiateChat(publicAgentId, snap.val().name);
+                    } else {
+                        notify("Invalid Public Link or Agent Deleted", "err");
+                    }
+                });
+
+            } else if (user) {
+                // ADMIN MODE
                 userState = user;
                 document.getElementById('app-shell').classList.remove('hidden');
                 showSection('home-view');
             } else {
+                // LOGGED OUT
                 userState = null;
                 document.getElementById('app-shell').classList.add('hidden');
                 showSection('auth-view');
