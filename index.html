@@ -599,7 +599,7 @@
             stream.scrollTop = stream.scrollHeight;
         }
 
-        // Updated Dispatch Message with Keyboard Fixes
+        // Updated Dispatch Message with Strict Language Detection
         async function dispatchMessage(e) {
             // Prevent default form submission or focus loss if button clicked
             if(e) e.preventDefault();
@@ -632,12 +632,15 @@
                             { 
                                 role: "system", 
                                 content: `You are a professional AI Assistant for "${b.name}".
-                                WEBSITE: ${b.url}. 
-                                DATA: ${b.kb}. 
-                                CONTEXT:
-                                1. Reply in the user's language (Hindi/English).
-                                2. Use ONLY the provided data.
-                                3. If stuck, provide WhatsApp: ${b.wa} or Email: ${b.email}.` 
+                                BRAND DATA: ${b.kb}.
+                                BRAND WEBSITE: ${b.url}.
+                                STRICT LANGUAGE RULE:
+                                 * Detect the language used by the user in the prompt.
+                                 * If the user writes in English, you MUST reply in English.
+                                 * If the user writes in Hindi (or Hinglish), you MUST reply in Hindi.
+                                 * Do not use Hindi if the user is speaking English.
+
+                                Use provided data only. If answer not found, give WhatsApp: ${b.wa} or Email: ${b.email}.` 
                             },
                             { role: "user", content: text }
                         ]
