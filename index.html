@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Added interactive-widget=resizes-content to help with Android keyboard resizing -->
+    <!-- interactive-widget fixes Android keyboard resizing issues -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>BrandAI | Support</title>
     
@@ -363,6 +363,17 @@
         let activeAgent = null;
         let authMode = 'login';
 
+        // --- Session Management (Private Chats) ---
+        function getChatSessionId() {
+            let sid = localStorage.getItem('brand_ai_session_id');
+            if (!sid) {
+                // Generate unique session ID for this browser
+                sid = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('brand_ai_session_id', sid);
+            }
+            return sid;
+        }
+
         // --- Public Access Logic Detection ---
         const urlParams = new URLSearchParams(window.location.search);
         const publicOwnerId = urlParams.get('u'); 
@@ -575,8 +586,11 @@
             const ownerId = getOwnerId();
             if(!ownerId) return;
 
-            // Load history
-            db.ref(`chats/${ownerId}/${id}`).limitToLast(10).once('value', s => {
+            // ISOLATION FIX: Use Session ID in Path
+            const sessionId = getChatSessionId();
+            
+            // Load history for specific session
+            db.ref(`chats/${ownerId}/${id}/${sessionId}`).limitToLast(15).once('value', s => {
                 s.forEach(m => pushMsg(m.val().role, m.val().content));
             });
         }
@@ -599,7 +613,7 @@
             stream.scrollTop = stream.scrollHeight;
         }
 
-        // Updated Dispatch Message with Strict Language Detection
+        // Updated Dispatch Message with Strict Language Detection & Session Isolation
         async function dispatchMessage(e) {
             // Prevent default form submission or focus loss if button clicked
             if(e) e.preventDefault();
@@ -618,6 +632,8 @@
 
             const ownerId = getOwnerId();
             if(!ownerId) return notify("Connection Error");
+            
+            const sessionId = getChatSessionId();
 
             const snap = await db.ref(`brands/${ownerId}/${activeAgent.id}`).once('value');
             const b = snap.val();
@@ -634,12 +650,14 @@
                                 content: `You are a professional AI Assistant for "${b.name}".
                                 BRAND DATA: ${b.kb}.
                                 BRAND WEBSITE: ${b.url}.
-                                STRICT LANGUAGE RULE:
-                                 * Detect the language used by the user in the prompt.
-                                 * If the user writes in English, you MUST reply in English.
-                                 * If the user writes in Hindi (or Hinglish), you MUST reply in Hindi.
-                                 * Do not use Hindi if the user is speaking English.
-
+                                
+                                STRICT DYNAMIC LANGUAGE POLICY:
+                                1. ANALYZE the user's input language first.
+                                2. MATCH the user's language EXACTLY in your reply.
+                                   - If user speaks English -> Reply in English.
+                                   - If user speaks Hindi/Hinglish -> Reply in Hindi.
+                                3. DO NOT force Hindi if the user is typing in English.
+                                
                                 Use provided data only. If answer not found, give WhatsApp: ${b.wa} or Email: ${b.email}.` 
                             },
                             { role: "user", content: text }
@@ -650,9 +668,9 @@
                 const ai = d.choices[0].message.content;
                 pushMsg('assistant', ai);
                 
-                // Save Chat
-                db.ref(`chats/${ownerId}/${activeAgent.id}`).push({ role: 'user', content: text });
-                db.ref(`chats/${ownerId}/${activeAgent.id}`).push({ role: 'assistant', content: ai });
+                // Save Chat (ISOLATED PATH)
+                db.ref(`chats/${ownerId}/${activeAgent.id}/${sessionId}`).push({ role: 'user', content: text });
+                db.ref(`chats/${ownerId}/${activeAgent.id}/${sessionId}`).push({ role: 'assistant', content: ai });
             } catch(e) {
                 pushMsg('assistant', "Neural link unstable.");
             }
