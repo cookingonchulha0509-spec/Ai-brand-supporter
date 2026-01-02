@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>BrandAI | Support</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -40,6 +40,17 @@
             color: #ffffff;
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
+            /* Fix for iOS bounce */
+            position: fixed; 
+            width: 100%; 
+            height: 100%;
+        }
+
+        /* Allow scrolling only in specific containers */
+        #app-shell, main {
+            overflow-y: auto;
+            height: 100%;
+            -webkit-overflow-scrolling: touch;
         }
 
         .glass-card {
@@ -100,7 +111,7 @@
         body.public-mode #main-header,
         body.public-mode #main-nav,
         body.public-mode #logout-btn,
-        body.public-mode #chat-back-btn,
+        body.public-mode #chat-back-btn, /* HIDES BACK BUTTON IN PUBLIC MODE */
         body.public-mode #auth-view,
         body.public-mode #home-view,
         body.public-mode #creator-view {
@@ -109,16 +120,52 @@
         
         body.public-mode #app-shell,
         body.public-mode #chat-view {
-            display: block !important;
-            height: 100vh;
+            display: flex !important; /* Changed to flex for better layout */
+            flex-direction: column;
+            height: 100dvh; /* Dynamic Height for Mobile Keyboards */
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             z-index: 9999;
+            background: #000000;
         }
 
         body.public-mode main { padding: 0 !important; }
 
+        /* Scrollbar Hiding */
         ::-webkit-scrollbar { display: none; }
+
+        /* --- CHAT VIEW SPECIFIC FIXES --- */
+        #chat-view {
+            display: none; /* Default hidden */
+            flex-direction: column;
+            height: 100dvh; /* Crucial for Mobile */
+            width: 100%;
+            background: #000000;
+        }
+
+        /* Header stays at top */
+        #chat-header-container {
+            flex: none;
+            width: 100%;
+        }
+
+        /* Stream takes remaining space and scrolls */
+        #chat-stream {
+            flex: 1;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            width: 100%;
+            scroll-behavior: smooth;
+        }
+
+        /* Input stays at bottom */
+        #chat-input-container {
+            flex: none;
+            width: 100%;
+            background: #000000;
+            padding-bottom: env(safe-area-inset-bottom); /* iPhone X+ safe area */
+        }
+
     </style>
 </head>
 <body class="selection:bg-accent-primary/30">
@@ -127,7 +174,7 @@
     <div id="toast-bin" class="fixed top-6 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-sm space-y-3 pointer-events-none"></div>
 
     <!-- Auth Section -->
-    <section id="auth-view" class="min-h-screen flex items-center justify-center px-6">
+    <section id="auth-view" class="h-screen w-full flex items-center justify-center px-6 overflow-y-auto">
         <div class="w-full max-w-[400px] animate-reveal">
             <div class="text-center mb-10">
                 <div class="inline-flex w-16 h-16 bg-white/5 border border-white/10 rounded-2xl items-center justify-center mb-6">
@@ -164,7 +211,7 @@
     </section>
 
     <!-- App Shell -->
-    <div id="app-shell" class="hidden">
+    <div id="app-shell" class="hidden h-full w-full">
         
         <!-- Header (Hidden in Public Mode) -->
         <header id="main-header" class="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 px-6 py-4">
@@ -179,7 +226,7 @@
             </div>
         </header>
 
-        <main class="pt-28 pb-32 px-6 max-w-7xl mx-auto">
+        <main class="pt-28 pb-32 px-6 max-w-7xl mx-auto overflow-y-auto">
             
             <!-- Grid View -->
             <section id="home-view" class="animate-reveal">
@@ -263,18 +310,20 @@
         </main>
 
         <!-- Chat View (Unified for Public & Admin) -->
-        <section id="chat-view" class="hidden fixed inset-0 z-[100] bg-black flex flex-col">
+        <!-- FIXED: Removed fixed inset, used Flex Column for better mobile handling -->
+        <section id="chat-view" class="hidden z-[100] bg-black">
+            
             <!-- Header (Dynamic) -->
-            <header class="p-4 bg-black/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between z-20">
-                <div class="flex items-center gap-3">
+            <header id="chat-header-container" class="p-4 bg-black/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between z-20">
+                <div class="flex items-center gap-3 w-full">
                     <button id="chat-back-btn" onclick="showSection('home-view')" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 mr-1"><i class="fas fa-arrow-left text-sm"></i></button>
                     
                     <!-- New WhatsApp-style Header Info -->
-                    <div class="relative w-10 h-10 rounded-full bg-white/10 overflow-hidden border border-white/10">
+                    <div class="relative w-10 h-10 rounded-full bg-white/10 overflow-hidden border border-white/10 flex-shrink-0">
                         <img id="chat-header-img" class="w-full h-full object-cover" src="">
                     </div>
-                    <div>
-                        <h4 id="active-brand-name" class="font-bold text-base tracking-tight leading-tight">Agent</h4>
+                    <div class="flex-1 min-w-0">
+                        <h4 id="active-brand-name" class="font-bold text-base tracking-tight leading-tight truncate">Agent</h4>
                         <div class="flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 bg-accent-emerald rounded-full animate-pulse"></span>
                             <span class="text-[10px] font-medium text-accent-emerald/80">Online</span>
@@ -284,13 +333,19 @@
             </header>
             
             <!-- Chat Area -->
-            <div id="chat-stream" class="flex-1 overflow-y-auto p-4 space-y-6 max-w-4xl mx-auto w-full pb-6"></div>
+            <!-- FIXED: Added padding-bottom to ensure text isn't hidden behind input -->
+            <div id="chat-stream" class="p-4 space-y-6 max-w-4xl mx-auto pb-6"></div>
             
             <!-- Input Area -->
-            <div class="p-4 bg-black border-t border-white/5 z-20">
+            <!-- FIXED: Sticky bottom logic within flex container -->
+            <div id="chat-input-container" class="p-3 border-t border-white/5 z-20">
                 <div class="max-w-4xl mx-auto flex items-end gap-3 bg-white/5 p-2 pr-2 rounded-[1.5rem] border border-white/5 focus-within:border-accent-primary/50 transition-colors">
                     <textarea id="chat-input" rows="1" class="flex-1 bg-transparent border-none outline-none p-3 text-sm max-h-24 resize-none" placeholder="Type a message..." autocomplete="off"></textarea>
-                    <button onclick="dispatchMessage()" class="w-11 h-11 btn-gradient-pro rounded-full flex-shrink-0 flex items-center justify-center shadow-lg transform active:scale-90 transition"><i class="fas fa-paper-plane text-xs text-white"></i></button>
+                    
+                    <!-- FIXED: Added preventDefault to logic -->
+                    <button id="send-btn" class="w-11 h-11 btn-gradient-pro rounded-full flex-shrink-0 flex items-center justify-center shadow-lg transform active:scale-90 transition cursor-pointer z-50">
+                        <i class="fas fa-paper-plane text-xs text-white pointer-events-none"></i>
+                    </button>
                 </div>
             </div>
         </section>
@@ -392,8 +447,23 @@
 
         function showSection(id) {
             if(isPublicMode) return; // Locked in public mode
-            ['auth-view', 'home-view', 'creator-view', 'chat-view'].forEach(s => document.getElementById(s).classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
+            ['auth-view', 'home-view', 'creator-view', 'chat-view'].forEach(s => {
+                const el = document.getElementById(s);
+                if (el) {
+                    el.classList.add('hidden');
+                    el.style.display = 'none'; // Force hide for JS logic
+                }
+            });
+            
+            const target = document.getElementById(id);
+            target.classList.remove('hidden');
+            
+            // Flex handling for chat-view
+            if(id === 'chat-view') {
+                target.style.display = 'flex';
+            } else {
+                target.style.display = 'block';
+            }
             
             // Refresh lists if entering needed sections
             if(id === 'home-view' || id === 'creator-view') loadAgents();
@@ -533,11 +603,7 @@
 
             document.getElementById('chat-stream').innerHTML = '';
             
-            document.getElementById('chat-view').classList.remove('hidden');
-            if(!isPublicMode) {
-                document.getElementById('home-view').classList.add('hidden');
-                document.getElementById('creator-view').classList.add('hidden');
-            }
+            showSection('chat-view');
 
             pushMsg('assistant', `Synchronized with **${name}**. How can I help?`);
 
@@ -568,17 +634,23 @@
             stream.scrollTop = stream.scrollHeight;
         }
 
-        async function dispatchMessage() {
+        // --- FIXED: Enhanced Dispatch Message (Click & Enter) ---
+        async function dispatchMessage(event) {
+            if(event) event.preventDefault(); // Stop form submission/reload
+
             const input = document.getElementById('chat-input');
             const text = input.value.trim();
+            
+            // Focus hack to keep keyboard open on mobile
+            setTimeout(() => {
+                input.focus();
+            }, 10);
+
             if(!text) return;
 
             pushMsg('user', text);
             input.value = '';
             input.style.height = 'auto'; // Reset height
-            
-            // KEYBOARD FIX: Keep focus on input
-            input.focus();
 
             const ownerId = getOwnerId();
             if(!ownerId) return notify("Connection Error");
@@ -619,8 +691,23 @@
             }
         }
 
-        // Auto-resize textarea for mobile friendliness
-        document.getElementById('chat-input').addEventListener('input', function() {
+        // --- FIXED: Event Listeners for Input ---
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        // 1. Send on Click
+        sendBtn.addEventListener('click', (e) => dispatchMessage(e));
+
+        // 2. Send on Enter (Desktop)
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                dispatchMessage(e);
+            }
+        });
+
+        // 3. Auto-resize textarea
+        chatInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
         });
