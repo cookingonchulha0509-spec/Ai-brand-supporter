@@ -431,22 +431,17 @@
         async function googleAuth() {
     const provider = new firebase.auth.GoogleAuthProvider();
     
-    // Ye line force karti hai ki user apna account select kar sake
+    // Ye line user ko account select karne ka mauka degi, jisse existing account login asan ho jayega
     provider.setCustomParameters({ prompt: 'select_account' });
 
     try {
         const result = await auth.signInWithPopup(provider);
-        const user = result.user;
-        
-        // Firebase automatically check karta hai: 
-        // Agar account hai toh login, nahi hai toh create.
-        if (result.additionalUserInfo.isNewUser) {
-            notify(`Welcome ${user.displayName}! Account created.`, "success");
-        } else {
-            notify(`Welcome back, ${user.displayName}!`, "success");
-        }
+        // Login hone ke baad UI automatically update ho jayegi onAuthStateChanged ki wajah se
+        notify("Access Granted: " + result.user.displayName, "success");
     } catch (e) {
-        notify("Authentication Failed: " + e.message, 'err');
+        // Agar popup block ho raha hai ya koi aur error hai
+        console.error("Auth Error:", e);
+        notify("Login failed: " + e.message, 'err');
     }
 }
 
