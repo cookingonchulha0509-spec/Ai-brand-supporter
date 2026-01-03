@@ -428,10 +428,28 @@
             }
         }
 
-        function googleAuth() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(e => notify(e.message, 'err'));
+        async function googleAuth() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    
+    // Ye line force karti hai ki user apna account select kar sake
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        
+        // Firebase automatically check karta hai: 
+        // Agar account hai toh login, nahi hai toh create.
+        if (result.additionalUserInfo.isNewUser) {
+            notify(`Welcome ${user.displayName}! Account created.`, "success");
+        } else {
+            notify(`Welcome back, ${user.displayName}!`, "success");
         }
+    } catch (e) {
+        notify("Authentication Failed: " + e.message, 'err');
+    }
+}
+
 
         function signOut() { auth.signOut().then(() => location.reload()); }
 
