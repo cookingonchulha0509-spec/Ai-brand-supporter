@@ -428,22 +428,7 @@
             }
         }
 
-        async function googleAuth() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    
-    // Ye line user ko account select karne ka mauka degi, jisse existing account login asan ho jayega
-    provider.setCustomParameters({ prompt: 'select_account' });
-
-    try {
-        const result = await auth.signInWithPopup(provider);
-        // Login hone ke baad UI automatically update ho jayegi onAuthStateChanged ki wajah se
-        notify("Access Granted: " + result.user.displayName, "success");
-    } catch (e) {
-        // Agar popup block ho raha hai ya koi aur error hai
-        console.error("Auth Error:", e);
-        notify("Login failed: " + e.message, 'err');
-    }
-}
+        provider
 
 
         function signOut() { auth.signOut().then(() => location.reload()); }
