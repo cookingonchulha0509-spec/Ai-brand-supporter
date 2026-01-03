@@ -428,33 +428,25 @@
             }
         }
 
-async function googleAuth() {
+        async function googleAuth() {
     const provider = new firebase.auth.GoogleAuthProvider();
+    
+    // Ye line force karti hai ki user apna account select kar sake
     provider.setCustomParameters({ prompt: 'select_account' });
 
-    // Check if it's an in-app browser (like Instagram)
-    const isInsideApp = /Instagram|FBAN|FBAV|Twitter|Line/i.test(navigator.userAgent);
-
-    if (isInsideApp) {
-        // Instagram browser ke liye Redirect use karein
-        try {
-            await auth.signInWithRedirect(provider);
-        } catch (e) {
-            notify("Redirect failed: " + e.message, 'err');
+    try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        
+        // Firebase automatically check karta hai: 
+        // Agar account hai toh login, nahi hai toh create.
+        if (result.additionalUserInfo.isNewUser) {
+            notify(`Welcome ${user.displayName}! Account created.`, "success");
+        } else {
+            notify(`Welcome back, ${user.displayName}!`, "success");
         }
-    } else {
-        // Normal Chrome/Safari ke liye Popup use karein
-        try {
-            await auth.signInWithPopup(provider);
-            notify("Authorized successfully", "success");
-        } catch (e) {
-            if (e.code === 'auth/popup-blocked') {
-                // Agar normal browser mein bhi popup block ho jaye
-                auth.signInWithRedirect(provider);
-            } else {
-                notify("Login failed: " + e.message, 'err');
-            }
-        }
+    } catch (e) {
+        notify("Authentication Failed: " + e.message, 'err');
     }
 }
 
