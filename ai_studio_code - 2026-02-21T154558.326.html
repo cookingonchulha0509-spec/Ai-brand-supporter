@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tic Tac Toe Pro</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap');
+
+        :root {
+            --bg-dark: #0B0E14;
+            --card-bg: #151A23;
+            --card-border: #1F2937;
+            --primary: #00E5FF;
+            --primary-glow: rgba(0, 229, 255, 0.4);
+            --secondary: #FFD700;
+            --accent: #FF007F;
+            --accent-glow: rgba(255, 0, 127, 0.4);
+            --text-main: #FFFFFF;
+            --text-muted: #9CA3AF;
+            --success: #10B981;
+            --danger: #EF4444;
+            --x-color: #00E5FF;
+            --o-color: #FF007F;
+            --board-bg: #151A23;
+            --cell-bg: #1F2937;
+            --cell-shadow: #0A0D14;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        ::-webkit-scrollbar { display: none; }
+        
+        #app-container { width: 100%; max-width: 480px; height: 100%; position: relative; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-dark); transition: transform 0.1s; }
+        
+        .shake { animation: screenShake 0.4s both; }
+        .hidden { display: none !important; }
+        
+        .glass-card { background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        .btn { padding: 14px 20px; border-radius: 12px; border: none; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; justify-content: center; gap: 8px; color: #FFF; position: relative; overflow: hidden; }
+        .btn:active { transform: scale(0.95); }
+        .btn-primary { background: var(--primary); color: #000; box-shadow: 0 4px 15px var(--primary-glow); }
+        .btn-accent { background: var(--accent); color: #FFF; box-shadow: 0 4px 15px var(--accent-glow); }
+        .btn-outline { background: transparent; border: 2px solid var(--card-border); color: var(--text-main); }
+        .btn-outline:hover { background: #1F2937; border-color: #2D3748; }
+        
+        .input-group { position: relative; margin-bottom: 20px; width: 100%; }
+        .input-group input { width: 100%; padding: 18px 16px 14px 16px; border-radius: 12px; border: 2px solid var(--card-border); background: #0B0E14; color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; outline: none; transition: 0.3s ease; }
+        .input-group label { position: absolute; left: 16px; top: 16px; color: var(--text-muted); font-size: 1rem; pointer-events: none; transition: 0.2s ease; background: transparent; }
+        .input-group input:focus, .input-group input:not(:placeholder-shown) { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+        .input-group input:focus + label, .input-group input:not(:placeholder-shown) + label { top: -10px; left: 12px; font-size: 0.75rem; background: #0B0E14; padding: 0 6px; color: var(--primary); border-radius: 4px; font-weight: 700; }
+
+        .screen { flex: 1; display: none; flex-direction: column; padding: 20px; overflow-y: auto; overflow-x: hidden; position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+        .screen.active { display: flex; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .screen-content { flex: 1; padding-top: 80px; padding-bottom: 90px; } 
+
+        .svg-icon { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+
+        .top-nav { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #0B0E14; border-bottom: 2px solid var(--card-border); z-index: 100; }
+        .user-badge { display: flex; align-items: center; gap: 12px; background: #151A23; padding: 6px 16px 6px 6px; border-radius: 30px; border: 2px solid var(--card-border); cursor: pointer; }
+        .coin-display { display: flex; align-items: center; gap: 8px; color: var(--secondary); font-weight: 800; background: #1A1800; padding: 8px 14px; border-radius: 30px; border: 2px solid rgba(255, 215, 0, 0.3); }
+
+        .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 70px; background: #151A23; border-top: 2px solid var(--card-border); display: flex; justify-content: space-around; align-items: center; padding: 0 10px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); gap: 6px; width: 60px; }
+        .nav-item.active { color: var(--primary); transform: translateY(-4px); }
+        .nav-item.active .svg-icon { filter: drop-shadow(0 0 8px var(--primary-glow)); stroke-width: 2.5; }
+
+        .mode-card { margin-bottom: 16px; position: relative; overflow: hidden; cursor: pointer; transition: 0.2s; }
+        .mode-card:hover, .mode-card:active { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 5px 20px rgba(0,229,255,0.1); }
+        .mode-card h3 { font-size: 1.2rem; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+        .mode-card p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+
+        .matchmaking-loader { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; }
+        .radar { width: 140px; height: 140px; border-radius: 50%; background: #151A23; border: 4px solid #1F2937; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 30px rgba(0, 229, 255, 0.1); }
+        .radar::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--primary); opacity: 0.2; transform: scale(0.6); }
+        .radar::after { content: ''; position: absolute; width: 50%; height: 50%; background: conic-gradient(from 0deg, transparent 60%, var(--primary) 100%); top: 0; left: 50%; transform-origin: bottom left; animation: radarSpin 1.2s linear infinite; border-radius: 100% 0 0 0; }
+        .radar-ping { position: absolute; width: 16px; height: 16px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 20px var(--primary); animation: ping 1.5s infinite; z-index: 5; }
+
+        .game-header { display: flex; justify-content: space-between; align-items: center; margin: 10px 0 30px; background: var(--card-bg); padding: 16px; border-radius: 16px; border: 2px solid var(--card-border); }
+        .player-info { display: flex; flex-direction: column; align-items: center; width: 90px; transition: 0.3s; }
+        .player-avatar { width: 55px; height: 55px; border-radius: 14px; background: #1F2937; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 900; margin-bottom: 8px; border: 2px solid #2D3748; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .active-turn .player-avatar { border-color: var(--primary); box-shadow: 0 0 20px var(--primary-glow); transform: scale(1.1) translateY(-5px); }
+        .timer { font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .timer.warning { color: var(--danger); animation: heartbeat 0.8s infinite; text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+        
+        .board-container { display: flex; justify-content: center; align-items: center; padding: 20px 0; }
+        .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 320px; height: 320px; background: var(--board-bg); padding: 16px; border-radius: 20px; border: 2px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s; }
+        
+        .cell { background: var(--cell-bg); border: 2px solid #2D3748; border-radius: 16px; box-shadow: 0 8px 0 var(--cell-shadow), 0 10px 15px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 900; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; position: relative; aspect-ratio: 1 / 1; width: 100%; height: 100%; box-sizing: border-box; }
+        .cell:active, .cell.active-press { transform: translateY(8px); box-shadow: 0 0px 0 var(--cell-shadow), 0 4px 5px rgba(0,0,0,0.3); }
+        
+        .cell.x { color: var(--x-color); text-shadow: 0 0 15px var(--x-color); animation: popPiece 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .cell.o { color: var(--o-color); text-shadow: 0 0 15px var(--o-color); animation: popPiece 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        .emotes-btn { position: absolute; bottom: 100px; right: 20px; width: 50px; height: 50px; border-radius: 14px; background: var(--card-bg); display: flex; align-items: center; justify-content: center; border: 2px solid var(--card-border); cursor: pointer; z-index: 5; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.2s; }
+        .emotes-btn:active { transform: scale(0.9); }
+        .floating-emote { position: absolute; font-size: 3rem; font-weight: 900; pointer-events: none; animation: epicEmote 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; z-index: 1000; text-align: center; width: 100%; left: 0 !important; top: 40% !important; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .rank-icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background-size: contain; background-position: center; background-repeat: no-repeat; background-color: transparent !important; box-shadow: none !important; clip-path: none !important; filter: none !important; }
+        .rank-icon::after { display: none !important; }
+        
+        .rank-bronze { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 20 L50 5 L90 20 L90 55 C90 80 50 95 50 95 C50 95 10 80 10 55 Z' fill='%23b06b3e' stroke='%235c3a21' stroke-width='6'/%3E%3Cpath d='M20 28 L50 15 L80 28 L80 55 C80 72 50 82 50 82 C50 82 20 72 20 55 Z' fill='%23cd7f32'/%3E%3C/svg%3E"); }
+        .rank-silver { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 20 L50 5 L90 20 L90 55 C90 80 50 95 50 95 C50 95 10 80 10 55 Z' fill='%23a0a5ab' stroke='%234b5563' stroke-width='6'/%3E%3Cpath d='M20 28 L50 15 L80 28 L80 55 C80 72 50 82 50 82 C50 82 20 72 20 55 Z' fill='%23e5e7eb'/%3E%3C/svg%3E"); }
+        .rank-gold { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 20 L50 5 L90 20 L90 55 C90 80 50 95 50 95 C50 95 10 80 10 55 Z' fill='%23eab308' stroke='%23a16207' stroke-width='6'/%3E%3Cpath d='M20 28 L50 15 L80 28 L80 55 C80 72 50 82 50 82 C50 82 20 72 20 55 Z' fill='%23fde047'/%3E%3Cpolygon points='50,30 55,45 70,45 58,55 62,70 50,60 38,70 42,55 30,45 45,45' fill='%23fff'/%3E%3C/svg%3E"); filter: drop-shadow(0 0 10px rgba(253,224,71,0.5)) !important; }
+        .rank-platinum { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 20 L50 5 L90 20 L90 55 C90 80 50 95 50 95 C50 95 10 80 10 55 Z' fill='%2306b6d4' stroke='%230891b2' stroke-width='6'/%3E%3Cpath d='M20 28 L50 15 L80 28 L80 55 C80 72 50 82 50 82 C50 82 20 72 20 55 Z' fill='%23a5f3fc'/%3E%3Cpolygon points='50,25 65,50 50,75 35,50' fill='%23fff'/%3E%3C/svg%3E"); filter: drop-shadow(0 0 10px rgba(6,182,212,0.6)) !important; }
+        .rank-conquer { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 20 L50 5 L90 20 L90 55 C90 80 50 95 50 95 C50 95 10 80 10 55 Z' fill='%23dc2626' stroke='%237f1d1d' stroke-width='6'/%3E%3Cpath d='M20 28 L50 15 L80 28 L80 55 C80 72 50 82 50 82 C50 82 20 72 20 55 Z' fill='%23f87171'/%3E%3Cpath d='M50 30 L65 70 L35 70 Z' fill='%23fff'/%3E%3Cpath d='M50 80 L65 40 L35 40 Z' fill='%23fff'/%3E%3C/svg%3E"); filter: drop-shadow(0 0 10px rgba(220,38,38,0.7)) !important; }
+        .rank-master { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 20 L50 5 L90 20 L90 55 C90 80 50 95 50 95 C50 95 10 80 10 55 Z' fill='%239333ea' stroke='%23581c87' stroke-width='6'/%3E%3Cpath d='M20 28 L50 15 L80 28 L80 55 C80 72 50 82 50 82 C50 82 20 72 20 55 Z' fill='%23d8b4fe'/%3E%3Cpath d='M30 65 L35 40 L50 50 L65 40 L70 65 Z' fill='%23fff'/%3E%3C/svg%3E"); filter: drop-shadow(0 0 15px rgba(168,85,247,0.9)) !important; animation: pulseCrown 2s infinite; }
+
+        .rank-up-badge { width: 120px !important; height: 120px !important; margin: 0 auto 25px; animation: popPiece 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        .store-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 15px; }
+        .store-item { background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; text-align: center; box-sizing: border-box; overflow: hidden; width: 100%; }
+        .store-item.equipped { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+        .store-item .preview-box { height: 75px; border-radius: 10px; background: #0B0E14; border: 1px solid #1F2937; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.5rem; letter-spacing: 2px; margin-bottom: 12px; }
+        .store-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; width: 100%; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 14, 20, 0.9); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-content { text-align: center; max-width: 90%; width: 340px; transform: scale(0.95) translateY(10px); transition: 0.3s; background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 20px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popPiece { 0% { opacity: 0; transform: scale(0.5); } 70% { transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+        @keyframes radarSpin { 100% { transform: rotate(360deg); } }
+        @keyframes ping { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+        @keyframes heartbeat { 0% { transform: scale(1); } 25% { transform: scale(1.1); } 50% { transform: scale(1); } 75% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes pulseCrown { 0% { filter: drop-shadow(0 0 10px rgba(168,85,247,0.6)); } 50% { filter: drop-shadow(0 0 25px rgba(168,85,247,1)); } 100% { filter: drop-shadow(0 0 10px rgba(168,85,247,0.6)); } }
+        
+        @keyframes epicEmote {
+            0% { transform: scale(0) rotate(-20deg); opacity: 0; filter: drop-shadow(0 0 0px currentColor); }
+            15% { transform: scale(2.5) rotate(10deg); opacity: 1; filter: drop-shadow(0 0 40px currentColor); }
+            30% { transform: scale(1.8) rotate(-5deg); filter: drop-shadow(0 0 60px currentColor); }
+            45% { transform: scale(2.1) rotate(5deg); }
+            80% { transform: scale(2) rotate(0deg); opacity: 1; filter: drop-shadow(0 0 30px currentColor); }
+            100% { transform: scale(0.5) translateY(-150px); opacity: 0; filter: drop-shadow(0 0 0px currentColor); }
+        }
+        @keyframes screenShake {
+            0%, 100% { transform: none; }
+        }
+
+        .theme-neon { --board-bg: #0B0E14; --cell-bg: #151A23; --cell-shadow: #008b99; border-color: #00E5FF; --x-color: #00E5FF; --o-color: #FF007F; }
+        .theme-cyber { --board-bg: #0A0A14; --cell-bg: #1A001A; --cell-shadow: #660033; border-color: #FF007F; --x-color: #00E5FF; --o-color: #FFD700; }
+        .theme-gold { --board-bg: #1A1500; --cell-bg: #2A2000; --cell-shadow: #997a00; border-color: #FFD700; --x-color: #FFFFFF; --o-color: #FFD700; }
+        
+        .leaderboard-container { background: #0B0E14; border-radius: 16px; padding: 12px; border: 2px solid var(--card-border); }
+        .lb-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: var(--card-bg); border-radius: 12px; margin-bottom: 8px; border: 2px solid var(--card-border); transition: 0.2s; }
+        .lb-item:hover { transform: translateX(5px); border-color: var(--primary); }
+        .lb-rank { width: 35px; font-weight: 800; color: var(--text-muted); font-size: 1.1rem; }
+        .lb-rank.top-3 { color: var(--primary); }
+
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <!-- Top Nav -->
+    <div id="top-nav" class="top-nav hidden">
+        <div class="user-badge" onclick="navTo('profile')">
+            <div id="nav-rank-badge" class="rank-icon rank-bronze"></div>
+            <div>
+                <div id="nav-username" style="font-weight: 800; font-size: 0.9rem; letter-spacing: 0.5px;">Player</div>
+                <div id="nav-rp" style="font-size: 0.7rem; color: var(--primary); font-weight: 700;">0 RP</div>
+            </div>
+        </div>
+        <div class="coin-display">
+            <svg class="svg-icon" style="stroke: var(--secondary); fill: var(--secondary);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v12m-3-6h6" stroke="#000" stroke-width="2"></path></svg>
+            <span id="nav-coins">100</span>
+        </div>
+    </div>
+
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="screen active" style="justify-content: center; padding: 30px;">
+        <div class="glass-card" style="text-align: center; border-radius: 24px; padding: 40px 24px;">
+            <div style="margin-bottom: 35px;">
+                <h1 style="font-weight: 900; font-size: 2.2rem; letter-spacing: 1px; color: var(--primary); text-shadow: 0 0 20px var(--primary-glow);">TIC TAC TOE PRO</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Multiplayer Arena</p>
+            </div>
+            
+            <div id="auth-main">
+                <div class="input-group">
+                    <input type="email" id="auth-email" placeholder=" ">
+                    <label>Email Address</label>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="auth-pass" placeholder=" ">
+                    <label>Password</label>
+                </div>
+                
+                <button type="button" class="btn btn-primary" style="width: 100%; margin-bottom: 12px; padding: 16px;" onclick="handleEmailAuth('login')">Sign In</button>
+                <button type="button" class="btn btn-outline" style="width: 100%; margin-bottom: 24px; padding: 16px;" onclick="handleEmailAuth('register')">Sign Up</button>
+                
+                <div style="display: flex; align-items: center; margin: 20px 0;">
+                    <div style="flex: 1; height: 2px; background: var(--card-border);"></div>
+                    <span style="padding: 0 15px; color: var(--text-muted); font-size: 0.8rem; font-weight: 800; letter-spacing: 1px;">OR</span>
+                    <div style="flex: 1; height: 2px; background: var(--card-border);"></div>
+                </div>
+                
+                <button type="button" class="btn btn-accent" style="width: 100%; padding: 16px;" onclick="showGuestNameInput()">Play as Guest</button>
+            </div>
+
+            <div id="auth-guest-name" class="hidden">
+                <h3 style="margin-bottom: 25px; font-weight: 800;">Enter Your Name</h3>
+                <div class="input-group">
+                    <input type="text" id="guest-name-input" placeholder=" " maxlength="12">
+                    <label>Player Name</label>
+                </div>
+                <button type="button" class="btn btn-primary" style="width: 100%; margin-bottom: 12px; padding: 16px;" onclick="handleGuestAuth()">Play Now</button>
+                <button type="button" class="btn btn-outline" style="width: 100%; padding: 16px;" onclick="cancelGuest()">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Home Screen -->
+    <div id="home-screen" class="screen">
+        <div class="screen-content">
+            <h2 style="margin-bottom: 20px; font-weight: 800; font-size: 1.8rem;">Select Mode</h2>
+            
+            <div class="glass-card mode-card" onclick="startMatchmaking('ranked')">
+                <h3>
+                    <svg class="svg-icon" style="stroke: var(--secondary);" viewBox="0 0 24 24"><path d="M12 15l-8-4.5v-3L12 12l8-4.5v3z"></path></svg> 
+                    Ranked Arena
+                </h3>
+                <p>Climb the tiers. Strict timers apply. High stakes.</p>
+                <div id="home-rank-info" style="margin-top: 12px; font-size: 0.8rem; font-weight: 800; color: var(--primary); background: #0B0E14; border: 1px solid var(--card-border); display: inline-block; padding: 6px 12px; border-radius: 8px;">Loading Tier...</div>
+            </div>
+            
+            <div class="glass-card mode-card" onclick="startMatchmaking('classic')">
+                <h3>
+                    <svg class="svg-icon" style="stroke: var(--x-color);" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    Classic Match
+                </h3>
+                <p>Relaxed gameplay. No timers, no RP loss. Perfect for practice.</p>
+            </div>
+            
+            <div class="glass-card mode-card" onclick="navTo('friend')">
+                <h3>
+                    <svg class="svg-icon" style="stroke: var(--accent);" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Private Duel
+                </h3>
+                <p>Custom lobbies. Best of X matches with friends.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Friend Screen -->
+    <div id="friend-screen" class="screen">
+        <div class="screen-content">
+            <h2 style="margin-bottom: 20px; font-weight: 800;">Private Duel</h2>
+            <div class="glass-card" style="margin-bottom: 25px;">
+                <p style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 800;">Your Player ID</p>
+                <h2 id="my-uid-display" style="letter-spacing: 4px; color: var(--primary); margin: 5px 0 25px; font-family: monospace; font-size: 2rem; background: #0B0E14; padding: 10px; border-radius: 12px; border: 2px solid var(--card-border); text-align: center;">0000000000</h2>
+                
+                <div class="input-group">
+                    <input type="number" id="friend-uid-input" placeholder=" ">
+                    <label>Enter Opponent ID</label>
+                </div>
+                
+                <select id="friend-bestof" style="width: 100%; padding: 16px; border-radius: 12px; background: #0B0E14; color: white; border: 2px solid var(--card-border); margin-bottom: 20px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; outline: none; appearance: none; font-weight: 700;">
+                    <option value="3">Best of 3</option>
+                    <option value="5">Best of 5</option>
+                    <option value="7">Best of 7</option>
+                    <option value="10">Best of 10</option>
+                </select>
+                <button type="button" class="btn btn-primary" style="width: 100%; padding: 16px;" onclick="sendInvite()">Send Invite</button>
+            </div>
+
+            <div>
+                <h3 style="margin-bottom: 15px; font-size: 1.1rem; color: var(--text-muted);">Incoming Invites</h3>
+                <div id="invites-list" class="leaderboard-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matchmaking Screen -->
+    <div id="matchmaking-screen" class="screen">
+        <div class="matchmaking-loader">
+            <div class="radar">
+                <div class="radar-ping"></div>
+            </div>
+            <div style="text-align: center;">
+                <h2 id="mm-text" style="font-weight: 900; letter-spacing: 1px; margin-bottom: 8px;">SEARCHING FOR MATCH...</h2>
+                <p id="mm-sub" style="color: var(--primary); font-family: monospace; letter-spacing: 1px;">Looking for opponent...</p>
+            </div>
+            <button type="button" class="btn btn-outline" style="margin-top: 20px; padding: 12px 30px; border-radius: 30px;" onclick="cancelMatchmaking()">Abort Search</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="screen-content" style="padding-top: 20px;">
+            <div class="game-header">
+                <div class="player-info" id="p1-info">
+                    <div class="player-avatar" id="p1-avatar">X</div>
+                    <div id="p1-name" style="font-size: 0.85rem; font-weight: 800; letter-spacing: 0.5px;">PLAYER</div>
+                    <div id="p1-timer" class="timer">--</div>
+                </div>
+                <div id="game-score" style="font-size: 1.5rem; font-weight: 900; color: var(--text-muted);">VS</div>
+                <div class="player-info" id="p2-info">
+                    <div class="player-avatar" id="p2-avatar">O</div>
+                    <div id="p2-name" style="font-size: 0.85rem; font-weight: 800; letter-spacing: 0.5px;">OPPONENT</div>
+                    <div id="p2-timer" class="timer">--</div>
+                </div>
+            </div>
+
+            <div class="board-container">
+                <div class="board" id="game-board">
+                    <!-- Cells generated via JS -->
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <div id="game-status-text" style="font-size: 1.4rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">Waiting for Opponent</div>
+            </div>
+
+            <div class="emotes-btn" onclick="toggleEmoteMenu()">
+                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            </div>
+            <div id="emote-menu" class="glass-card hidden" style="position: absolute; bottom: 160px; right: 20px; padding: 15px; display: flex; flex-direction: column; gap: 12px; z-index: 50; width: 160px;">
+                <!-- Generated via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Store Screen -->
+    <div id="store-screen" class="screen">
+        <div class="screen-content">
+            <h2 style="margin-bottom: 5px; font-weight: 800;">Store</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 25px;">Upgrade your visual presence.</p>
+            
+            <h3 style="font-size: 1.1rem; border-bottom: 2px solid var(--card-border); padding-bottom: 10px;">Board Themes</h3>
+            <div class="store-grid" id="themes-store"></div>
+            
+            <h3 style="font-size: 1.1rem; border-bottom: 2px solid var(--card-border); padding-bottom: 10px; margin-top: 35px;">Emotes</h3>
+            <div class="store-grid" id="emotes-store"></div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Screen -->
+    <div id="leaderboard-screen" class="screen">
+        <div class="screen-content">
+            <h2 style="margin-bottom: 20px; font-weight: 800;">Global Top 10</h2>
+            <div id="lb-list" class="leaderboard-container">
+                <div style="text-align:center; color: var(--text-muted); padding: 20px;">Fetching server data...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Screen -->
+    <div id="profile-screen" class="screen">
+        <div class="screen-content">
+            <h2 style="margin-bottom: 20px; font-weight: 800;">Profile</h2>
+            <div class="glass-card" style="text-align: center; margin-bottom: 25px;">
+                <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                    <div id="prof-rank-badge" class="rank-icon rank-bronze" style="transform: scale(1.5);"></div>
+                </div>
+                <h2 id="prof-name" style="font-weight: 900; font-size: 1.6rem; letter-spacing: 1px;">Player</h2>
+                <p id="prof-uid" style="color: var(--primary); font-family: monospace; letter-spacing: 2px; margin-bottom: 20px; font-size: 0.9rem;">ID: 0000000000</p>
+                
+                <div style="display: flex; justify-content: space-around; background: #0B0E14; padding: 20px; border-radius: 16px; border: 2px solid var(--card-border);">
+                    <div><div id="prof-rp" style="font-weight: 900; font-size: 1.5rem; color: var(--primary);">0</div><div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 800; margin-top: 4px;">Rank Pts</div></div>
+                    <div style="width: 2px; background: var(--card-border);"></div>
+                    <div><div id="prof-coins" style="font-weight: 900; font-size: 1.5rem; color: var(--secondary);">0</div><div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 800; margin-top: 4px;">Coins</div></div>
+                </div>
+                
+                <div style="margin-top: 25px; text-align: left;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px; font-weight: 800; color: var(--text-muted);">
+                        <span>Rank Progress</span> <span id="prof-next-rank" style="color: white;">Next: Silver</span>
+                    </div>
+                    <div style="width: 100%; height: 12px; background: #0B0E14; border-radius: 6px; overflow: hidden; border: 2px solid var(--card-border);">
+                        <div id="prof-progress" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 0 10px var(--primary-glow);"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" class="btn btn-outline" style="width: 100%; margin-bottom: 12px; padding: 16px;" onclick="changeNamePrompt()">Update Name</button>
+            <button type="button" class="btn btn-outline" style="width: 100%; margin-bottom: 12px; padding: 16px;" onclick="alert('Game data securely stored via Firebase. No personal identifiable information broadcasted.')">Privacy Info</button>
+            <button type="button" class="btn btn-outline" style="width: 100%; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: var(--danger); padding: 16px;" onclick="logout()">Log Out</button>
+        </div>
+    </div>
+
+    <!-- Floating Bottom Nav -->
+    <div id="bottom-nav" class="bottom-nav hidden">
+        <div class="nav-item active" onclick="navTo('home')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+            Home
+        </div>
+        <div class="nav-item" onclick="navTo('store')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            Store
+        </div>
+        <div class="nav-item" onclick="navTo('leaderboard')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 15l-8-4.5v-3L12 12l8-4.5v3z"></path></svg>
+            Top 10
+        </div>
+        <div class="nav-item" onclick="navTo('profile')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Profile
+        </div>
+    </div>
+
+    <!-- Global Modal -->
+    <div id="global-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="modal-title" style="margin-bottom: 12px; font-weight: 800;">System Alert</h2>
+            <div id="modal-body" style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; font-weight: 600;">Message</div>
+            <div id="modal-actions" style="display: flex; gap: 12px; justify-content: center;">
+                <button type="button" class="btn btn-primary" style="flex: 1;" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="modal-overlay">
+        <div class="modal-content" style="padding: 30px 20px;">
+            <h2 style="margin-bottom: 25px; font-weight: 900; letter-spacing: 1px;">PREVIEW</h2>
+            <div id="preview-container" class="board-container" style="min-height: 220px; display: flex; align-items: center; justify-content: center; overflow: visible;">
+                <!-- Content injected via JS -->
+            </div>
+            <button type="button" class="btn btn-outline" style="width: 100%; margin-top: 25px; border-radius: 12px;" onclick="closePreview()">Close Preview</button>
+        </div>
+    </div>
+
+    <!-- Rank Up Modal -->
+    <div id="rank-modal" class="modal-overlay">
+        <div class="modal-content" style="border: 2px solid var(--primary);">
+            <h2 style="color: var(--secondary); margin-bottom: 25px; font-weight: 900; letter-spacing: 2px;">RANK UP</h2>
+            <div id="rank-modal-badge" class="rank-icon rank-bronze rank-up-badge"></div>
+            <h3 id="rank-modal-name" style="margin-bottom: 10px; font-size: 1.8rem; font-weight: 900; text-transform: uppercase;">Silver</h3>
+            <p style="color: var(--text-muted); margin-bottom: 25px; font-weight: 600;">You have been promoted.</p>
+            <button type="button" class="btn btn-primary" style="width: 100%; padding: 16px;" onclick="closeRankModal()">Confirm</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Firebase SDK Imports (v10 JS Module) -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getDatabase, ref, set, get, onValue, update, remove, query, orderByChild, limitToLast, push, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+    // ==========================================
+    // REPLACE WITH YOUR FIREBASE CONFIGURATION
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyDY8xPEACw3bvUxcg7FHPCgk-Dzdft5JpI",
+      authDomain: "online-tic-tac-toe-bbcf6.firebaseapp.com",
+      databaseURL: "https://online-tic-tac-toe-bbcf6-default-rtdb.firebaseio.com",
+      projectId: "online-tic-tac-toe-bbcf6",
+      storageBucket: "online-tic-tac-toe-bbcf6.firebasestorage.app",
+      messagingSenderId: "789996636444",
+      appId: "1:789996636444:web:4ef2ea0af311903a4d92d9"
+    };
+
+    // App State
+    let app, auth, db;
+    let currentUser = null;
+    let userData = null;
+    let currentGameRef = null;
+    let currentGameId = null;
+    let currentGameStatus = null;
+    let currentMode = null;
+    let gameUnsubscribe = null;
+    let timerInterval = null;
+    let mySymbol = 'X';
+    let isMyTurn = false;
+
+    // Consts (Logic & State untouched)
+    const RANKS = [
+        { name: 'Bronze', max: 199, timer: 10, color: '#cd7f32', badge: 'B' },
+        { name: 'Silver', max: 449, timer: 9, color: '#c0c0c0', badge: 'S' },
+        { name: 'Gold', max: 799, timer: 8, color: '#ffd700', badge: 'G' },
+        { name: 'Platinum', max: 1109, timer: 6, color: '#e5e4e2', badge: 'P' },
+        { name: 'Conquer', max: 1499, timer: 4, color: '#ff4d4d', badge: 'C' },
+        { name: 'Master', max: Infinity, timer: 2, color: '#9932cc', badge: 'M' }
+    ];
+
+    const STORE_ITEMS = {
+        themes: [
+            { id: 'default', name: 'Default', price: 0, class: '' },
+            { id: 'neon', name: 'Neon Glow', price: 600, class: 'theme-neon' },
+            { id: 'cyber', name: 'Cyberpunk', price: 800, class: 'theme-cyber' },
+            { id: 'gold', name: 'Pure Gold', price: 1000, class: 'theme-gold' }
+        ],
+        emotes: [
+            { id: 'gg', text: 'GG!', price: 0, color: '#10b981' },
+            { id: 'oof', text: 'OOF', price: 300, color: '#f43f5e' },
+            { id: 'wow', text: 'WOW', price: 500, color: '#00E5FF' },
+            { id: 'hurry', text: 'HURRY!', price: 700, color: '#FFD700' }
+        ]
+    };
+
+    window.previewItem = (type, id) => {
+        let container = document.getElementById('preview-container');
+        container.innerHTML = '';
+        document.getElementById('preview-modal').classList.add('active');
+        
+        if(type === 'theme') {
+            let t = STORE_ITEMS.themes.find(x => x.id === id);
+            container.innerHTML = `
+                <div class="board ${t.class}" style="width: 220px; height: 220px; gap: 8px; padding: 12px; pointer-events: none;">
+                    <div class="cell x" style="font-size:2.5rem; box-shadow: 0 5px 0 var(--cell-shadow);">X</div><div class="cell" style="box-shadow: 0 5px 0 var(--cell-shadow);"></div><div class="cell o" style="font-size:2.5rem; box-shadow: 0 5px 0 var(--cell-shadow);">O</div>
+                    <div class="cell" style="box-shadow: 0 5px 0 var(--cell-shadow);"></div><div class="cell x" style="font-size:2.5rem; box-shadow: 0 5px 0 var(--cell-shadow);">X</div><div class="cell" style="box-shadow: 0 5px 0 var(--cell-shadow);"></div>
+                    <div class="cell o" style="font-size:2.5rem; box-shadow: 0 5px 0 var(--cell-shadow);">O</div><div class="cell" style="box-shadow: 0 5px 0 var(--cell-shadow);"></div><div class="cell x" style="font-size:2.5rem; box-shadow: 0 5px 0 var(--cell-shadow);">X</div>
+                </div>
+            `;
+        } else if(type === 'emote') {
+            let e = STORE_ITEMS.emotes.find(x => x.id === id);
+            document.getElementById('preview-modal').querySelector('.modal-content').classList.add('shake');
+            setTimeout(() => document.getElementById('preview-modal').querySelector('.modal-content').classList.remove('shake'), 400);
+            
+            container.innerHTML = `<div class="floating-emote" style="color:${e.color}; position:relative; top:auto !important; left:auto !important; animation: none; transform: scale(1.5); filter: drop-shadow(0 0 20px currentColor); opacity: 1;">${e.text}</div>`;
+        }
+    };
+    window.closePreview = () => document.getElementById('preview-modal').classList.remove('active');
+
+    window.showModal = (title, body, actionsHtml) => {
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-body').innerText = body;
+        if(actionsHtml) document.getElementById('modal-actions').innerHTML = actionsHtml;
+        else document.getElementById('modal-actions').innerHTML = '<button type="button" class="btn btn-primary" style="flex: 1;" onclick="closeModal()">OK</button>';
+        document.getElementById('global-modal').classList.add('active');
+    };
+    window.closeModal = () => document.getElementById('global-modal').classList.remove('active');
+    
+    window.navTo = (screenId) => {
+        if(currentGameId && screenId !== 'game') {
+            if(currentGameStatus === 'playing') {
+                window.showModal('Game in Progress', 'You are currently in a live match. Disconnect?', 
+                    `<button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal()">Cancel</button>
+                     <button type="button" class="btn btn-primary" style="flex:1; background: var(--danger);" onclick="abandonGame(); navToForce('${screenId}')">Disconnect</button>`);
+                return;
+            } else {
+                abandonGame();
+                navToForce(screenId);
+                return;
+            }
+        }
+        navToForce(screenId);
+    };
+
+    window.navToForce = (screenId) => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId + '-screen').classList.add('active');
+        
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        let navMap = { 'home': 0, 'store': 1, 'leaderboard': 2, 'profile': 3 };
+        if(navMap[screenId] !== undefined) document.querySelectorAll('.nav-item')[navMap[screenId]].classList.add('active');
+
+        if(['home','store','leaderboard','profile','friend'].includes(screenId)) {
+            document.getElementById('top-nav').classList.remove('hidden');
+            document.getElementById('bottom-nav').classList.remove('hidden');
+        } else {
+            document.getElementById('top-nav').classList.add('hidden');
+            document.getElementById('bottom-nav').classList.add('hidden');
+        }
+
+        if(screenId === 'leaderboard') loadLeaderboard();
+        if(screenId === 'store') renderStore();
+    };
+
+    function getRankObj(rp) {
+        return RANKS.find(r => rp <= r.max);
+    }
+
+    try {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getDatabase(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                setupUserListener();
+            } else {
+                navToForce('auth');
+            }
+        });
+    } catch (e) {
+        window.showModal('System Error', 'Firebase Configuration missing. Verify network integration.');
+        console.error(e);
+    }
+
+    window.handleEmailAuth = async (type) => {
+        const em = document.getElementById('auth-email').value;
+        const pw = document.getElementById('auth-pass').value;
+        if(!em || !pw) return window.showModal('Error', 'Credentials required.');
+        try {
+            if(type === 'register') {
+                const cred = await createUserWithEmailAndPassword(auth, em, pw);
+                await initNewUser(cred.user.uid, em.split('@')[0]);
+            } else {
+                await signInWithEmailAndPassword(auth, em, pw);
+            }
+        } catch(e) { window.showModal('Auth Failure', e.message); }
+    };
+
+    window.showGuestNameInput = () => {
+        document.getElementById('auth-main').classList.add('hidden');
+        document.getElementById('auth-guest-name').classList.remove('hidden');
+    };
+    window.cancelGuest = () => {
+        document.getElementById('auth-main').classList.remove('hidden');
+        document.getElementById('auth-guest-name').classList.add('hidden');
+    };
+
+    window.handleGuestAuth = async () => {
+        const name = document.getElementById('guest-name-input').value.trim();
+        if(!name) return window.showModal('Error', 'Player name required.');
+        try {
+            const cred = await signInAnonymously(auth);
+            await initNewUser(cred.user.uid, name);
+        } catch(e) { window.showModal('Error', e.message); }
+    };
+
+    window.logout = () => signOut(auth);
+
+    async function initNewUser(uid, name) {
+        const uid10 = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+        await set(ref(db, `users/${uid}`), {
+            name: name, rp: 0, coins: 100, uid10: uid10,
+            inventory: { themes: ['default'], emotes: ['gg'] },
+            equippedTheme: 'default', equippedEmote: 'gg',
+            activeGame: null
+        });
+    }
+
+    let userUnsub = null;
+    function setupUserListener() {
+        if(userUnsub) userUnsub();
+        
+        // FIXED BUG: Setup online presence once safely outside the continuous loop!
+        const myOnlineRef = ref(db, `users/${currentUser.uid}/online`);
+        set(myOnlineRef, true);
+        onDisconnect(myOnlineRef).set(false);
+        onDisconnect(ref(db, `users/${currentUser.uid}/activeGame`)).remove();
+
+        userUnsub = onValue(ref(db, `users/${currentUser.uid}`), (snap) => {
+            const data = snap.val();
+            if(!data) return; 
+            
+            if(userData && (data.rp || 0) > (userData.rp || 0)) {
+                let oldR = getRankObj(userData.rp || 0);
+                let newR = getRankObj(data.rp || 0);
+                if(newR.name !== oldR.name) showRankUp(newR);
+            }
+            
+            userData = data;
+            updateUI();
+
+            if(data.activeGame && data.activeGame !== currentGameId) {
+                joinGame(data.activeGame);
+            }
+        });
+        
+        // Setup invite listener once here
+        listenInvites();
+        navToForce('home');
+    }
+
+    function updateUI() {
+        if(!userData) return;
+        const rp = userData.rp || 0;
+        const coins = userData.coins || 0;
+        const name = userData.name || "Unknown Player";
+        const uid10 = userData.uid10 || "0000000000";
+        const rank = getRankObj(rp);
+        
+        document.getElementById('nav-username').innerText = name;
+        document.getElementById('nav-rp').innerText = `${rp} RP`;
+        document.getElementById('nav-coins').innerText = coins;
+        
+        const badge = document.getElementById('nav-rank-badge');
+        badge.innerText = ''; 
+        badge.className = `rank-icon rank-${rank.name.toLowerCase()}`;
+
+        document.getElementById('home-rank-info').innerText = `Tier: ${rank.name} (${rank.timer}s/move)`;
+        document.getElementById('home-rank-info').style.color = rank.color;
+
+        document.getElementById('prof-name').innerText = name;
+        document.getElementById('prof-uid').innerText = `ID: ${uid10}`;
+        document.getElementById('prof-rp').innerText = rp;
+        document.getElementById('prof-coins').innerText = coins;
+        
+        const profBadge = document.getElementById('prof-rank-badge');
+        profBadge.innerText = '';
+        profBadge.className = `rank-icon rank-${rank.name.toLowerCase()}`;
+        
+        let nextRank = RANKS[RANKS.indexOf(rank) + 1];
+        if(nextRank) {
+            document.getElementById('prof-next-rank').innerText = `Next: ${nextRank.name} (${nextRank.max + 1})`;
+            let prevMax = RANKS.indexOf(rank) === 0 ? 0 : RANKS[RANKS.indexOf(rank)-1].max + 1;
+            let progress = ((rp - prevMax) / ((nextRank.max + 1) - prevMax)) * 100;
+            document.getElementById('prof-progress').style.width = `${Math.max(0, Math.min(100, progress))}%`;
+        } else {
+            document.getElementById('prof-next-rank').innerText = 'Max Tier Reached';
+            document.getElementById('prof-progress').style.width = '100%';
+        }
+
+        document.getElementById('my-uid-display').innerText = uid10;
+    }
+
+    window.changeNamePrompt = () => {
+        let newName = prompt("Enter new player name (max 12 chars):");
+        if(newName && newName.trim().length > 0) {
+            update(ref(db, `users/${currentUser.uid}`), { name: newName.trim().substring(0,12) });
+        }
+    };
+
+    window.showRankUp = (rankObj) => {
+        let modalBadge = document.getElementById('rank-modal-badge');
+        modalBadge.innerText = '';
+        modalBadge.className = `rank-icon rank-up-badge rank-${rankObj.name.toLowerCase()}`;
+        document.getElementById('rank-modal-name').innerText = rankObj.name;
+        document.getElementById('rank-modal').classList.add('active');
+    };
+    window.closeRankModal = () => document.getElementById('rank-modal').classList.remove('active');
+
+    let mmQueueRef = null;
+    let mmListener = null;
+
+    // FIXED BUG: Faster matchmaking by ignoring exact rank limits & deleting inactive/ghost waiting players immediately.
+    window.startMatchmaking = async (mode) => {
+        currentMode = mode;
+        navToForce('matchmaking');
+        
+        // Single unified path for each mode to make finding players instantaneous regardless of ranks
+        const qPath = mode === 'ranked' ? `matchmaking/ranked/all` : `matchmaking/classic/all`;
+        
+        document.getElementById('mm-text').innerText = `SEARCHING FOR MATCH...`;
+        document.getElementById('mm-sub').innerText = mode === 'ranked' ? `Searching Ranked Arena` : `Classic Matchmaking`;
+
+        const q = query(ref(db, qPath), orderByChild('time'));
+        const qSnap = await get(q);
+        let found = false;
+        
+        if(qSnap.exists()) {
+            let entries = [];
+            qSnap.forEach(s => { entries.push({ key: s.key, val: s.val() }); });
+            
+            // Iterate over players waiting in queue
+            for(let i=0; i<entries.length; i++) {
+                let entry = entries[i].val;
+                let key = entries[i].key;
+                
+                if(entry && entry.uid !== currentUser.uid && !entry.matched && entry.mode === mode) {
+                    
+                    // Verify if opponent is actually online and not disconnected/ghost
+                    let oppSnap = await get(ref(db, `users/${entry.uid}`));
+                    let oppData = oppSnap.val();
+                    
+                    if(oppData && oppData.online === true && !oppData.activeGame) {
+                        found = true;
+                        let oppUid = entry.uid;
+                        // Lock the entry
+                        await update(ref(db, `${qPath}/${key}`), { matched: true });
+                        await createNewGame(oppUid, mode, null);
+                        await remove(ref(db, `${qPath}/${key}`));
+                        break;
+                    } else {
+                        // Dead/Ghost entry cleanup! Prevents you from getting stuck.
+                        remove(ref(db, `${qPath}/${key}`));
+                    }
+                }
+            }
+        }
+
+        // If no active players were found, join the queue and wait for the next person
+        if(!found) {
+            mmQueueRef = push(ref(db, qPath));
+            await set(mmQueueRef, { uid: currentUser.uid, matched: false, time: Date.now(), mode: mode });
+            onDisconnect(mmQueueRef).remove();
+        }
+    };
+
+    window.cancelMatchmaking = () => {
+        if(mmQueueRef) { remove(mmQueueRef); mmQueueRef = null; }
+        navToForce('home');
+    };
+
+    async function createNewGame(p2Uid, mode, bestOf) {
+        let gid = push(ref(db, 'games')).key;
+        let p1Uid = currentUser.uid;
+        
+        let p1Snap = await get(ref(db, `users/${p1Uid}`));
+        let p2Snap = await get(ref(db, `users/${p2Uid}`));
+        
+        let p1Data = p1Snap.val() || {};
+        let p2Data = p2Snap.val() || {};
+        
+        let gameObj = {
+            id: gid,
+            mode: mode,
+            status: 'playing',
+            turn: p1Uid,
+            p1: p1Uid,
+            p2: p2Uid,
+            board: ['','','','','','','','',''],
+            lastMoveTime: Date.now(),
+            p1Score: 0, p2Score: 0,
+            bestOf: bestOf || 1,
+            round: 1,
+            p1Theme: p1Data.equippedTheme || 'default',
+            p2Theme: p2Data.equippedTheme || 'default',
+            p1Name: p1Data.name || 'Unknown Player',
+            p2Name: p2Data.name || 'Unknown Player'
+        };
+        
+        await set(ref(db, `games/${gid}`), gameObj);
+        
+        // This instantly triggers the user listener to pull both players into the match
+        await update(ref(db, `users/${p1Uid}`), { activeGame: gid });
+        await update(ref(db, `users/${p2Uid}`), { activeGame: gid });
+    }
+
+    window.sendInvite = async () => {
+        let fUid10 = document.getElementById('friend-uid-input').value.trim();
+        let bestOf = parseInt(document.getElementById('friend-bestof').value);
+        let myUid10 = userData?.uid10 || "0000000000";
+        let myName = userData?.name || "Unknown Player";
+
+        if(!fUid10 || fUid10.length !== 10) return window.showModal('Error', 'Invalid 10-digit ID format.');
+        if(fUid10 === myUid10) return window.showModal('Error', 'You cannot invite yourself.');
+
+        let usersQuery = query(ref(db, 'users'), orderByChild('uid10'));
+        let snap = await get(usersQuery);
+        let targetUid = null;
+        if(snap.exists()) {
+            snap.forEach(s => { if(s.val().uid10 === fUid10) targetUid = s.key; });
+        }
+
+        if(!targetUid) return window.showModal('Error', 'Player not found.');
+
+        let invRef = push(ref(db, `invites/${targetUid}`));
+        set(invRef, {
+            fromUid: currentUser.uid,
+            fromName: myName,
+            bestOf: bestOf,
+            status: 'pending',
+            time: Date.now()
+        });
+        window.showModal('Invite Sent', 'Your invite was sent successfully.');
+    };
+
+    let invitesUnsub = null;
+    function listenInvites() {
+        if(invitesUnsub) invitesUnsub();
+        invitesUnsub = onValue(ref(db, `invites/${currentUser.uid}`), (snap) => {
+            let container = document.getElementById('invites-list');
+            container.innerHTML = '';
+            if(!snap.exists()) {
+                container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; text-align:center; padding:15px; font-weight: 700;">No incoming invites</div>';
+                return;
+            }
+            snap.forEach(s => {
+                let inv = s.val();
+                if(inv && inv.status === 'pending') {
+                    let div = document.createElement('div');
+                    div.className = 'lb-item';
+                    div.style.flexDirection = 'column';
+                    div.style.alignItems = 'stretch';
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <div><b style="color:var(--primary); font-size:1.1rem;">${inv.fromName || 'Unknown Player'}</b></div>
+                            <small style="color:var(--text-muted); font-weight:800; font-size:0.75rem;">BO${inv.bestOf || 1}</small>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button type="button" class="btn btn-primary" style="flex:1; padding:10px;" onclick="acceptInvite('${s.key}', '${inv.fromUid}', ${inv.bestOf || 1})">Accept</button>
+                            <button type="button" class="btn btn-outline" style="flex:1; padding:10px;" onclick="rejectInvite('${s.key}')">Deny</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                } else if (inv && inv.status === 'accepted' && inv.fromUid === currentUser.uid && inv.gameId) {
+                    update(ref(db, `users/${currentUser.uid}`), { activeGame: inv.gameId });
+                    remove(ref(db, `invites/${inv.targetUid}/${s.key}`)); 
+                }
+            });
+        });
+    }
+
+    window.acceptInvite = async (invKey, fromUid, bestOf) => {
+        await createNewGame(fromUid, 'friend', bestOf);
+        let myUid = currentUser.uid;
+        let gidSnap = await get(ref(db, `users/${myUid}/activeGame`));
+        let gid = gidSnap.val();
+        update(ref(db, `invites/${myUid}/${invKey}`), { status: 'accepted', gameId: gid, targetUid: myUid });
+        setTimeout(() => remove(ref(db, `invites/${myUid}/${invKey}`)), 5000);
+    };
+    window.rejectInvite = (invKey) => remove(ref(db, `invites/${currentUser.uid}/${invKey}`));
+
+    async function joinGame(gid) {
+        if(mmQueueRef) { remove(mmQueueRef); mmQueueRef = null; }
+        navToForce('game');
+        currentGameId = gid;
+        document.getElementById('emote-menu').classList.add('hidden');
+        
+        if(gameUnsubscribe) gameUnsubscribe();
+        
+        gameUnsubscribe = onValue(ref(db, `games/${gid}`), (snap) => {
+            const game = snap.val();
+            if(!game) { abandonGame(); navToForce('home'); return; }
+            
+            currentGameStatus = game.status;
+            renderGame(game);
+            handleTimers(game);
+        });
+    }
+
+    function renderGame(game) {
+        if(!game) return;
+        mySymbol = game.p1 === currentUser.uid ? 'X' : 'O';
+        isMyTurn = game.turn === currentUser.uid && game.status === 'playing';
+        
+        let oppUid = game.p1 === currentUser.uid ? game.p2 : game.p1;
+        let myThemeId = game.p1 === currentUser.uid ? game.p1Theme : game.p2Theme;
+        let themeObj = STORE_ITEMS.themes.find(t=>t.id === myThemeId) || STORE_ITEMS.themes[0];
+        let myThemeClass = themeObj.class;
+
+        document.getElementById('p1-name').innerText = 'PLAYER';
+        document.getElementById('p2-name').innerText = 'OPPONENT';
+        document.getElementById('p1-avatar').innerText = mySymbol;
+        document.getElementById('p2-avatar').innerText = mySymbol === 'X' ? 'O' : 'X';
+        
+        document.getElementById('p1-info').className = `player-info ${game.turn === currentUser.uid ? 'active-turn' : ''}`;
+        document.getElementById('p2-info').className = `player-info ${game.turn !== currentUser.uid ? 'active-turn' : ''}`;
+
+        let boardEl = document.getElementById('game-board');
+        boardEl.className = 'board ' + myThemeClass; 
+        boardEl.innerHTML = '';
+        (game.board || []).forEach((cell, idx) => {
+            let div = document.createElement('div');
+            div.className = `cell ${cell ? cell.toLowerCase() : ''}`;
+            div.innerText = cell || '';
+            div.onclick = () => {
+                div.classList.add('active-press');
+                setTimeout(()=>div.classList.remove('active-press'), 100);
+                makeMove(idx, game);
+            };
+            boardEl.appendChild(div);
+        });
+
+        let statusEl = document.getElementById('game-status-text');
+        if(game.status === 'playing') {
+            statusEl.innerText = isMyTurn ? "Your Turn" : "Opponent's Turn";
+            statusEl.style.color = isMyTurn ? "var(--primary)" : "var(--text-muted)";
+        } else {
+            handleGameEndUI(game);
+        }
+
+        if(game.emote) {
+            showFloatingEmote(game.emote);
+            update(ref(db, `games/${currentGameId}`), { emote: null }); 
+        }
+    }
+
+    async function makeMove(idx, game) {
+        if(!isMyTurn || game.board[idx] !== '') return;
+        
+        game.board[idx] = mySymbol;
+        let updates = {
+            board: game.board,
+            turn: game.p1 === currentUser.uid ? game.p2 : game.p1,
+            lastMoveTime: Date.now()
+        };
+
+        let winLine = checkWin(game.board);
+        if(winLine) {
+            updates.status = 'finished';
+            updates.winner = currentUser.uid;
+        } else if(!game.board.includes('')) {
+            updates.status = 'draw';
+        }
+
+        await update(ref(db, `games/${currentGameId}`), updates);
+    }
+
+    function checkWin(board) {
+        if(!board) return null;
+        const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        for(let l of lines) {
+            if(board[l[0]] && board[l[0]] === board[l[1]] && board[l[0]] === board[l[2]]) return l;
+        }
+        return null;
+    }
+
+    let p1T = 0, p2T = 0;
+    function handleTimers(game) {
+        if(timerInterval) clearInterval(timerInterval);
+        document.getElementById('p1-timer').innerText = '--';
+        document.getElementById('p2-timer').innerText = '--';
+        document.getElementById('p1-timer').classList.remove('warning');
+        document.getElementById('p2-timer').classList.remove('warning');
+
+        if(!game || game.status !== 'playing' || game.mode !== 'ranked') return;
+
+        let rp = userData?.rp || 0;
+        let rank = getRankObj(rp);
+        let maxTime = rank.timer;
+
+        timerInterval = setInterval(() => {
+            let elapsed = (Date.now() - (game.lastMoveTime || Date.now())) / 1000;
+            let left = Math.max(0, Math.ceil(maxTime - elapsed));
+            
+            let myTEl = document.getElementById('p1-timer');
+            let oppTEl = document.getElementById('p2-timer');
+
+            if(game.turn === currentUser.uid) {
+                myTEl.innerText = left + 's';
+                if(left <= 3) myTEl.classList.add('warning');
+            } else {
+                oppTEl.innerText = left + 's';
+                if(left <= 3) oppTEl.classList.add('warning');
+            }
+
+            if(left <= 0) {
+                clearInterval(timerInterval);
+                if(game.turn !== currentUser.uid) {
+                    update(ref(db, `games/${currentGameId}`), { status: 'timeout', winner: currentUser.uid });
+                }
+            }
+        }, 100);
+    }
+
+    function handleGameEndUI(game) {
+        let statusEl = document.getElementById('game-status-text');
+        let isWin = game.winner === currentUser.uid;
+        let isDraw = game.status === 'draw';
+
+        if(isWin) { statusEl.innerText = "VICTORY"; statusEl.style.color = "var(--success)"; }
+        else if(isDraw) { statusEl.innerText = "DRAW"; statusEl.style.color = "var(--text-muted)"; }
+        else { statusEl.innerText = game.status === 'timeout' ? "TIME EXPIRED" : "DEFEAT"; statusEl.style.color = "var(--danger)"; }
+
+        if(!game['processed_' + currentUser.uid]) {
+            update(ref(db, `games/${currentGameId}`), { [`processed_${currentUser.uid}`]: true });
+            processRewards(game, isWin, isDraw);
+        }
+
+        if(game.mode === 'friend' && (game.round || 1) < (game.bestOf || 1)) {
+            statusEl.innerHTML += `<br><button type="button" class="btn btn-primary" style="margin: 20px auto; width: 200px;" onclick="nextRound()">Next Round</button>`;
+        } else {
+            statusEl.innerHTML += `<br><button type="button" class="btn btn-outline" style="margin: 20px auto; width: 200px;" onclick="leaveGame()">Disconnect</button>`;
+        }
+    }
+
+    async function processRewards(game, isWin, isDraw) {
+        if(game.mode !== 'ranked') return;
+        let rpChange = isWin ? 30 : (isDraw ? 0 : -30);
+        let coinChange = isWin ? 40 : (isDraw ? 10 : 20);
+        
+        let rp = userData?.rp || 0;
+        let coins = userData?.coins || 0;
+        
+        let newRp = Math.max(0, rp + rpChange);
+        let newCoins = coins + coinChange;
+        
+        await update(ref(db, `users/${currentUser.uid}`), { rp: newRp, coins: newCoins });
+        
+        setTimeout(() => {
+            window.showModal(isWin ? 'Victory!' : (isDraw ? 'Draw' : 'Defeat'), 
+            `Rank Points: ${rpChange > 0 ? '+'+rpChange : rpChange}\nCoins: +${coinChange}`);
+        }, 1000);
+    }
+
+    window.nextRound = async () => {
+        let snap = await get(ref(db, `games/${currentGameId}`));
+        let game = snap.val();
+        if(!game || game.status === 'playing') return; 
+        
+        let roundNum = game.round || 1;
+        let updates = {
+            board: ['','','','','','','','',''],
+            status: 'playing',
+            winner: null,
+            round: roundNum + 1,
+            turn: roundNum % 2 === 0 ? game.p1 : game.p2, 
+            lastMoveTime: Date.now()
+        };
+        if(game.winner === game.p1) updates.p1Score = (game.p1Score||0) + 1;
+        if(game.winner === game.p2) updates.p2Score = (game.p2Score||0) + 1;
+        
+        await update(ref(db, `games/${currentGameId}`), updates);
+    };
+
+    window.leaveGame = () => {
+        abandonGame();
+        navToForce('home');
+    };
+
+    function abandonGame() {
+        if(gameUnsubscribe) gameUnsubscribe();
+        if(timerInterval) clearInterval(timerInterval);
+        if(currentGameId && currentUser) {
+            update(ref(db, `users/${currentUser.uid}`), { activeGame: null });
+            if(currentGameStatus === 'playing') {
+                get(ref(db, `games/${currentGameId}`)).then(s => {
+                    let g = s.val();
+                    if(g && g.status === 'playing') {
+                        update(ref(db, `games/${currentGameId}`), { status: 'abandoned', winner: g.p1 === currentUser.uid ? g.p2 : g.p1 });
+                    }
+                });
+            }
+        }
+        currentGameId = null;
+        currentGameStatus = null;
+    }
+
+    window.toggleEmoteMenu = () => {
+        let menu = document.getElementById('emote-menu');
+        if(menu.classList.contains('hidden')) {
+            menu.innerHTML = '';
+            let emotesInv = userData?.inventory?.emotes || ['gg'];
+            emotesInv.forEach(emId => {
+                let em = STORE_ITEMS.emotes.find(e => e.id === emId);
+                if(!em) return;
+                let btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-outline';
+                btn.style.color = em.color;
+                btn.style.borderColor = em.color;
+                btn.style.fontWeight = '800';
+                btn.innerText = em.text;
+                btn.onclick = () => sendEmote(em);
+                menu.appendChild(btn);
+            });
+            menu.classList.remove('hidden');
+        } else {
+            menu.classList.add('hidden');
+        }
+    };
+
+    function sendEmote(em) {
+        document.getElementById('emote-menu').classList.add('hidden');
+        update(ref(db, `games/${currentGameId}`), { 
+            emote: { text: em.text, color: em.color, by: currentUser.uid } 
+        });
+    }
+
+    function showFloatingEmote(emoteObj) {
+        if(!emoteObj) return;
+        let el = document.createElement('div');
+        el.className = 'floating-emote';
+        el.innerText = emoteObj.text || '';
+        el.style.color = emoteObj.color || '#fff';
+        
+        document.body.appendChild(el);
+        
+        document.getElementById('app-container').classList.add('shake');
+        setTimeout(() => document.getElementById('app-container').classList.remove('shake'), 400);
+        
+        setTimeout(() => el.remove(), 2500);
+    }
+
+    function renderStore() {
+        let themesContainer = document.getElementById('themes-store');
+        let emotesContainer = document.getElementById('emotes-store');
+        themesContainer.innerHTML = ''; emotesContainer.innerHTML = '';
+
+        let inventory = userData?.inventory || { themes: ['default'], emotes: ['gg'] };
+        let themesInv = inventory.themes || ['default'];
+        let emotesInv = inventory.emotes || ['gg'];
+        let equippedTheme = userData?.equippedTheme || 'default';
+
+        STORE_ITEMS.themes.forEach(t => {
+            let has = themesInv.includes(t.id);
+            let eq = equippedTheme === t.id;
+            let div = document.createElement('div');
+            div.className = `store-item ${eq ? 'equipped' : ''}`;
+            
+            let actionBtn = eq ? `<button type="button" class="btn btn-outline" disabled style="flex:1; padding:10px; font-size:0.75rem; border-color:var(--success); color:var(--success);">Equipped</button>` : 
+                 has ? `<button type="button" class="btn btn-outline" style="flex:1; padding:10px; font-size:0.75rem; border-color:var(--primary); color:var(--primary);" onclick="equipItem('theme', '${t.id}')">Equip</button>` :
+                 `<button type="button" class="btn btn-primary" style="flex:1; padding:10px; font-size:0.85rem;" onclick="buyItem('theme', '${t.id}', ${t.price})">🪙 ${t.price}</button>`;
+
+            div.innerHTML = `
+                <div class="preview-box ${t.class}">X O</div>
+                <div style="font-weight:800; font-size:0.9rem; text-transform:uppercase; margin-bottom: 12px; color: var(--text-main);">${t.name}</div>
+                <div class="store-actions">
+                    <button type="button" class="btn btn-outline" style="flex:1; padding:10px; font-size:0.75rem;" onclick="previewItem('theme', '${t.id}')">Preview</button>
+                    ${actionBtn}
+                </div>
+            `;
+            themesContainer.appendChild(div);
+        });
+
+        STORE_ITEMS.emotes.forEach(e => {
+            let has = emotesInv.includes(e.id);
+            let div = document.createElement('div');
+            div.className = `store-item`;
+            
+            let actionBtn = has ? `<button type="button" class="btn btn-outline" disabled style="flex:1; padding:10px; font-size:0.75rem; color:var(--text-muted);">Owned</button>` : 
+                 `<button type="button" class="btn btn-primary" style="flex:1; padding:10px; font-size:0.85rem;" onclick="buyItem('emote', '${e.id}', ${e.price})">🪙 ${e.price}</button>`;
+
+            div.innerHTML = `
+                <div class="preview-box" style="color:${e.color}; text-shadow:0 0 15px currentColor; font-style:italic;">${e.text}</div>
+                <div class="store-actions">
+                    <button type="button" class="btn btn-outline" style="flex:1; padding:10px; font-size:0.75rem;" onclick="previewItem('emote', '${e.id}')">Preview</button>
+                    ${actionBtn}
+                </div>
+            `;
+            emotesContainer.appendChild(div);
+        });
+    }
+
+    window.buyItem = async (type, id, price) => {
+        let coins = userData?.coins || 0;
+        if(coins < price) return window.showModal('Transaction Failed', 'Insufficient coins for purchase.');
+        
+        let newCoins = coins - price;
+        let newInv = { ...userData?.inventory } || { themes: ['default'], emotes: ['gg'] };
+        
+        if(!newInv[type+'s']) newInv[type+'s'] = [];
+        newInv[type+'s'].push(id);
+        
+        await update(ref(db, `users/${currentUser.uid}`), { coins: newCoins, inventory: newInv });
+        if(type === 'theme') equipItem('theme', id);
+        renderStore();
+        window.showModal('Transaction Success', 'Item purchased successfully.');
+    };
+
+    window.equipItem = async (type, id) => {
+        await update(ref(db, `users/${currentUser.uid}`), { equippedTheme: id });
+        renderStore();
+    };
+
+    async function loadLeaderboard() {
+        let list = document.getElementById('lb-list');
+        list.innerHTML = '<div style="text-align:center; color: var(--text-muted); padding: 20px; font-weight: 700;">Fetching server data...</div>';
+        
+        try {
+            let q = query(ref(db, 'users'), orderByChild('rp'), limitToLast(10));
+            let snap = await get(q);
+            
+            let users = [];
+            if(snap.exists()) {
+                snap.forEach(s => { users.push(s.val()); });
+            }
+            users.reverse(); 
+            
+            list.innerHTML = '';
+            if(users.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color: var(--text-muted); padding: 20px; font-weight: 700;">No data available</div>';
+                return;
+            }
+
+            users.forEach((u, i) => {
+                if(!u) return;
+                let rp = u.rp || 0;
+                let name = u.name || "Unknown Player";
+                let r = getRankObj(rp);
+                
+                let div = document.createElement('div');
+                div.className = 'lb-item';
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="lb-rank ${i < 3 ? 'top-3' : ''}">#${i+1}</div>
+                        <div class="rank-icon rank-${r.name.toLowerCase()}" style="transform: scale(0.8);"></div>
+                        <div style="font-weight:800; font-size:1.05rem;">${name}</div>
+                    </div>
+                    <div style="color:var(--primary); font-weight:900; font-size: 1.15rem;">${rp} <span style="font-size: 0.7rem; color: var(--text-muted);">RP</span></div>
+                `;
+                list.appendChild(div);
+            });
+        } catch (error) {
+            list.innerHTML = '<div style="text-align:center; color: var(--danger); padding: 20px; font-weight: 700;">Error loading leaderboard</div>';
+            console.error(error);
+        }
+    }
+
+</script>
+</body>
+</html>
