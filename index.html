@@ -87,7 +87,7 @@
         .board-container { display: flex; justify-content: center; align-items: center; padding: 20px 0; }
         .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 320px; height: 320px; background: var(--board-bg); padding: 16px; border-radius: 20px; border: 2px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s; }
         
-        .cell { background: var(--cell-bg); border: 2px solid #2D3748; border-radius: 16px; box-shadow: 0 8px 0 var(--cell-shadow), 0 10px 15px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 900; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; position: relative; }
+        .cell { background: var(--cell-bg); border: 2px solid #2D3748; border-radius: 16px; box-shadow: 0 8px 0 var(--cell-shadow), 0 10px 15px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 900; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; position: relative; aspect-ratio: 1 / 1; width: 100%; height: 100%; box-sizing: border-box; }
         .cell:active, .cell.active-press { transform: translateY(8px); box-shadow: 0 0px 0 var(--cell-shadow), 0 4px 5px rgba(0,0,0,0.3); }
         
         .cell.x { color: var(--x-color); text-shadow: 0 0 15px var(--x-color); animation: popPiece 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -460,6 +460,7 @@
     let userData = null;
     let currentGameRef = null;
     let currentGameId = null;
+    let currentGameStatus = null;
     let currentMode = null;
     let gameUnsubscribe = null;
     let timerInterval = null;
@@ -526,10 +527,16 @@
     
     window.navTo = (screenId) => {
         if(currentGameId && screenId !== 'game') {
-            window.showModal('Game in Progress', 'You are currently in a live match. Disconnect?', 
-                `<button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal()">Cancel</button>
-                 <button type="button" class="btn btn-primary" style="flex:1; background: var(--danger);" onclick="abandonGame(); navToForce('${screenId}')">Disconnect</button>`);
-            return;
+            if(currentGameStatus === 'playing') {
+                window.showModal('Game in Progress', 'You are currently in a live match. Disconnect?', 
+                    `<button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal()">Cancel</button>
+                     <button type="button" class="btn btn-primary" style="flex:1; background: var(--danger);" onclick="abandonGame(); navToForce('${screenId}')">Disconnect</button>`);
+                return;
+            } else {
+                abandonGame();
+                navToForce(screenId);
+                return;
+            }
         }
         navToForce(screenId);
     };
@@ -641,7 +648,7 @@
             onDisconnect(myOnlineRef).set(false);
             onDisconnect(ref(db, `users/${currentUser.uid}/activeGame`)).remove();
 
-            if(data.activeGame && data.activeGame !== currentGameId && document.getElementById('matchmaking-screen').classList.contains('active')) {
+            if(data.activeGame && data.activeGame !== currentGameId) {
                 joinGame(data.activeGame);
             }
 
@@ -721,21 +728,21 @@
         document.getElementById('mm-text').innerText = `SEARCHING FOR MATCH...`;
         document.getElementById('mm-sub').innerText = mode === 'ranked' ? `Searching ${rank.name} tier` : `Classic Matchmaking`;
 
-        const qSnap = await get(ref(db, qPath));
+        const q = query(ref(db, qPath), orderByChild('time'));
+        const qSnap = await get(q);
         let found = false;
         if(qSnap.exists()) {
-            let entries = qSnap.val();
-            for(let key in entries) {
-                let entry = entries[key];
-                if(entry && entry.uid !== currentUser.uid && !entry.matched && entry.mode === mode) {
+            qSnap.forEach((s) => {
+                let entry = s.val();
+                let key = s.key;
+                if(entry && entry.uid !== currentUser.uid && !entry.matched && entry.mode === mode && !found) {
                     found = true;
                     let oppUid = entry.uid;
                     update(ref(db, `${qPath}/${key}`), { matched: true });
                     createNewGame(oppUid, mode, null);
                     remove(ref(db, `${qPath}/${key}`));
-                    break;
                 }
-            }
+            });
         }
 
         if(!found) {
@@ -869,8 +876,9 @@
         
         gameUnsubscribe = onValue(ref(db, `games/${gid}`), (snap) => {
             const game = snap.val();
-            if(!game) { abandonGame(); return; }
+            if(!game) { abandonGame(); navToForce('home'); return; }
             
+            currentGameStatus = game.status;
             renderGame(game);
             handleTimers(game);
         });
@@ -1000,9 +1008,9 @@
         else if(isDraw) { statusEl.innerText = "DRAW"; statusEl.style.color = "var(--text-muted)"; }
         else { statusEl.innerText = game.status === 'timeout' ? "TIME EXPIRED" : "DEFEAT"; statusEl.style.color = "var(--danger)"; }
 
-        if(!game.processed && game.processed !== currentUser.uid) {
-            processRewards(game, isWin, isDraw);
+        if(!game['processed_' + currentUser.uid]) {
             update(ref(db, `games/${currentGameId}`), { [`processed_${currentUser.uid}`]: true });
+            processRewards(game, isWin, isDraw);
         }
 
         if(game.mode === 'friend' && (game.round || 1) < (game.bestOf || 1)) {
@@ -1061,14 +1069,17 @@
         if(timerInterval) clearInterval(timerInterval);
         if(currentGameId && currentUser) {
             update(ref(db, `users/${currentUser.uid}`), { activeGame: null });
-            get(ref(db, `games/${currentGameId}`)).then(s => {
-                let g = s.val();
-                if(g && g.status === 'playing') {
-                    update(ref(db, `games/${currentGameId}`), { status: 'abandoned', winner: g.p1 === currentUser.uid ? g.p2 : g.p1 });
-                }
-            });
+            if(currentGameStatus === 'playing') {
+                get(ref(db, `games/${currentGameId}`)).then(s => {
+                    let g = s.val();
+                    if(g && g.status === 'playing') {
+                        update(ref(db, `games/${currentGameId}`), { status: 'abandoned', winner: g.p1 === currentUser.uid ? g.p2 : g.p1 });
+                    }
+                });
+            }
         }
         currentGameId = null;
+        currentGameStatus = null;
     }
 
     window.toggleEmoteMenu = () => {
