@@ -630,6 +630,13 @@
     let userUnsub = null;
     function setupUserListener() {
         if(userUnsub) userUnsub();
+        
+        // FIXED BUG: Setup online presence once safely outside the continuous loop!
+        const myOnlineRef = ref(db, `users/${currentUser.uid}/online`);
+        set(myOnlineRef, true);
+        onDisconnect(myOnlineRef).set(false);
+        onDisconnect(ref(db, `users/${currentUser.uid}/activeGame`)).remove();
+
         userUnsub = onValue(ref(db, `users/${currentUser.uid}`), (snap) => {
             const data = snap.val();
             if(!data) return; 
@@ -643,17 +650,13 @@
             userData = data;
             updateUI();
 
-            const myOnlineRef = ref(db, `users/${currentUser.uid}/online`);
-            set(myOnlineRef, true);
-            onDisconnect(myOnlineRef).set(false);
-            onDisconnect(ref(db, `users/${currentUser.uid}/activeGame`)).remove();
-
             if(data.activeGame && data.activeGame !== currentGameId) {
                 joinGame(data.activeGame);
             }
-
-            listenInvites();
         });
+        
+        // Setup invite listener once here
+        listenInvites();
         navToForce('home');
     }
 
@@ -718,33 +721,53 @@
     let mmQueueRef = null;
     let mmListener = null;
 
+    // FIXED BUG: Faster matchmaking by ignoring exact rank limits & deleting inactive/ghost waiting players immediately.
     window.startMatchmaking = async (mode) => {
         currentMode = mode;
         navToForce('matchmaking');
-        const rp = userData?.rp || 0;
-        const rank = getRankObj(rp);
-        const qPath = mode === 'ranked' ? `matchmaking/ranked/${rank.name}` : `matchmaking/classic/all`;
+        
+        // Single unified path for each mode to make finding players instantaneous regardless of ranks
+        const qPath = mode === 'ranked' ? `matchmaking/ranked/all` : `matchmaking/classic/all`;
         
         document.getElementById('mm-text').innerText = `SEARCHING FOR MATCH...`;
-        document.getElementById('mm-sub').innerText = mode === 'ranked' ? `Searching ${rank.name} tier` : `Classic Matchmaking`;
+        document.getElementById('mm-sub').innerText = mode === 'ranked' ? `Searching Ranked Arena` : `Classic Matchmaking`;
 
         const q = query(ref(db, qPath), orderByChild('time'));
         const qSnap = await get(q);
         let found = false;
+        
         if(qSnap.exists()) {
-            qSnap.forEach((s) => {
-                let entry = s.val();
-                let key = s.key;
-                if(entry && entry.uid !== currentUser.uid && !entry.matched && entry.mode === mode && !found) {
-                    found = true;
-                    let oppUid = entry.uid;
-                    update(ref(db, `${qPath}/${key}`), { matched: true });
-                    createNewGame(oppUid, mode, null);
-                    remove(ref(db, `${qPath}/${key}`));
+            let entries = [];
+            qSnap.forEach(s => { entries.push({ key: s.key, val: s.val() }); });
+            
+            // Iterate over players waiting in queue
+            for(let i=0; i<entries.length; i++) {
+                let entry = entries[i].val;
+                let key = entries[i].key;
+                
+                if(entry && entry.uid !== currentUser.uid && !entry.matched && entry.mode === mode) {
+                    
+                    // Verify if opponent is actually online and not disconnected/ghost
+                    let oppSnap = await get(ref(db, `users/${entry.uid}`));
+                    let oppData = oppSnap.val();
+                    
+                    if(oppData && oppData.online === true && !oppData.activeGame) {
+                        found = true;
+                        let oppUid = entry.uid;
+                        // Lock the entry
+                        await update(ref(db, `${qPath}/${key}`), { matched: true });
+                        await createNewGame(oppUid, mode, null);
+                        await remove(ref(db, `${qPath}/${key}`));
+                        break;
+                    } else {
+                        // Dead/Ghost entry cleanup! Prevents you from getting stuck.
+                        remove(ref(db, `${qPath}/${key}`));
+                    }
                 }
-            });
+            }
         }
 
+        // If no active players were found, join the queue and wait for the next person
         if(!found) {
             mmQueueRef = push(ref(db, qPath));
             await set(mmQueueRef, { uid: currentUser.uid, matched: false, time: Date.now(), mode: mode });
@@ -787,6 +810,7 @@
         
         await set(ref(db, `games/${gid}`), gameObj);
         
+        // This instantly triggers the user listener to pull both players into the match
         await update(ref(db, `users/${p1Uid}`), { activeGame: gid });
         await update(ref(db, `users/${p2Uid}`), { activeGame: gid });
     }
