@@ -9,17 +9,6 @@
     <!-- Keywords for Google -->
     <meta name="keywords" content="Restaurant loyalty cards, Digital dining wallet, NFC restaurant cards, Cafe customer retention, TapCraves loyalty program, Smart dining solutions">
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="TapCraves | Smart Restaurant Loyalty & Digital Dining Cards">
-    <meta property="og:description" content="Increase your restaurant footfall and customer loyalty with customized smart cards. No apps, just tap and dine!">
-    <meta property="og:image" content="https://yourwebsite.com/preview-image.jpg">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="TapCraves | Smart Restaurant Loyalty">
-    <meta property="twitter:description" content="The easiest way to build customer loyalty for your restaurant.">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
@@ -450,7 +439,7 @@
 
                 <div><input type="text" id="cust-name" class="tc-input" required placeholder="Customer Name"></div>
                 <div><input type="tel" id="cust-mobile" class="tc-input" required placeholder="Mobile Number"></div>
-                <div><input type="text" id="cust-pin" class="tc-input tracking-[0.5em] font-mono text-center text-lg" required maxlength="4" pattern="\d{4}" placeholder="4-Digit PIN"></div>
+                <div><input type="password" id="cust-pin" class="tc-input tracking-[0.5em] font-mono text-center text-lg" required maxlength="4" pattern="\d{4}" placeholder="Set 4-Digit Security PIN" inputmode="numeric"></div>
                 <button type="submit" class="w-full blue-bg font-bold py-3.5 rounded-xl mt-4 active:scale-95 transition-transform shadow-[0_4px_14px_rgba(10,102,194,0.3)]">Link Card & Activate</button>
             </form>
             
@@ -582,7 +571,25 @@
         </div>
     </div>
 
-    <!-- 11. CUSTOMER WALLET / READ-ONLY BACK QR VIEW -->
+    <!-- 11a. PIN VERIFICATION SCREEN (For Customers Only) -->
+    <div id="pin-verification-screen" class="screen bg-tc-bg p-6">
+        <div class="flex flex-col items-center justify-center h-full flex-1 mt-20 animate-fade-in">
+            <div class="w-16 h-16 rounded-full bg-blue-100 text-tc-blue flex items-center justify-center text-2xl mb-6 shadow-inner">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2 text-tc-textMain">Secure Wallet</h2>
+            <p class="text-tc-textMuted text-sm text-center mb-8 px-4">Enter the 4-digit PIN set by the restaurant to access your digital pass.</p>
+
+            <form onsubmit="app.wallet.verifyPin(event)" class="w-full max-w-xs space-y-6">
+                <input type="password" id="wallet-pin-input" class="tc-input tracking-[1em] text-center text-2xl font-mono py-4 shadow-sm" required maxlength="4" pattern="\d{4}" placeholder="••••" inputmode="numeric">
+                <button type="submit" class="w-full blue-bg font-bold py-3.5 rounded-xl active:scale-95 transition-transform shadow-[0_4px_14px_rgba(10,102,194,0.3)] flex justify-center items-center gap-2">
+                    Unlock Wallet
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 11b. CUSTOMER WALLET / SECURE BACK QR VIEW -->
     <div id="customer-wallet-screen" class="screen bg-tc-bg">
         <div class="p-6 pt-10 pb-20 relative min-h-screen">
             <div class="flex justify-between items-center mb-8">
@@ -645,10 +652,11 @@
     </div>
 
     <!-- FIREBASE & APP LOGIC -->
+    <!-- Updated with strict query imports for DB Security -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, set, get, update, push, child, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, get, update, push, child, onValue, serverTimestamp, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB49ap7eeOKV-2bnzZ8LzrznjhU990UmtQ",
@@ -674,7 +682,6 @@
 
         const state = { user: null, restaurant: null, order: null, cards: {}, customers: {}, transactions: [], orders: {}, restaurants: {} };
 
-        // Browser History Setup (PopState)
         window.addEventListener('popstate', (e) => {
             if (e.state && e.state.screen) {
                 App.ui.showScreen(e.state.screen, false); 
@@ -685,7 +692,6 @@
         const UI = {
             isFirstLoad: true,
             showScreen: (id, pushToHistory = true, replace = false) => {
-                // Cleanup scanner explicitly when leaving scanner screen safely
                 const currentActive = document.querySelector('.screen.active');
                 if (currentActive && currentActive.id === 'scanner-screen' && id !== 'scanner-screen') {
                     if (App.scanner.html5QrcodeScanner) {
@@ -760,6 +766,18 @@
             get: async (path) => {
                 if(isMockMode) return state[path.split('/')[0]] ? state[path.split('/')[0]][path.split('/')[1]] || state[path.split('/')[0]] : null;
                 const snapshot = await get(child(ref(db), path));
+                return snapshot.exists() ? snapshot.val() : null;
+            },
+            // Security Update: Strict query method for protected paths
+            query: async (path, orderByKey, equalToVal) => {
+                if(isMockMode) {
+                    const all = state[path] || {};
+                    const res = {};
+                    Object.keys(all).forEach(k => { if(all[k][orderByKey] === equalToVal) res[k] = all[k]; });
+                    return Object.keys(res).length > 0 ? res : null;
+                }
+                const q = query(ref(db, path), orderByChild(orderByKey), equalTo(equalToVal));
+                const snapshot = await get(q);
                 return snapshot.exists() ? snapshot.val() : null;
             },
             set: async (path, data) => {
@@ -863,24 +881,14 @@
                                     const fetchedCustomers = await DB.get(`customers/${state.user.uid}`);
                                     state.customers = fetchedCustomers || {};
 
-                                    const allCards = await DB.get('cards');
-                                    const filteredCards = {};
-                                    if(allCards) {
-                                        Object.keys(allCards).forEach(k => {
-                                            if(allCards[k].restId === state.user.uid) {
-                                                filteredCards[k] = allCards[k];
-                                            }
-                                        });
-                                    }
-                                    state.cards = filteredCards;
+                                    // Security Update: Strict specific queries matching JSON Rules
+                                    state.cards = (await DB.query('cards', 'restId', state.user.uid)) || {};
 
-                                    const allTx = await DB.get('transactions');
+                                    const txData = await DB.query('transactions', 'restId', state.user.uid);
                                     const loadedTx = [];
-                                    if(allTx) {
-                                        Object.keys(allTx).forEach(k => {
-                                            if(allTx[k].restId === state.user.uid) {
-                                                loadedTx.push({...allTx[k], id: k});
-                                            }
+                                    if(txData) {
+                                        Object.keys(txData).forEach(k => {
+                                            loadedTx.push({...txData[k], id: k});
                                         });
                                         loadedTx.sort((a, b) => a.date - b.date); 
                                     }
@@ -1371,21 +1379,49 @@
                 }
             },
             wallet: {
+                cardToVerify: null,
                 initView: async (cardId) => {
                     if(!cardId) {
                         App.ui.showScreen('dashboard-screen');
                         return;
                     }
+                    // PIN verification logic shuru karein
+                    App.wallet.cardToVerify = cardId;
+                    document.getElementById('wallet-pin-input').value = '';
+                    UI.showScreen('pin-verification-screen');
+                },
+                verifyPin: async (e) => {
+                    e.preventDefault();
+                    const enteredPin = document.getElementById('wallet-pin-input').value;
+                    if(enteredPin.length !== 4) {
+                        UI.showToast("Please enter a 4-digit PIN", "error");
+                        return;
+                    }
+
+                    try {
+                        const cardData = await DB.get(`cards/${App.wallet.cardToVerify}`);
+                        if(!cardData) {
+                            UI.showToast("Invalid Card. Please contact restaurant.", "error");
+                            return;
+                        }
+
+                        if(cardData.pin === enteredPin) {
+                            // PIN correct hai, aage badhein
+                            UI.showToast("Verification Successful!");
+                            App.wallet.loadWalletData(cardData);
+                        } else {
+                            // PIN galat hai
+                            UI.showToast("Incorrect PIN! Access Denied.", "error");
+                        }
+                    } catch(err) {
+                        UI.showToast("Network Error verifying PIN.", "error");
+                    }
+                },
+                loadWalletData: async (cardData) => {
                     UI.showScreen('customer-wallet-screen');
                     
                     try {
-                        const cardData = await DB.get(`cards/${cardId}`);
-                        if(!cardData) {
-                            document.getElementById('cw-name').innerText = "Card Not Found";
-                            document.getElementById('cw-tx-list').innerHTML = '<p class="text-sm text-tc-textMuted text-center">This card is not activated.</p>';
-                            return;
-                        }
-                        
+                        const cardId = cardData.cardId;
                         const custData = await DB.get(`customers/${cardData.restId}/${cardData.customerId}`);
                         const restData = await DB.get(`restaurants/${cardData.restId}`);
                         
@@ -1418,15 +1454,14 @@
                                 document.getElementById('cw-reward-container').style.display = 'none';
                             }
                             
-                            const allTx = await DB.get('transactions');
+                            // Security Update: Strict query fetch using specific card ID
+                            const txData = await DB.query('transactions', 'cardId', cardId);
                             const txList = document.getElementById('cw-tx-list');
                             txList.innerHTML = '';
                             let hasTx = false;
                             
-                            if(allTx) {
-                                const userTx = Object.values(allTx)
-                                    .filter(tx => tx.cardId === cardId)
-                                    .sort((a,b) => b.date - a.date); 
+                            if(txData) {
+                                const userTx = Object.values(txData).sort((a,b) => b.date - a.date); 
                                     
                                 if(userTx.length > 0) {
                                     hasTx = true;
