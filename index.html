@@ -15,7 +15,7 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (Keep in head for immediate styling) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -45,10 +45,6 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- QR Scanner & Confetti -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
     <style>
         * { -webkit-tap-highlight-color: transparent; }
         body { background-color: #F8FAFC; color: #1E293B; overflow-x: hidden; }
@@ -652,7 +648,10 @@
     </div>
 
     <!-- FIREBASE & APP LOGIC -->
-    <!-- Updated with strict query imports for DB Security -->
+    <!-- Scripts moved to bottom to prevent blocking UI load -->
+    <script src="https://unpkg.com/html5-qrcode" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -768,7 +767,6 @@
                 const snapshot = await get(child(ref(db), path));
                 return snapshot.exists() ? snapshot.val() : null;
             },
-            // Security Update: Strict query method for protected paths
             query: async (path, orderByKey, equalToVal) => {
                 if(isMockMode) {
                     const all = state[path] || {};
@@ -825,13 +823,14 @@
                     return;
                 }
 
+                // Splash screen timeout reduced to 500ms
                 setTimeout(() => {
                     if(isMockMode) { UI.showScreen('welcome-screen', true, true); return; }
                     onAuthStateChanged(auth, async (user) => {
                         if (user) { state.user = user; await App.auth.checkProfile(); } 
                         else { UI.showScreen('welcome-screen', true, true); }
                     });
-                }, 1500); 
+                }, 500); 
             },
             auth: {
                 isLogin: true,
@@ -869,53 +868,63 @@
                     UI.showScreen('splash-screen');
                     if (!state.user) { UI.showScreen('welcome-screen', true, true); return; }
 
-                    const restData = await DB.get(`restaurants/${state.user.uid}`);
-                    if(restData) {
-                        state.restaurant = restData;
-                        const orderData = await DB.get(`orders/${state.user.uid}`);
-                        if(orderData) {
-                            state.order = orderData;
-                            
-                            if (!isMockMode) {
-                                try {
-                                    const fetchedCustomers = await DB.get(`customers/${state.user.uid}`);
-                                    state.customers = fetchedCustomers || {};
+                    try {
+                        const restData = await DB.get(`restaurants/${state.user.uid}`);
+                        if(restData) {
+                            state.restaurant = restData;
+                            const orderData = await DB.get(`orders/${state.user.uid}`);
+                            if(orderData) {
+                                state.order = orderData;
+                                
+                                if (!isMockMode) {
+                                    try {
+                                        const fetchedCustomers = await DB.get(`customers/${state.user.uid}`);
+                                        state.customers = fetchedCustomers || {};
 
-                                    // Security Update: Strict specific queries matching JSON Rules
-                                    state.cards = (await DB.query('cards', 'restId', state.user.uid)) || {};
+                                        state.cards = (await DB.query('cards', 'restId', state.user.uid)) || {};
 
-                                    const txData = await DB.query('transactions', 'restId', state.user.uid);
-                                    const loadedTx = [];
-                                    if(txData) {
-                                        Object.keys(txData).forEach(k => {
-                                            loadedTx.push({...txData[k], id: k});
-                                        });
-                                        loadedTx.sort((a, b) => a.date - b.date); 
-                                    }
-                                    state.transactions = loadedTx;
-
-                                    onValue(ref(db, `orders/${state.user.uid}`), (snapshot) => {
-                                        if (snapshot.exists()) {
-                                            const liveOrder = snapshot.val();
-                                            state.order = liveOrder;
-                                            if (document.getElementById('tracking-screen').classList.contains('active')) {
-                                                App.order.trackInit(liveOrder);
-                                            }
+                                        const txData = await DB.query('transactions', 'restId', state.user.uid);
+                                        const loadedTx = [];
+                                        if(txData) {
+                                            Object.keys(txData).forEach(k => {
+                                                loadedTx.push({...txData[k], id: k});
+                                            });
+                                            loadedTx.sort((a, b) => a.date - b.date); 
                                         }
-                                    });
+                                        state.transactions = loadedTx;
 
-                                } catch (e) {
-                                    console.error("Failed to hydrate persistent data on load:", e);
+                                        onValue(ref(db, `orders/${state.user.uid}`), (snapshot) => {
+                                            if (snapshot.exists()) {
+                                                const liveOrder = snapshot.val();
+                                                state.order = liveOrder;
+                                                if (document.getElementById('tracking-screen').classList.contains('active')) {
+                                                    App.order.trackInit(liveOrder);
+                                                }
+                                            }
+                                        });
+                                    } catch(innerErr) {
+                                        console.warn("Could not fetch some records, checking index rules.", innerErr);
+                                    }
                                 }
-                            }
 
-                            if(orderData.status === 'Delivered') {
-                                App.dashboard.init(); 
+                                if(orderData.status === 'Delivered') {
+                                    App.dashboard.init(); 
+                                } else {
+                                    App.order.trackInit(orderData);
+                                }
                             } else {
-                                App.order.trackInit(orderData);
+                                UI.showScreen('card-order-screen', true, true);
                             }
-                        } else UI.showScreen('card-order-screen', true, true);
-                    } else UI.showScreen('onboarding-screen', true, true);
+                        } else {
+                            UI.showScreen('onboarding-screen', true, true);
+                        }
+                    } catch (e) {
+                        console.error("Critical Profile Check Error:", e);
+                        UI.showToast("Database Connection Error. Please refresh.", "error");
+                        setTimeout(() => {
+                            App.auth.logout();
+                        }, 2500);
+                    }
                 },
                 logout: async () => {
                     if(!isMockMode) await signOut(auth);
