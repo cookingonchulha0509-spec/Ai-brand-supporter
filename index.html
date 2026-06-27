@@ -281,10 +281,10 @@
 
             <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs space-y-2 mb-5 shadow-inner">
                 <div class="flex justify-between text-tc-textMuted"><span>Cards Quantity</span><span class="font-medium text-tc-textMain" id="summary-qty">100</span></div>
-                <div class="flex justify-between text-tc-textMuted"><span>Price per Card</span><span class="font-medium text-tc-textMain">₹<span id="price-per-card">99</span></span></div>
-                <div class="flex justify-between text-tc-textMuted"><span>Sub Total</span><span class="font-medium text-tc-textMain">₹<span id="order-subtotal">9900</span></span></div>
+                <div class="flex justify-between text-tc-textMuted"><span>Price per Card</span><span class="font-medium text-tc-textMain">₹<span id="price-per-card">6</span></span></div>
+                <div class="flex justify-between text-tc-textMuted"><span>Sub Total</span><span class="font-medium text-tc-textMain">₹<span id="order-subtotal">600</span></span></div>
                 <div class="flex justify-between text-tc-textMuted"><span>Delivery Charges</span><span class="font-bold text-tc-success">₹80</span></div>
-                <div class="border-t border-gray-200 mt-1 pt-2 flex justify-between font-bold text-sm"><span>Final Total</span><span class="text-tc-blue">₹<span id="order-total">9980</span></span></div>
+                <div class="border-t border-gray-200 mt-1 pt-2 flex justify-between font-bold text-sm"><span>Final Total</span><span class="text-tc-blue">₹<span id="order-total">680</span></span></div>
             </div>
 
             <button type="submit" class="w-full bg-tc-navy hover:bg-tc-textMain text-white font-bold py-3.5 rounded-xl shadow-md flex justify-center items-center gap-2 active:scale-95 transition-all text-sm">
@@ -933,18 +933,6 @@
 
                     const name = document.getElementById('reg-rest-name').value.trim();
                     
-                    try {
-                        const allRests = await DB.get('restaurants');
-                        if (allRests) {
-                            const requestedName = name.toLowerCase();
-                            const exists = Object.values(allRests).some(r => r?.name && r.name.trim().toLowerCase() === requestedName);
-                            if (exists) {
-                                UI.showToast("Restaurant name already registered! Please choose a unique name.", "error");
-                                return;
-                            }
-                        }
-                    } catch(err) { console.warn(err); }
-
                     const data = { 
                         owner: document.getElementById('reg-owner').value, 
                         mobile: document.getElementById('reg-mobile').value, 
@@ -960,10 +948,10 @@
                 }
             },
             order: {
-                selectedQty: 100, pricePerCard: 99, secretTapCount: 0,
+                selectedQty: 100, pricePerCard: 6, secretTapCount: 0,
                 selectQty: (qty) => {
                     App.order.selectedQty = qty; 
-                    App.order.pricePerCard = qty === 50 ? 119 : qty === 100 ? 99 : 89;
+                    App.order.pricePerCard = 6;
                     
                     const deliveryFee = 80;
                     const subTotal = App.order.selectedQty * App.order.pricePerCard;
@@ -1150,7 +1138,6 @@
                     list.innerHTML = '<div class="text-center p-6"><div class="loader-ring mx-auto mb-4"></div></div>';
                     try {
                         const orders = await DB.get('orders'); 
-                        const restaurants = await DB.get('restaurants');
                         
                         if(!orders || Object.keys(orders).length === 0) { 
                             list.innerHTML = '<p class="text-center text-sm text-tc-textMuted">No orders found.</p>'; 
@@ -1160,12 +1147,11 @@
                         let listHtml = '';
                         Object.keys(orders).forEach(uid => {
                             const ord = orders[uid]; 
-                            const rest = (restaurants && restaurants[uid]) ? restaurants[uid] : {name: 'Unknown User'};
                             const idsHtml = (ord?.generatedCards && ord.generatedCards.length > 0) ? 
                                 ord.generatedCards.map(id => `<span class="inline-block bg-white text-tc-textMain text-[10px] px-2 py-1 border border-gray-200 rounded font-mono m-0.5 shadow-sm">${id}</span>`).join('') : 
                                 '<span class="text-xs text-tc-textMuted">No cards generated.</span>';
                             
-                            const restName = rest?.name || 'Unknown User';
+                            const restName = 'User Order';
                             const qty = ord?.qty || 0;
                             const total = ord?.total || 0;
                             const status = ord?.status || 'Unknown';
