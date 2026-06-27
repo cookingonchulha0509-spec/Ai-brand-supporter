@@ -648,7 +648,6 @@
     </div>
 
     <!-- FIREBASE & APP LOGIC -->
-    <!-- Scripts moved to bottom to prevent blocking UI load -->
     <script src="https://unpkg.com/html5-qrcode" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
 
@@ -667,18 +666,11 @@
             appId: "1:211890731218:web:2bcae1f8d26fddfe0f950b"
         };
 
-        let appInstance, auth, db, isMockMode = false;
+        const appInstance = initializeApp(firebaseConfig);
+        const auth = getAuth(appInstance);
+        const db = getDatabase(appInstance);
 
-        try {
-            if(firebaseConfig.apiKey === "YOUR_API_KEY") throw new Error("Missing Config");
-            appInstance = initializeApp(firebaseConfig);
-            auth = getAuth(appInstance);
-            db = getDatabase(appInstance);
-        } catch (e) {
-            console.warn("⚠️ Firebase config missing. Using local State fallback to demonstrate features.");
-            isMockMode = true; 
-        }
-
+        // State used as a local cache for UI, so we don't query Firebase constantly for the same data
         const state = { user: null, restaurant: null, order: null, cards: {}, customers: {}, transactions: [], orders: {}, restaurants: {} };
 
         window.addEventListener('popstate', (e) => {
@@ -763,42 +755,21 @@
 
         const DB = {
             get: async (path) => {
-                if(isMockMode) return state[path.split('/')[0]] ? state[path.split('/')[0]][path.split('/')[1]] || state[path.split('/')[0]] : null;
                 const snapshot = await get(child(ref(db), path));
                 return snapshot.exists() ? snapshot.val() : null;
             },
             query: async (path, orderByKey, equalToVal) => {
-                if(isMockMode) {
-                    const all = state[path] || {};
-                    const res = {};
-                    Object.keys(all).forEach(k => { if(all[k][orderByKey] === equalToVal) res[k] = all[k]; });
-                    return Object.keys(res).length > 0 ? res : null;
-                }
                 const q = query(ref(db, path), orderByChild(orderByKey), equalTo(equalToVal));
                 const snapshot = await get(q);
                 return snapshot.exists() ? snapshot.val() : null;
             },
             set: async (path, data) => {
-                if(isMockMode) { 
-                    const parts = path.split('/'); 
-                    if(!state[parts[0]]) state[parts[0]] = {};
-                    state[parts[0]][parts[1]] = data; 
-                    return; 
-                }
                 await set(ref(db, path), data);
             },
             update: async (path, data) => {
-                if(isMockMode) { Object.assign(state[path.split('/')[0]][path.split('/')[1]], data); return; }
                 await update(ref(db, path), data);
             },
             push: async (path, data) => {
-                if(isMockMode) { 
-                    const id = 'txn_' + Date.now(); 
-                    if(!state[path]) state[path] = {}; 
-                    state[path][id] = data; 
-                    if(path==='transactions') state.transactions.push({...data, id});
-                    return; 
-                }
                 const newRef = push(ref(db, path));
                 await set(newRef, data);
             }
@@ -810,10 +781,6 @@
                 const params = new URLSearchParams(window.location.search);
                 
                 if(params.get('view') === 'superadmin') {
-                    if(isMockMode) {
-                        state.orders = { "owner_123": { qty: 50, total: 5950, address: "Admin Test City", status: "Processing", generatedCards: ["TC-1111-2222", "TC-3333-4444"] } };
-                        state.restaurants = { "owner_123": { name: "The Grand Admin Demo" } };
-                    }
                     App.superadmin.init();
                     return;
                 }
@@ -823,9 +790,7 @@
                     return;
                 }
 
-                // Splash screen timeout reduced to 500ms
                 setTimeout(() => {
-                    if(isMockMode) { UI.showScreen('welcome-screen', true, true); return; }
                     onAuthStateChanged(auth, async (user) => {
                         if (user) { state.user = user; await App.auth.checkProfile(); } 
                         else { UI.showScreen('welcome-screen', true, true); }
@@ -844,10 +809,6 @@
                 },
                 googleLogin: async () => {
                     try {
-                        if(isMockMode) {
-                            UI.showScreen('splash-screen');
-                            setTimeout(async () => { state.user = {uid: 'demo_user', email: 'demo@google.com'}; await App.auth.checkProfile(); }, 1200); return; 
-                        }
                         state.user = (await signInWithPopup(auth, new GoogleAuthProvider())).user;
                         await App.auth.checkProfile();
                     } catch(e) { UI.showToast(e.message, 'error'); }
@@ -856,10 +817,6 @@
                     e.preventDefault();
                     const email = document.getElementById('auth-email').value, pass = document.getElementById('auth-password').value;
                     try {
-                        if(isMockMode) { 
-                            UI.showScreen('splash-screen');
-                            setTimeout(async () => { state.user = {uid: 'demo_user', email}; await App.auth.checkProfile(); }, 1200); return; 
-                        }
                         state.user = (App.auth.isLogin ? await signInWithEmailAndPassword(auth, email, pass) : await createUserWithEmailAndPassword(auth, email, pass)).user;
                         await App.auth.checkProfile();
                     } catch(e) { UI.showToast(e.message, 'error'); }
@@ -868,66 +825,92 @@
                     UI.showScreen('splash-screen');
                     if (!state.user) { UI.showScreen('welcome-screen', true, true); return; }
 
+                    let restData = null;
+                    let orderData = null;
+
+                    // 1. Fetch Restaurant Data Safely
                     try {
-                        const restData = await DB.get(`restaurants/${state.user.uid}`);
-                        if(restData) {
-                            state.restaurant = restData;
-                            const orderData = await DB.get(`orders/${state.user.uid}`);
-                            if(orderData) {
-                                state.order = orderData;
-                                
-                                if (!isMockMode) {
-                                    try {
-                                        const fetchedCustomers = await DB.get(`customers/${state.user.uid}`);
-                                        state.customers = fetchedCustomers || {};
-
-                                        state.cards = (await DB.query('cards', 'restId', state.user.uid)) || {};
-
-                                        const txData = await DB.query('transactions', 'restId', state.user.uid);
-                                        const loadedTx = [];
-                                        if(txData) {
-                                            Object.keys(txData).forEach(k => {
-                                                loadedTx.push({...txData[k], id: k});
-                                            });
-                                            loadedTx.sort((a, b) => (a?.date || 0) - (b?.date || 0)); 
-                                        }
-                                        state.transactions = loadedTx;
-
-                                        onValue(ref(db, `orders/${state.user.uid}`), (snapshot) => {
-                                            if (snapshot.exists()) {
-                                                const liveOrder = snapshot.val();
-                                                state.order = liveOrder;
-                                                if (document.getElementById('tracking-screen').classList.contains('active')) {
-                                                    App.order.trackInit(liveOrder);
-                                                }
-                                            }
-                                        });
-                                    } catch(innerErr) {
-                                        console.warn("Could not fetch some records, checking index rules.", innerErr);
-                                    }
-                                }
-
-                                if(orderData?.status === 'Delivered') {
-                                    App.dashboard.init(); 
-                                } else {
-                                    App.order.trackInit(orderData);
-                                }
-                            } else {
-                                UI.showScreen('card-order-screen', true, true);
-                            }
-                        } else {
-                            UI.showScreen('onboarding-screen', true, true);
-                        }
+                        restData = await DB.get(`restaurants/${state.user.uid}`);
                     } catch (e) {
-                        console.error("Critical Profile Check Error:", e);
-                        UI.showToast("Database Connection Error. Please refresh.", "error");
-                        setTimeout(() => {
-                            App.auth.logout();
-                        }, 2500);
+                        console.error("Restaurant fetch failed (Rules or Network):", e);
+                        UI.showToast("Connection issue checking profile.", "error");
+                        return App.auth.logout(); 
+                    }
+
+                    if (!restData) {
+                        return UI.showScreen('onboarding-screen', true, true);
+                    }
+                    state.restaurant = restData;
+
+                    // 2. Fetch Order Data Safely
+                    try {
+                        orderData = await DB.get(`orders/${state.user.uid}`);
+                    } catch (e) {
+                        console.error("Order fetch failed (Rules or Network):", e);
+                        orderData = null; 
+                    }
+
+                    if (!orderData) {
+                        return UI.showScreen('card-order-screen', true, true);
+                    }
+                    state.order = orderData;
+                    
+                    // 3. Fetch Inner Details Safely (Customers, Cards, Tx) - One by one
+                    try {
+                        const fetchedCustomers = await DB.get(`customers/${state.user.uid}`);
+                        state.customers = fetchedCustomers || {};
+                    } catch(e) { 
+                        state.customers = {}; 
+                        console.warn("Customers fetch blocked.", e); 
+                    }
+
+                    try {
+                        state.cards = (await DB.query('cards', 'restId', state.user.uid)) || {};
+                    } catch(e) { 
+                        state.cards = {}; 
+                        console.warn("Cards fetch blocked.", e); 
+                    }
+
+                    try {
+                        const txData = await DB.query('transactions', 'restId', state.user.uid);
+                        const loadedTx = [];
+                        if(txData) {
+                            Object.keys(txData).forEach(k => {
+                                loadedTx.push({...txData[k], id: k});
+                            });
+                            loadedTx.sort((a, b) => (a?.date || 0) - (b?.date || 0)); 
+                        }
+                        state.transactions = loadedTx;
+                    } catch(e) { 
+                        state.transactions = []; 
+                        console.warn("Transactions fetch blocked.", e); 
+                    }
+
+                    try {
+                        onValue(ref(db, `orders/${state.user.uid}`), (snapshot) => {
+                            if (snapshot.exists()) {
+                                const liveOrder = snapshot.val();
+                                state.order = liveOrder;
+                                if (document.getElementById('tracking-screen').classList.contains('active')) {
+                                    App.order.trackInit(liveOrder);
+                                }
+                            }
+                        });
+                    } catch(e) { console.warn("Live order tracking blocked."); }
+
+                    // 4. Decide Final Screen based on Order Status
+                    if(orderData?.status === 'Delivered') {
+                        App.dashboard.init(); 
+                    } else {
+                        App.order.trackInit(orderData);
                     }
                 },
                 logout: async () => {
-                    if(!isMockMode) await signOut(auth);
+                    try {
+                        if(auth) await signOut(auth);
+                    } catch(e) {
+                        console.warn("Firebase SignOut error safely caught", e);
+                    }
                     state.user = null; state.restaurant = null; state.order = null; 
                     UI.showScreen('welcome-screen', true, true);
                 }
@@ -953,14 +936,14 @@
                                 return;
                             }
                         }
-                    } catch(err) { console.log("Duplicate check gracefully skipped due to permission or empty db."); }
+                    } catch(err) { console.warn(err); }
 
                     const data = { 
                         owner: document.getElementById('reg-owner').value, 
                         mobile: document.getElementById('reg-mobile').value, 
                         name: name, 
                         address: document.getElementById('reg-address').value, 
-                        createdAt: isMockMode ? Date.now() : serverTimestamp() 
+                        createdAt: serverTimestamp() 
                     };
                     try {
                         await DB.set(`restaurants/${state.user.uid}`, data);
@@ -1015,7 +998,7 @@
                         expectedDate: 'Pending...',
                         deliveryMessage: 'Cards are being printed and securely encoded.',
                         generatedCards: generatedCards,
-                        date: isMockMode ? Date.now() : serverTimestamp()
+                        date: serverTimestamp()
                     };
                     await DB.set(`orders/${state.user.uid}`, orderData);
                     state.order = orderData; 
@@ -1206,7 +1189,6 @@
                     const currentUid = state.user?.uid || (auth?.currentUser?.uid) || null;
                     const filteredTx = state.transactions.filter(tx => tx?.restId === currentUid);
                     
-                    // Pre-calculate revenue safely for all transactions
                     filteredTx.forEach(tx => {
                         if(tx?.type === 'payment') {
                             rev += parseFloat(tx?.amount || 0);
@@ -1430,7 +1412,6 @@
                         App.ui.showScreen('dashboard-screen');
                         return;
                     }
-                    // PIN verification logic shuru karein
                     App.wallet.cardToVerify = cardId;
                     document.getElementById('wallet-pin-input').value = '';
                     UI.showScreen('pin-verification-screen');
@@ -1451,11 +1432,9 @@
                         }
 
                         if(cardData.pin === enteredPin) {
-                            // PIN correct hai, aage badhein
                             UI.showToast("Verification Successful!");
                             App.wallet.loadWalletData(cardData);
                         } else {
-                            // PIN galat hai
                             UI.showToast("Incorrect PIN! Access Denied.", "error");
                         }
                     } catch(err) {
@@ -1499,7 +1478,6 @@
                                 document.getElementById('cw-reward-container').style.display = 'none';
                             }
                             
-                            // Security Update: Strict query fetch using specific card ID
                             const txData = await DB.query('transactions', 'cardId', cardId);
                             const txList = document.getElementById('cw-tx-list');
                             let txHtml = '';
