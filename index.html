@@ -255,33 +255,40 @@
             <p class="text-center text-[10px] text-tc-textMuted mt-4"><i class="fa-solid fa-rotate mr-1"></i>Tap card to view Dual-QR System</p>
         </div>
 
-        <form id="order-form" onsubmit="app.order.submit(event)" class="glass-panel p-5 rounded-2xl animate-fade-in space-y-5 bg-white">
-            <div>
-                <label class="block text-sm font-medium text-tc-textMain mb-2">Select Quantity</label>
-                <div class="grid grid-cols-3 gap-3">
-                    <button type="button" onclick="app.order.selectQty(10)" class="qty-btn border border-gray-200 rounded-lg py-2 text-sm text-tc-textMain hover:bg-tc-blueLight hover:border-tc-blue transition">10 Cards</button>
-                    <button type="button" onclick="app.order.selectQty(50)" class="qty-btn border border-gray-200 rounded-lg py-2 text-sm text-tc-textMain hover:bg-tc-blueLight hover:border-tc-blue transition">50 Cards</button>
-                    <button type="button" onclick="app.order.selectQty(100)" class="qty-btn border-tc-blue bg-tc-blueLight text-tc-blue font-semibold rounded-lg py-2 text-sm transition">100 Cards</button>
+        <form id="order-form" onsubmit="app.order.submit(event)" class="glass-panel p-4 rounded-2xl animate-fade-in bg-white shadow-sm border border-gray-100">
+            <div class="mb-4">
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-tc-blue mb-2 ml-1">1. Select Quantity</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" onclick="app.order.selectQty(50)" class="qty-btn border border-gray-200 rounded-lg py-2 text-sm text-tc-textMain hover:bg-tc-blueLight hover:border-tc-blue transition">50</button>
+                    <button type="button" onclick="app.order.selectQty(100)" class="qty-btn border-tc-blue bg-tc-blueLight text-tc-blue font-semibold shadow-sm rounded-lg py-2 text-sm transition">100</button>
+                    <button type="button" onclick="app.order.selectQty(250)" class="qty-btn border border-gray-200 rounded-lg py-2 text-sm text-tc-textMain hover:bg-tc-blueLight hover:border-tc-blue transition">250</button>
                 </div>
-                <p class="text-[10px] text-tc-textMuted mt-2"><i class="fa-solid fa-circle-info"></i> Your order will automatically generate blank Card IDs.</p>
-            </div>
-            
-            <div class="flex justify-between items-center py-3 border-b border-gray-100">
-                <span class="text-sm text-tc-textMuted">Price per card</span>
-                <span class="font-bold text-tc-textMain">₹<span id="price-per-card">99</span></span>
-            </div>
-            <div class="flex justify-between items-center pb-2">
-                <span class="text-sm text-tc-textMuted">Total Amount</span>
-                <span class="text-xl font-bold text-tc-blue">₹<span id="order-total">9900</span></span>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-tc-textMain mb-1 ml-1">Delivery Address</label>
-                <textarea id="order-address" class="tc-input h-20 resize-none" required placeholder="Enter full delivery address"></textarea>
+            <div class="mb-4">
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-tc-blue mb-2 ml-1">2. Delivery Address</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="order-fullname" class="tc-input text-sm py-2.5 px-3 col-span-2" placeholder="Full Name" required>
+                    <input type="tel" id="order-mobile" class="tc-input text-sm py-2.5 px-3 col-span-2" placeholder="Mobile Number" required>
+                    <input type="text" id="order-house" class="tc-input text-sm py-2.5 px-3" placeholder="House/Shop No." required>
+                    <input type="text" id="order-street" class="tc-input text-sm py-2.5 px-3" placeholder="Street Address" required>
+                    <input type="text" id="order-area" class="tc-input text-sm py-2.5 px-3" placeholder="Area/Locality" required>
+                    <input type="text" id="order-city" class="tc-input text-sm py-2.5 px-3" placeholder="City" required>
+                    <input type="text" id="order-state" class="tc-input text-sm py-2.5 px-3" placeholder="State" required>
+                    <input type="text" id="order-pincode" class="tc-input text-sm py-2.5 px-3" placeholder="PIN Code" required>
+                </div>
             </div>
 
-            <button type="submit" class="w-full blue-bg font-bold py-3.5 rounded-xl shadow-[0_4px_14px_rgba(10,102,194,0.3)] flex justify-center items-center gap-2 active:scale-95 transition-transform">
-                <i class="fa-solid fa-lock text-sm"></i> Pay & Order Securely
+            <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs space-y-2 mb-5 shadow-inner">
+                <div class="flex justify-between text-tc-textMuted"><span>Cards Quantity</span><span class="font-medium text-tc-textMain" id="summary-qty">100</span></div>
+                <div class="flex justify-between text-tc-textMuted"><span>Price per Card</span><span class="font-medium text-tc-textMain">₹<span id="price-per-card">99</span></span></div>
+                <div class="flex justify-between text-tc-textMuted"><span>Sub Total</span><span class="font-medium text-tc-textMain">₹<span id="order-subtotal">9900</span></span></div>
+                <div class="flex justify-between text-tc-textMuted"><span>Delivery Charges</span><span class="font-bold text-tc-success">₹80</span></div>
+                <div class="border-t border-gray-200 mt-1 pt-2 flex justify-between font-bold text-sm"><span>Final Total</span><span class="text-tc-blue">₹<span id="order-total">9980</span></span></div>
+            </div>
+
+            <button type="submit" class="w-full bg-tc-navy hover:bg-tc-textMain text-white font-bold py-3.5 rounded-xl shadow-md flex justify-center items-center gap-2 active:scale-95 transition-all text-sm">
+                Confirm With COD - Place Order
             </button>
         </form>
     </div>
@@ -956,17 +963,21 @@
                 selectedQty: 100, pricePerCard: 99, secretTapCount: 0,
                 selectQty: (qty) => {
                     App.order.selectedQty = qty; 
-                    App.order.pricePerCard = qty === 10 ? 149 : qty === 50 ? 119 : 99;
+                    App.order.pricePerCard = qty === 50 ? 119 : qty === 100 ? 99 : 89;
                     
-                    const shippingFee = Number(App.order.shippingFee || 0);
-                    const deliveryFee = Number(App.order.deliveryFee || 0);
+                    const deliveryFee = 80;
+                    const subTotal = App.order.selectedQty * App.order.pricePerCard;
+                    const finalTotal = subTotal + deliveryFee;
 
                     document.querySelectorAll('.qty-btn').forEach(b => {
-                        b.classList.remove('bg-tc-blueLight', 'border-tc-blue', 'text-tc-blue', 'font-semibold');
-                        if(b.innerText.includes(qty)) b.classList.add('bg-tc-blueLight', 'border-tc-blue', 'text-tc-blue', 'font-semibold');
+                        b.classList.remove('bg-tc-blueLight', 'border-tc-blue', 'text-tc-blue', 'font-semibold', 'shadow-sm');
+                        if(b.innerText.trim() === String(qty)) b.classList.add('bg-tc-blueLight', 'border-tc-blue', 'text-tc-blue', 'font-semibold', 'shadow-sm');
                     });
-                    document.getElementById('price-per-card').innerText = App.order.pricePerCard; 
-                    document.getElementById('order-total').innerText = (App.order.selectedQty * App.order.pricePerCard) + shippingFee + deliveryFee;
+                    
+                    document.getElementById('summary-qty').innerText = App.order.selectedQty;
+                    document.getElementById('price-per-card').innerText = App.order.pricePerCard;
+                    document.getElementById('order-subtotal').innerText = subTotal;
+                    document.getElementById('order-total').innerText = finalTotal;
                 },
                 submit: async (e) => {
                     e.preventDefault();
@@ -982,8 +993,19 @@
                     }
                     const nowStr = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
                     
-                    const shippingFee = Number(App.order.shippingFee || 0);
-                    const deliveryFee = Number(App.order.deliveryFee || 0);
+                    const name = document.getElementById('order-fullname').value.trim();
+                    const mobile = document.getElementById('order-mobile').value.trim();
+                    const house = document.getElementById('order-house').value.trim();
+                    const street = document.getElementById('order-street').value.trim();
+                    const area = document.getElementById('order-area').value.trim();
+                    const city = document.getElementById('order-city').value.trim();
+                    const stateField = document.getElementById('order-state').value.trim();
+                    const pin = document.getElementById('order-pincode').value.trim();
+                    
+                    const combinedAddress = `${name} (${mobile}), ${house}, ${street}, ${area}, ${city}, ${stateField} - ${pin}`;
+
+                    const shippingFee = 0;
+                    const deliveryFee = 80;
                     const totalAmount = (App.order.selectedQty * App.order.pricePerCard) + shippingFee + deliveryFee;
 
                     const orderData = {
@@ -991,7 +1013,7 @@
                         total: totalAmount,
                         shippingFee: shippingFee,
                         deliveryFee: deliveryFee,
-                        address: document.getElementById('order-address').value, 
+                        address: combinedAddress, 
                         status: 'Processing',
                         history: { 'Order Confirmed': nowStr, 'Processing': nowStr }, 
                         trackingId: 'TC-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
