@@ -889,7 +889,7 @@
                                             Object.keys(txData).forEach(k => {
                                                 loadedTx.push({...txData[k], id: k});
                                             });
-                                            loadedTx.sort((a, b) => a.date - b.date); 
+                                            loadedTx.sort((a, b) => (a?.date || 0) - (b?.date || 0)); 
                                         }
                                         state.transactions = loadedTx;
 
@@ -907,7 +907,7 @@
                                     }
                                 }
 
-                                if(orderData.status === 'Delivered') {
+                                if(orderData?.status === 'Delivered') {
                                     App.dashboard.init(); 
                                 } else {
                                     App.order.trackInit(orderData);
@@ -947,7 +947,7 @@
                         const allRests = await DB.get('restaurants');
                         if (allRests) {
                             const requestedName = name.toLowerCase();
-                            const exists = Object.values(allRests).some(r => r.name && r.name.trim().toLowerCase() === requestedName);
+                            const exists = Object.values(allRests).some(r => r?.name && r.name.trim().toLowerCase() === requestedName);
                             if (exists) {
                                 UI.showToast("Restaurant name already registered! Please choose a unique name.", "error");
                                 return;
@@ -964,7 +964,7 @@
                     };
                     try {
                         await DB.set(`restaurants/${state.user.uid}`, data);
-                        state.restaurant = data; document.getElementById('preview-rest-name').innerText = data.name;
+                        state.restaurant = data; document.getElementById('preview-rest-name').innerText = data.name || 'Restaurant';
                         UI.showScreen('card-order-screen'); UI.showToast("Profile created!");
                     } catch(err) { UI.showToast("Error saving profile", 'error'); }
                 }
@@ -1037,7 +1037,7 @@
                     ];
 
                     const orderStatusRank = { 'Order Confirmed': 0, 'Processing': 1, 'Shipped': 2, 'Out for Delivery': 3, 'Delivered': 4 };
-                    const currentRank = orderStatusRank[order.status] || 1;
+                    const currentRank = orderStatusRank[order?.status] || 1;
 
                     uiSteps.forEach((step, index) => {
                         const el = document.getElementById(`track-${step.id}`);
@@ -1045,15 +1045,15 @@
                         const timeEl = document.getElementById(`time-${step.id}`);
                         const dot = el.querySelector('div:first-child');
                         
-                        let stepTime = order.history && order.history[step.statusKey];
+                        let stepTime = order?.history && order.history[step.statusKey];
                         if (step.id === 'confirmed' && !stepTime) {
-                            stepTime = (order.history && order.history['Processing']) || 
-                                       (order.date ? new Date(order.date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Completed');
+                            stepTime = (order?.history && order.history['Processing']) || 
+                                       (order?.date ? new Date(order.date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Completed');
                         }
 
                         if (index <= currentRank) {
                             el.style.opacity = '1';
-                            if (index < currentRank || order.status === 'Delivered') {
+                            if (index < currentRank || order?.status === 'Delivered') {
                                 dot.className = 'w-6 h-6 rounded-full bg-tc-success flex items-center justify-center text-white text-xs shadow-[0_0_10px_rgba(16,185,129,0.3)] transition-all duration-300 z-10 relative';
                                 dot.innerHTML = '<i class="fa-solid fa-check"></i>';
                                 timeEl.innerHTML = `<span class="text-tc-success font-medium"><i class="fa-solid fa-clock mr-1"></i>${stepTime}</span>`;
@@ -1067,18 +1067,18 @@
                             dot.className = 'w-6 h-6 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-xs transition-all duration-300 z-10 relative';
                             dot.innerHTML = '';
                             if (index === currentRank + 1) {
-                                timeEl.innerHTML = `<span class="text-gray-400 font-medium"><i class="fa-regular fa-calendar-check mr-1"></i>Expected: ${order.expectedDate && order.expectedDate !== 'Pending...' ? order.expectedDate : 'Soon'}</span>`;
+                                timeEl.innerHTML = `<span class="text-gray-400 font-medium"><i class="fa-regular fa-calendar-check mr-1"></i>Expected: ${order?.expectedDate && order.expectedDate !== 'Pending...' ? order.expectedDate : 'Soon'}</span>`;
                             } else {
                                 timeEl.innerHTML = '';
                             }
                         }
                     });
 
-                    document.getElementById('track-id').innerText = order.trackingId || 'N/A';
-                    document.getElementById('track-expected').innerText = 'Expected Arrival: ' + (order.expectedDate || 'Pending...');
-                    document.getElementById('track-message').innerText = order.deliveryMessage || 'Awaiting further updates.';
+                    document.getElementById('track-id').innerText = order?.trackingId || 'N/A';
+                    document.getElementById('track-expected').innerText = 'Expected Arrival: ' + (order?.expectedDate || 'Pending...');
+                    document.getElementById('track-message').innerText = order?.deliveryMessage || 'Awaiting further updates.';
 
-                    if (order.deliveryBoyName && order.deliveryBoyPhone && (order.status === 'Out for Delivery' || order.status === 'Delivered')) {
+                    if (order?.deliveryBoyName && order?.deliveryBoyPhone && (order?.status === 'Out for Delivery' || order?.status === 'Delivered')) {
                         document.getElementById('delivery-partner-box').classList.remove('hidden');
                         document.getElementById('dp-name').innerText = order.deliveryBoyName;
                         document.getElementById('dp-phone').innerText = order.deliveryBoyPhone;
@@ -1087,7 +1087,7 @@
                         document.getElementById('delivery-partner-box').classList.add('hidden');
                     }
 
-                    if(order.status === 'Delivered') {
+                    if(order?.status === 'Delivered') {
                         setTimeout(() => {
                             if (document.getElementById('tracking-screen').classList.contains('active')) {
                                 App.dashboard.init();
@@ -1104,9 +1104,9 @@
                 },
                 simulateNextDeliveryStep: async () => {
                     const nowStr = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
-                    const history = state.order.history || {};
+                    const history = state.order?.history || {};
                     const steps = ['Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
-                    let currentIdx = steps.indexOf(state.order.status);
+                    let currentIdx = steps.indexOf(state.order?.status);
                     if (currentIdx === -1) currentIdx = 0;
                     if (currentIdx >= steps.length - 1) return;
                     
@@ -1144,23 +1144,35 @@
                     const list = document.getElementById('sa-orders-list');
                     list.innerHTML = '<div class="text-center p-6"><div class="loader-ring mx-auto mb-4"></div></div>';
                     try {
-                        const orders = await DB.get('orders'); const restaurants = await DB.get('restaurants');
-                        list.innerHTML = '';
-                        if(!orders || Object.keys(orders).length === 0) { list.innerHTML = '<p class="text-center text-sm text-tc-textMuted">No orders found.</p>'; return; }
+                        const orders = await DB.get('orders'); 
+                        const restaurants = await DB.get('restaurants');
+                        
+                        if(!orders || Object.keys(orders).length === 0) { 
+                            list.innerHTML = '<p class="text-center text-sm text-tc-textMuted">No orders found.</p>'; 
+                            return; 
+                        }
 
+                        let listHtml = '';
                         Object.keys(orders).forEach(uid => {
-                            const ord = orders[uid]; const rest = (restaurants && restaurants[uid]) ? restaurants[uid] : {name: 'Unknown User'};
-                            const idsHtml = (ord.generatedCards && ord.generatedCards.length > 0) ? 
+                            const ord = orders[uid]; 
+                            const rest = (restaurants && restaurants[uid]) ? restaurants[uid] : {name: 'Unknown User'};
+                            const idsHtml = (ord?.generatedCards && ord.generatedCards.length > 0) ? 
                                 ord.generatedCards.map(id => `<span class="inline-block bg-white text-tc-textMain text-[10px] px-2 py-1 border border-gray-200 rounded font-mono m-0.5 shadow-sm">${id}</span>`).join('') : 
                                 '<span class="text-xs text-tc-textMuted">No cards generated.</span>';
                             
-                            list.innerHTML += `
+                            const restName = rest?.name || 'Unknown User';
+                            const qty = ord?.qty || 0;
+                            const total = ord?.total || 0;
+                            const status = ord?.status || 'Unknown';
+                            const address = ord?.address || 'No address provided';
+
+                            listHtml += `
                                 <div class="glass-panel bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                                     <div class="flex justify-between items-start mb-2">
-                                        <div><h4 class="font-bold text-sm text-tc-textMain">${rest.name}</h4><p class="text-xs text-tc-textMuted font-medium">${ord.qty} Cards • ₹${ord.total}</p></div>
-                                        <span class="bg-blue-100 text-tc-blue text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider">${ord.status}</span>
+                                        <div><h4 class="font-bold text-sm text-tc-textMain">${restName}</h4><p class="text-xs text-tc-textMuted font-medium">${qty} Cards • ₹${total}</p></div>
+                                        <span class="bg-blue-100 text-tc-blue text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider">${status}</span>
                                     </div>
-                                    <p class="text-[11px] text-tc-textMuted mb-3"><i class="fa-solid fa-location-dot"></i> ${ord.address}</p>
+                                    <p class="text-[11px] text-tc-textMuted mb-3"><i class="fa-solid fa-location-dot"></i> ${address}</p>
                                     <details class="group cursor-pointer">
                                         <summary class="text-xs font-bold text-tc-blue list-none flex items-center gap-1.5 select-none bg-blue-50 py-1.5 px-3 rounded-lg w-max">
                                             <i class="fa-solid fa-chevron-down group-open:rotate-180 transition-transform"></i> View Auto-Generated Card IDs
@@ -1170,6 +1182,7 @@
                                 </div>
                             `;
                         });
+                        list.innerHTML = listHtml;
                     } catch(e) { list.innerHTML = '<p class="text-center text-sm text-red-500">Failed to load admin data.</p>'; }
                 }
             },
@@ -1177,8 +1190,8 @@
                 init: () => {
                     UI.showScreen('dashboard-screen', true, true);
                     UI.updateTabUI('dashboard-screen');
-                    document.getElementById('dash-rest-name').innerText = state.restaurant.name;
-                    document.getElementById('stat-total-cards').innerText = state.order.qty;
+                    document.getElementById('dash-rest-name').innerText = state.restaurant?.name || 'Restaurant';
+                    document.getElementById('stat-total-cards').innerText = state.order?.qty || 0;
                     App.dashboard.renderStats();
                     App.cards.renderList();
                 },
@@ -1189,28 +1202,40 @@
                     
                     let rev = 0; 
                     const txList = document.getElementById('recent-tx-list'); 
-                    txList.innerHTML = '';
                     
                     const currentUid = state.user?.uid || (auth?.currentUser?.uid) || null;
-                    const filteredTx = state.transactions.filter(tx => tx.restId === currentUid);
+                    const filteredTx = state.transactions.filter(tx => tx?.restId === currentUid);
                     
+                    // Pre-calculate revenue safely for all transactions
+                    filteredTx.forEach(tx => {
+                        if(tx?.type === 'payment') {
+                            rev += parseFloat(tx?.amount || 0);
+                        }
+                    });
+                    
+                    let txHtml = '';
                     if(filteredTx.length > 0) {
                         filteredTx.slice().reverse().slice(0,5).forEach(tx => {
-                            if(tx.type === 'payment') rev += parseFloat(tx.amount);
-                            const isPay = tx.type === 'payment';
+                            const isPay = tx?.type === 'payment';
                             const icon = isPay ? '<i class="fa-solid fa-utensils text-green-500"></i>' : '<i class="fa-solid fa-arrow-up text-blue-500"></i>';
-                            txList.innerHTML += `
+                            const custName = tx?.customerName || 'Customer';
+                            const dateStr = tx?.date ? new Date(tx.date).toLocaleDateString() : 'N/A';
+                            const amountStr = parseFloat(tx?.amount || 0).toFixed(2);
+                            const cardId = tx?.cardId || 'Unknown';
+
+                            txHtml += `
                                 <div class="flex justify-between items-center p-3 border-b border-gray-100 last:border-0">
                                     <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full ${isPay ? 'bg-green-50' : 'bg-blue-50'} flex items-center justify-center">${icon}</div>
-                                    <div><p class="text-sm font-bold text-tc-textMain">${tx.customerName}</p><p class="text-[10px] font-medium text-tc-textMuted">${new Date(tx.date).toLocaleDateString()}</p></div></div>
-                                    <div class="text-right"><p class="font-bold text-sm ${isPay?'text-tc-textMain':'text-blue-600'}">${isPay?'-':'+'}₹${parseFloat(tx.amount).toFixed(2)}</p><p class="text-[10px] font-mono text-tc-textMuted">${tx.cardId}</p></div>
+                                    <div><p class="text-sm font-bold text-tc-textMain">${custName}</p><p class="text-[10px] font-medium text-tc-textMuted">${dateStr}</p></div></div>
+                                    <div class="text-right"><p class="font-bold text-sm ${isPay?'text-tc-textMain':'text-blue-600'}">${isPay?'-':'+'}₹${amountStr}</p><p class="text-[10px] font-mono text-tc-textMuted">${cardId}</p></div>
                                 </div>
                             `;
                         });
                     } else {
-                        txList.innerHTML = '<div class="text-center p-6 text-sm text-tc-textMuted">No transactions found</div>';
+                        txHtml = '<div class="text-center p-6 text-sm text-tc-textMuted">No transactions found</div>';
                     }
                     
+                    txList.innerHTML = txHtml;
                     document.getElementById('stat-revenue').innerText = rev.toFixed(2); 
                     document.getElementById('stat-transactions').innerText = filteredTx.length;
                 }
@@ -1237,15 +1262,20 @@
                     } catch(err) { UI.showToast("Failed to link card", 'error'); }
                 },
                 renderList: () => {
-                    const list = document.getElementById('customers-list'); list.innerHTML = '';
+                    const list = document.getElementById('customers-list'); 
+                    let htmlStr = '';
                     Object.values(state.customers || {}).forEach(c => {
-                        list.innerHTML += `
+                        const name = c?.name || 'Customer';
+                        const cardId = c?.cardId || 'Unknown';
+                        const balance = parseFloat(c?.balance || 0).toFixed(2);
+                        htmlStr += `
                             <div class="glass-panel bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
-                                <div><p class="font-bold text-sm text-tc-textMain">${c.name}</p><p class="text-[11px] text-tc-blue font-mono font-medium">${c.cardId}</p></div>
-                                <div class="text-right"><p class="text-xs font-medium text-tc-textMuted">Balance</p><p class="font-bold text-tc-textMain">₹${parseFloat(c.balance || 0).toFixed(2)}</p></div>
+                                <div><p class="font-bold text-sm text-tc-textMain">${name}</p><p class="text-[11px] text-tc-blue font-mono font-medium">${cardId}</p></div>
+                                <div class="text-right"><p class="text-xs font-medium text-tc-textMuted">Balance</p><p class="font-bold text-tc-textMain">₹${balance}</p></div>
                             </div>
                         `;
                     });
+                    list.innerHTML = htmlStr;
                 }
             },
             rewards: {
@@ -1253,11 +1283,11 @@
                     UI.showScreen('rewards-screen');
                     const conf = state.restaurant?.rewardConfig;
                     if(conf) {
-                        document.getElementById('rew-target').value = conf.target;
-                        document.getElementById('rew-name').value = conf.name;
+                        document.getElementById('rew-target').value = conf.target || '';
+                        document.getElementById('rew-name').value = conf.name || '';
                         document.getElementById('active-reward-display').classList.remove('hidden');
-                        document.getElementById('disp-rew-name').innerText = conf.name;
-                        document.getElementById('disp-rew-target').innerText = conf.target;
+                        document.getElementById('disp-rew-name').innerText = conf.name || 'Reward';
+                        document.getElementById('disp-rew-target').innerText = conf.target || 0;
                     }
                 },
                 save: async (e) => {
@@ -1267,7 +1297,7 @@
                     const config = { target, name };
                     try {
                         await DB.update(`restaurants/${state.user.uid}`, { rewardConfig: config });
-                        state.restaurant.rewardConfig = config;
+                        if(state.restaurant) state.restaurant.rewardConfig = config;
                         UI.showToast("Reward Rule Saved Successfully!");
                         App.rewards.init();
                     } catch(err) { UI.showToast("Error saving rule", "error"); }
@@ -1307,13 +1337,14 @@
                 txType: 'payment',
                 init: async (cardId) => {
                     let cust = null; let custId = null;
-                    Object.entries(state.customers || {}).forEach(([id, c]) => { if(c.cardId === cardId) { cust = c; custId = id; } });
+                    Object.entries(state.customers || {}).forEach(([id, c]) => { if(c?.cardId === cardId) { cust = c; custId = id; } });
                     if(!cust) { UI.showToast("Unregistered Card Scanned", "error"); return; }
 
                     App.payment.currentCust = { ...cust, id: custId };
-                    document.getElementById('pay-initial').innerText = cust.name.charAt(0).toUpperCase();
-                    document.getElementById('pay-name').innerText = cust.name;
-                    document.getElementById('pay-card-id').innerText = cust.cardId;
+                    const custName = cust?.name || 'Customer';
+                    document.getElementById('pay-initial').innerText = custName.charAt(0).toUpperCase();
+                    document.getElementById('pay-name').innerText = custName;
+                    document.getElementById('pay-card-id').innerText = cust?.cardId || 'Unknown';
                     document.getElementById('pay-amount').value = '';
 
                     document.getElementById('payment-action-screen').classList.remove('hidden');
@@ -1353,26 +1384,31 @@
                     if(isNaN(amt) || amt <= 0) { UI.showToast("Enter valid amount", "error"); return; }
                     
                     const cust = App.payment.currentCust;
-                    if(App.payment.txType === 'payment' && cust.balance < amt) { UI.showToast("Insufficient Balance!", "error"); return; }
+                    let currentBal = parseFloat(cust?.balance || 0);
+                    let totalSpent = parseFloat(cust?.totalSpent || 0);
+                    
+                    if(App.payment.txType === 'payment' && currentBal < amt) { UI.showToast("Insufficient Balance!", "error"); return; }
 
                     if(App.payment.txType === 'payment') {
-                        cust.balance -= amt;
-                        cust.totalSpent = (cust.totalSpent || 0) + amt;
+                        currentBal -= amt;
+                        totalSpent += amt;
                     } else {
-                        cust.balance += amt;
+                        currentBal += amt;
                     }
                     
-                    state.customers[cust.id].balance = cust.balance;
-                    if(App.payment.txType === 'payment') state.customers[cust.id].totalSpent = cust.totalSpent;
+                    if(state.customers && state.customers[cust.id]) {
+                        state.customers[cust.id].balance = currentBal;
+                        if(App.payment.txType === 'payment') state.customers[cust.id].totalSpent = totalSpent;
+                    }
                     
                     const tx = { type: App.payment.txType, amount: amt, cardId: cust.cardId, customerName: cust.name, date: Date.now(), restId: state.user.uid };
                     await DB.push(`transactions`, tx);
-                    await DB.update(`customers/${state.user.uid}/${cust.id}`, { balance: cust.balance, totalSpent: cust.totalSpent });
+                    await DB.update(`customers/${state.user.uid}/${cust.id}`, { balance: currentBal, totalSpent: totalSpent });
 
                     document.getElementById('pay-user-info').classList.add('hidden');
                     document.getElementById('payment-input-screen').classList.add('hidden');
                     document.getElementById('payment-success-screen').classList.remove('hidden');
-                    document.getElementById('pay-success-balance').innerText = `₹${cust.balance.toFixed(2)}`;
+                    document.getElementById('pay-success-balance').innerText = `₹${currentBal.toFixed(2)}`;
 
                     const svg = document.querySelector('.success-checkmark');
                     const newSvg = svg.cloneNode(true);
@@ -1430,34 +1466,34 @@
                     UI.showScreen('customer-wallet-screen');
                     
                     try {
-                        const cardId = cardData.cardId;
+                        const cardId = cardData?.cardId;
                         const custData = await DB.get(`customers/${cardData.restId}/${cardData.customerId}`);
                         const restData = await DB.get(`restaurants/${cardData.restId}`);
                         
                         if(custData && restData) {
-                            document.getElementById('cw-name').innerText = custData.name; 
-                            document.getElementById('cw-rest-name').innerText = restData.name;
-                            document.getElementById('cw-balance').innerText = parseFloat(custData.balance || 0).toFixed(2); 
-                            document.getElementById('cw-card-id').innerText = cardData.cardId;
+                            document.getElementById('cw-name').innerText = custData?.name || 'Customer'; 
+                            document.getElementById('cw-rest-name').innerText = restData?.name || 'Restaurant';
+                            document.getElementById('cw-balance').innerText = parseFloat(custData?.balance || 0).toFixed(2); 
+                            document.getElementById('cw-card-id').innerText = cardData?.cardId || 'Unknown';
                             
-                            const rewardConf = restData.rewardConfig;
+                            const rewardConf = restData?.rewardConfig;
                             if(rewardConf) {
                                 document.getElementById('cw-reward-container').style.display = 'block';
-                                const spent = custData.totalSpent || 0; 
-                                const target = rewardConf.target;
-                                const pct = Math.min((spent / target) * 100, 100);
+                                const spent = parseFloat(custData?.totalSpent || 0); 
+                                const target = parseFloat(rewardConf?.target || 0);
+                                const pct = target > 0 ? Math.min((spent / target) * 100, 100) : 0;
                                 
                                 setTimeout(() => { document.getElementById('cw-reward-bar').style.width = pct + '%'; }, 100);
                                 
                                 document.getElementById('cw-spend-current').innerText = spent.toFixed(2);
                                 document.getElementById('cw-spend-target').innerText = target.toFixed(2);
                                 
-                                if(spent >= target) {
-                                    document.getElementById('cw-reward-msg').innerHTML = `<span class="text-tc-success font-bold text-sm">Unlocked: ${rewardConf.name}! 🎉</span>`;
+                                if(spent >= target && target > 0) {
+                                    document.getElementById('cw-reward-msg').innerHTML = `<span class="text-tc-success font-bold text-sm">Unlocked: ${rewardConf.name || 'Reward'}! 🎉</span>`;
                                     document.getElementById('cw-reward-bar').classList.remove('bg-tc-blue');
                                     document.getElementById('cw-reward-bar').classList.add('bg-tc-success');
                                 } else {
-                                    document.getElementById('cw-reward-msg').innerText = `Spend ₹${(target - spent).toFixed(2)} more to unlock a ${rewardConf.name}!`;
+                                    document.getElementById('cw-reward-msg').innerText = `Spend ₹${(target - spent).toFixed(2)} more to unlock a ${rewardConf.name || 'Reward'}!`;
                                 }
                             } else {
                                 document.getElementById('cw-reward-container').style.display = 'none';
@@ -1466,31 +1502,36 @@
                             // Security Update: Strict query fetch using specific card ID
                             const txData = await DB.query('transactions', 'cardId', cardId);
                             const txList = document.getElementById('cw-tx-list');
-                            txList.innerHTML = '';
+                            let txHtml = '';
                             let hasTx = false;
                             
                             if(txData) {
-                                const userTx = Object.values(txData).sort((a,b) => b.date - a.date); 
+                                const userTx = Object.values(txData).sort((a,b) => (b?.date || 0) - (a?.date || 0)); 
                                     
                                 if(userTx.length > 0) {
                                     hasTx = true;
                                     userTx.forEach(tx => {
-                                        const isPay = tx.type === 'payment';
+                                        const isPay = tx?.type === 'payment';
                                         const sign = isPay ? '-' : '+';
                                         const color = isPay ? 'text-tc-textMain' : 'text-green-600';
                                         const title = isPay ? 'Payment' : 'Wallet Top-up';
-                                        txList.innerHTML += `
+                                        const amountStr = parseFloat(tx?.amount || 0).toFixed(2);
+                                        const dateStr = tx?.date ? new Date(tx.date).toLocaleDateString() : 'N/A';
+                                        const timeStr = tx?.date ? new Date(tx.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                                        
+                                        txHtml += `
                                             <div class="glass-panel bg-white border border-gray-100 p-3 rounded-xl shadow-sm flex justify-between items-center mb-3">
-                                                <div><p class="font-bold text-sm text-tc-textMain">${title}</p><p class="text-[10px] font-medium text-tc-textMuted">${new Date(tx.date).toLocaleDateString()} ${new Date(tx.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div>
-                                                <p class="font-bold ${color}">${sign}₹${parseFloat(tx.amount).toFixed(2)}</p>
+                                                <div><p class="font-bold text-sm text-tc-textMain">${title}</p><p class="text-[10px] font-medium text-tc-textMuted">${dateStr} ${timeStr}</p></div>
+                                                <p class="font-bold ${color}">${sign}₹${amountStr}</p>
                                             </div>
                                         `;
                                     });
                                 }
                             }
                             if(!hasTx) {
-                                txList.innerHTML = '<p class="text-sm text-tc-textMuted text-center py-4">No transactions yet.</p>';
+                                txHtml = '<p class="text-sm text-tc-textMuted text-center py-4">No transactions yet.</p>';
                             }
+                            txList.innerHTML = txHtml;
                         } else {
                             document.getElementById('cw-name').innerText = "Data Incomplete";
                             document.getElementById('cw-tx-list').innerHTML = '<p class="text-sm text-tc-textMuted text-center">Cannot retrieve card details.</p>';
