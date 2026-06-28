@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cookingonchulha0509-spec.github.io/Ai-brand-supporter/sitemap.xml
