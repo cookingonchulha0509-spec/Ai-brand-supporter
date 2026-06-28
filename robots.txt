@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://cookingonchulha0509-spec.github.io/Ai-brand-supporter/sitemap.xml
+Sitemap: [https://ai-brand-supporter.vercel.app/sitemap.xml](https://ai-brand-supporter.vercel.app/sitemap.xml)
