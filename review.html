@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>TapCraves Reviews</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Read verified customer reviews and experiences with TapCraves.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config={theme:{extend:{fontFamily:{sans:['Outfit','sans-serif']},colors:{tc:{blue:'#0A66C2',blueDark:'#004182',blueLight:'#E0EFFF',bg:'#F8FAFC',surface:'#FFFFFF',navy:'#0F172A',silver:'#E2E8F0',danger:'#EF4444',success:'#10B981',textMain:'#1E293B',textMuted:'#64748B'}}}}}
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #F8FAFC; color: #1E293B; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        .app-container { min-height: 100vh; width: 100%; max-width: 480px; margin: 0 auto; position: relative; background-color: #F8FAFC; display: flex; flex-direction: column; }
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .tc-input { width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; color: #1E293B; padding: 12px 16px; border-radius: 12px; outline: none; transition: all 0.3s; }
+        .tc-input:focus { border-color: #0A66C2; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(10,102,194,0.1); }
+        .blue-gradient { background: linear-gradient(135deg, #0A66C2 0%, #004182 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .star-rating i { cursor: pointer; transition: color 0.2s; }
+        .star-rating i.active { color: #F59E0B; }
+        .star-rating i.inactive { color: #E2E8F0; }
+        
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
+        .toast { padding: 12px 20px; border-radius: 12px; font-weight: 500; font-size: 14px; animation: fadeIn 0.3s ease; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .toast.success { background: #ECFDF5; color: #065F46; border: 1px solid #34D399; }
+        .toast.error { background: #FEF2F2; color: #991B1B; border: 1px solid #F87171; }
+        
+        .loader-ring { width: 40px; height: 40px; border: 3px solid rgba(10, 102, 194, 0.2); border-radius: 50%; border-top-color: #0A66C2; animation: spin 1s ease-in-out infinite; margin: 0 auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* SaaS Level Premium Loader Styling */
+        #full-page-loader { transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s; z-index: 9999; }
+        .premium-spinner { width: 70px; height: 70px; position: relative; }
+        .premium-spinner .circle-1 { position: absolute; inset: 0; border-radius: 50%; border: 3px solid transparent; border-top-color: #0A66C2; border-right-color: #0A66C2; animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; }
+        .premium-spinner .circle-2 { position: absolute; inset: 8px; border-radius: 50%; border: 3px solid transparent; border-bottom-color: #34D399; border-left-color: #34D399; animation: spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite reverse; opacity: 0.8; }
+        .premium-spinner .icon-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #0A66C2; font-size: 1.25rem; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
+</head>
+<body>
+
+    <!-- Professional SaaS Level Full Page Loader -->
+    <div id="full-page-loader" class="fixed inset-0 bg-tc-bg flex flex-col items-center justify-center">
+        <div class="premium-spinner mb-6">
+            <div class="circle-1"></div>
+            <div class="circle-2"></div>
+            <div class="icon-center"><i class="fa-solid fa-shield-halved"></i></div>
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight mb-1"><span class="blue-gradient">Tap</span>Craves</h1>
+        <p class="text-[10px] text-tc-textMuted font-bold tracking-[0.2em] uppercase mt-2 animate-pulse">Authenticating Session...</p>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <!-- Main App Content (Initially Hidden for Smooth Reveal) -->
+    <div id="app-content" class="app-container opacity-0 transition-opacity duration-700 ease-out">
+        <!-- Header -->
+        <div class="p-6 pt-10 flex items-center justify-between sticky top-0 z-20 bg-tc-bg/90 backdrop-blur border-b border-gray-100">
+            <div class="flex items-center gap-4">
+                <a href="https://tapcraves.shop" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-tc-textMain shadow-sm hover:text-tc-blue transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <h2 class="text-2xl font-bold text-tc-textMain">Reviews</h2>
+            </div>
+            <div class="flex items-center gap-1 text-amber-500 font-bold text-sm">
+                <i class="fa-solid fa-star"></i> <span id="avg-rating">--</span>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6 flex-1 pb-20">
+            <!-- Review Submission Section -->
+            <div class="mb-8 animate-fade-in">
+                <!-- Logged Out Prompt -->
+                <div id="login-prompt" class="glass-panel p-6 rounded-2xl shadow-sm border border-gray-100 text-center hidden">
+                    <div class="w-16 h-16 bg-blue-50 text-tc-blue rounded-full flex items-center justify-center text-2xl mx-auto mb-3"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h3 class="text-lg font-bold text-tc-textMain mb-1">Login required to submit</h3>
+                    <p class="text-sm text-tc-textMuted mb-5">To ensure authentic feedback, only registered users can leave a review.</p>
+                    <a href="https://tapcraves.shop" class="w-full bg-tc-blue text-white font-bold py-3.5 rounded-xl active:scale-95 transition-transform shadow-[0_4px_14px_rgba(10,102,194,0.3)] flex justify-center items-center gap-2 block">
+                        Login to Review
+                    </a>
+                </div>
+
+                <!-- Logged In Form -->
+                <form id="reviewForm" onsubmit="submitReview(event)" class="glass-panel p-5 rounded-2xl shadow-sm border border-gray-100 space-y-5 hidden">
+                    <div class="text-center pb-2">
+                        <p class="text-sm font-bold text-tc-textMain mb-3 uppercase tracking-wider">Rate TapCraves</p>
+                        <div class="star-rating text-4xl flex justify-center gap-2" id="starContainer">
+                            <i class="fa-solid fa-star inactive" onclick="setRating(1)"></i>
+                            <i class="fa-solid fa-star inactive" onclick="setRating(2)"></i>
+                            <i class="fa-solid fa-star inactive" onclick="setRating(3)"></i>
+                            <i class="fa-solid fa-star inactive" onclick="setRating(4)"></i>
+                            <i class="fa-solid fa-star inactive" onclick="setRating(5)"></i>
+                        </div>
+                        <input type="hidden" id="ratingValue" value="0">
+                        <p id="ratingError" class="text-xs text-tc-danger mt-2 hidden">Please select a rating.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-tc-textMain mb-1 ml-1">Display Name</label>
+                        <input type="text" id="reviewerName" class="tc-input" required placeholder="How should your name appear?">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-tc-textMain mb-1 ml-1">Your Experience</label>
+                        <textarea id="reviewMessage" class="tc-input h-28 resize-none py-3" required placeholder="Tell us what you liked or what we can improve..."></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-tc-navy text-white font-bold py-3.5 rounded-xl mt-2 active:scale-95 transition-transform shadow-md flex justify-center items-center gap-2" id="submitBtn">
+                        Submit Verified Review
+                    </button>
+                </form>
+            </div>
+
+            <!-- Public Reviews List -->
+            <div>
+                <h3 class="font-bold text-lg text-tc-textMain mb-4 flex items-center gap-2">
+                    <i class="fa-regular fa-comments text-tc-blue"></i> Customer Reviews
+                </h3>
+                <div id="reviews-list" class="space-y-4">
+                    <div class="text-center p-8"><div class="loader-ring"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, push, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyB49ap7eeOKV-2bnzZ8LzrznjhU990UmtQ", authDomain: "tap-crabe.firebaseapp.com", databaseURL: "https://tap-crabe-default-rtdb.firebaseio.com", projectId: "tap-crabe", storageBucket: "tap-crabe.firebasestorage.app", messagingSenderId: "211890731218", appId: "1:211890731218:web:2bcae1f8d26fddfe0f950b" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let currentUser = null;
+        let currentRating = 0;
+        let isInitialLoad = true;
+
+        // Auth State Observer - Handles Session & Hides Loader smoothly
+        onAuthStateChanged(auth, (user) => {
+            const loginPrompt = document.getElementById('login-prompt');
+            const reviewForm = document.getElementById('reviewForm');
+            
+            if (user) {
+                currentUser = user;
+                loginPrompt.classList.add('hidden');
+                reviewForm.classList.remove('hidden');
+                
+                // Pre-fill name if available
+                let defaultName = user.displayName || "";
+                if(!defaultName && user.email) defaultName = user.email.split('@')[0];
+                document.getElementById('reviewerName').value = defaultName;
+            } else {
+                currentUser = null;
+                loginPrompt.classList.remove('hidden');
+                reviewForm.classList.add('hidden');
+            }
+
+            // Remove SaaS Full Screen Loader smoothly once auth state is resolved
+            if(isInitialLoad) {
+                setTimeout(() => {
+                    const loader = document.getElementById('full-page-loader');
+                    const appContent = document.getElementById('app-content');
+                    loader.style.opacity = '0';
+                    setTimeout(() => {
+                        loader.style.visibility = 'hidden';
+                        loader.style.display = 'none';
+                        appContent.classList.remove('opacity-0');
+                    }, 600);
+                }, 400); // 400ms buffer for psychological smooth effect
+                isInitialLoad = false;
+            }
+        });
+
+        // Load Reviews
+        const reviewsRef = ref(db, 'reviews');
+        onValue(reviewsRef, (snapshot) => {
+            const list = document.getElementById('reviews-list');
+            if (!snapshot.exists()) {
+                list.innerHTML = `
+                    <div class="glass-panel border border-gray-100 p-8 rounded-2xl text-center text-tc-textMuted shadow-sm">
+                        <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-2xl mx-auto mb-3"><i class="fa-regular fa-comment-dots"></i></div>
+                        <h4 class="font-bold text-tc-textMain">No Reviews Yet</h4>
+                        <p class="text-sm mt-1">Be the first to share your experience!</p>
+                    </div>`;
+                document.getElementById('avg-rating').innerText = '5.0';
+                return;
+            }
+
+            const data = snapshot.val();
+            const allReviews = Object.values(data);
+            
+            // Filter out empty ones and sort by date descending
+            const validReviews = allReviews.filter(r => r.message).sort((a,b) => (b.date || 0) - (a.date || 0));
+            
+            if (validReviews.length === 0) {
+                list.innerHTML = '<div class="text-center p-6 text-sm text-tc-textMuted">No approved reviews yet.</div>';
+                return;
+            }
+
+            // Calculate Avg Rating
+            let totalRating = 0;
+            let htmlStr = '';
+
+            validReviews.forEach(r => {
+                totalRating += (r.rating || 5);
+                const dateStr = r.date ? new Date(r.date).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'}) : 'Recently';
+                const ratingNum = r.rating || 5;
+                const starsHtml = Array.from({length: 5}, (_, i) => `<i class="fa-solid fa-star ${i < ratingNum ? 'text-amber-500' : 'text-slate-200'}"></i>`).join('');
+                const verifiedBadge = r.verified ? '<span class="text-[9px] bg-green-50 text-green-600 border border-green-100 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Verified</span>' : '';
+
+                htmlStr += `
+                    <div class="glass-panel p-5 rounded-2xl shadow-sm border border-gray-100 animate-fade-in bg-white">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-tc-blueLight text-tc-blue flex items-center justify-center font-bold text-lg">${(r.name || 'U').charAt(0).toUpperCase()}</div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-tc-textMain flex items-center gap-2">${r.name || 'Anonymous User'}</h4>
+                                    <div class="mt-0.5 text-xs">${starsHtml}</div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end gap-1">
+                                ${verifiedBadge}
+                                <span class="text-[10px] text-tc-textMuted font-medium">${dateStr}</span>
+                            </div>
+                        </div>
+                        <p class="text-sm text-tc-textMuted leading-relaxed">${r.message}</p>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = htmlStr;
+            const avg = (totalRating / validReviews.length).toFixed(1);
+            document.getElementById('avg-rating').innerText = avg;
+        });
+
+        // Form Logic
+        window.setRating = function(rating) {
+            currentRating = rating;
+            document.getElementById('ratingValue').value = rating;
+            document.getElementById('ratingError').classList.add('hidden');
+            
+            const stars = document.getElementById('starContainer').children;
+            for(let i = 0; i < 5; i++) {
+                if(i < rating) {
+                    stars[i].classList.remove('inactive');
+                    stars[i].classList.add('active');
+                } else {
+                    stars[i].classList.remove('active');
+                    stars[i].classList.add('inactive');
+                }
+            }
+        }
+
+        window.submitReview = async function(e) {
+            e.preventDefault();
+            
+            if(!currentUser) {
+                window.location.href = "https://tapcraves.shop";
+                return;
+            }
+
+            if(currentRating === 0) {
+                document.getElementById('ratingError').classList.remove('hidden');
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+            btn.disabled = true;
+
+            const name = document.getElementById('reviewerName').value.trim();
+            const message = document.getElementById('reviewMessage').value.trim();
+
+            try {
+                const newReviewRef = push(ref(db, 'reviews'));
+                await set(newReviewRef, {
+                    userId: currentUser.uid,
+                    name: name || 'Verified User',
+                    rating: currentRating,
+                    message: message,
+                    date: serverTimestamp(),
+                    verified: true
+                });
+                
+                showToast("Thank you! Review submitted securely.");
+                document.getElementById('reviewForm').reset();
+                setRating(0);
+                
+            } catch(error) {
+                showToast("Failed to submit review.", "error");
+            } finally {
+                btn.innerHTML = 'Submit Verified Review';
+                btn.disabled = false;
+            }
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = type === 'success' ? `<i class="fa-solid fa-circle-check"></i> ${msg}` : `<i class="fa-solid fa-circle-exclamation"></i> ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s ease'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Contact Support | TapCraves</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config={theme:{extend:{fontFamily:{sans:['Outfit','sans-serif']},colors:{tc:{blue:'#0A66C2',blueDark:'#004182',blueLight:'#E0EFFF',bg:'#F8FAFC',surface:'#FFFFFF',navy:'#0F172A',silver:'#E2E8F0',danger:'#EF4444',success:'#10B981',textMain:'#1E293B',textMuted:'#64748B'}}}}}
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #F8FAFC; color: #1E293B; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        .app-container { min-height: 100vh; width: 100%; max-width: 480px; margin: 0 auto; position: relative; background-color: #F8FAFC; display: flex; flex-direction: column; }
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="p-6 pt-10 flex items-center gap-4 sticky top-0 z-20 bg-tc-bg/90 backdrop-blur">
+            <a href="index.html" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-tc-textMain shadow-sm hover:text-tc-blue transition-colors">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="text-2xl font-bold text-tc-textMain">Contact Us</h2>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6 flex-1 animate-fade-in">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-tc-blueLight text-tc-blue rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-inner">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <h3 class="text-xl font-bold text-tc-textMain">We're here to help!</h3>
+                <p class="text-sm text-tc-textMuted mt-1">Reach out to us through any of the channels below.</p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- WhatsApp -->
+                <a href="https://wa.me/918860204675" target="_blank" class="glass-panel p-4 rounded-2xl flex items-center gap-4 hover:border-green-400 transition-colors active:scale-95 block">
+                    <div class="w-12 h-12 rounded-full bg-green-50 text-green-500 flex items-center justify-center text-2xl shadow-sm"><i class="fa-brands fa-whatsapp"></i></div>
+                    <div class="flex-1">
+                        <p class="font-bold text-sm text-tc-textMain">WhatsApp Chat</p>
+                        <p class="text-xs font-medium text-tc-textMuted font-mono">+91 88602 04675</p>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-gray-300 text-xs"></i>
+                </a>
+
+                <!-- Phone -->
+                <a href="tel:+918860204675" class="glass-panel p-4 rounded-2xl flex items-center gap-4 hover:border-tc-blue transition-colors active:scale-95 block">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 text-tc-blue flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-phone"></i></div>
+                    <div class="flex-1">
+                        <p class="font-bold text-sm text-tc-textMain">Call Us</p>
+                        <p class="text-xs font-medium text-tc-textMuted font-mono">+91 88602 04675</p>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-gray-300 text-xs"></i>
+                </a>
+
+                <!-- Email -->
+                <a href="mailto:tapcraves@gmail.com" class="glass-panel p-4 rounded-2xl flex items-center gap-4 hover:border-red-300 transition-colors active:scale-95 block">
+                    <div class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-envelope"></i></div>
+                    <div class="flex-1">
+                        <p class="font-bold text-sm text-tc-textMain">Email Support</p>
+                        <p class="text-xs font-medium text-tc-textMuted">tapcraves@gmail.com</p>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-gray-300 text-xs"></i>
+                </a>
+
+                <!-- Socials -->
+                <div class="grid grid-cols-2 gap-4 mt-2">
+                    <a href="https://www.instagram.com/tapcraves?igsh=MXBqdGkwMHU1bGdiaw==" target="_blank" class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-pink-300 transition-colors active:scale-95">
+                        <div class="w-10 h-10 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center text-xl"><i class="fa-brands fa-instagram"></i></div>
+                        <p class="font-bold text-xs text-tc-textMain">Instagram</p>
+                    </a>
+                    <a href="https://www.facebook.com/share/1Ev296vqud/" target="_blank" class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-blue-300 transition-colors active:scale-95">
+                        <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xl"><i class="fa-brands fa-facebook-f"></i></div>
+                        <p class="font-bold text-xs text-tc-textMain">Facebook</p>
+                    </a>
+                </div>
+            </div>
+            
+            <p class="text-center text-xs font-semibold text-gray-400 mt-10 pb-8">TapCraves © 2024</p>
+        </div>
+    </div>
+</body>
+</html>
