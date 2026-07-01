@@ -187,10 +187,10 @@
             </div>
             <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs space-y-2 mb-5 shadow-inner">
                 <div class="flex justify-between text-tc-textMuted"><span>Cards Quantity</span><span class="font-medium text-tc-textMain" id="summary-qty">100</span></div>
-                <div class="flex justify-between text-tc-textMuted"><span>Price per Card</span><span class="font-medium text-tc-textMain">₹<span id="price-per-card">6</span></span></div>
-                <div class="flex justify-between text-tc-textMuted"><span>Sub Total</span><span class="font-medium text-tc-textMain">₹<span id="order-subtotal">600</span></span></div>
+                <div class="flex justify-between text-tc-textMuted"><span>Price per Card</span><span class="font-medium text-tc-textMain">₹<span id="price-per-card">4</span></span></div>
+                <div class="flex justify-between text-tc-textMuted"><span>Sub Total</span><span class="font-medium text-tc-textMain">₹<span id="order-subtotal">400</span></span></div>
                 <div class="flex justify-between text-tc-textMuted"><span>Delivery Charges</span><span class="font-bold text-tc-success">₹80</span></div>
-                <div class="border-t border-gray-200 mt-1 pt-2 flex justify-between font-bold text-sm"><span>Final Total</span><span class="text-tc-blue">₹<span id="order-total">680</span></span></div>
+                <div class="border-t border-gray-200 mt-1 pt-2 flex justify-between font-bold text-sm"><span>Final Total</span><span class="text-tc-blue">₹<span id="order-total">480</span></span></div>
             </div>
             <button type="submit" class="w-full bg-tc-navy hover:bg-tc-textMain text-white font-bold py-3.5 rounded-xl shadow-md flex justify-center items-center gap-2 active:scale-95 transition-all text-sm">Confirm With COD - Place Order</button>
         </form>
@@ -400,7 +400,7 @@
         <div class="p-6 pt-10 pb-20 relative min-h-screen">
             <div class="flex justify-between items-center mb-8">
                 <div><p class="text-[10px] font-bold text-tc-blue tracking-[0.2em] uppercase">TapCraves Public Pass</p><h2 class="text-2xl font-bold mt-1 text-tc-textMain" id="cw-name">Loading...</h2></div>
-                <div class="w-12 h-12 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-xl text-tc-blue"><i class="fa-regular fa-user"></i></div>
+                <div class="w-12 h-12 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-xl text-tc-blue"><i class="fa-solid fa-regular fa-user"></i></div>
             </div>
             <div class="card-scene mb-8">
                 <div class="card-object">
@@ -522,7 +522,18 @@
                     if (!state.user) { UI.showScreen('welcome-screen', true, true); return; }
                     let restData = null; let orderData = null;
                     try { restData = await DB.get(`restaurants/${state.user.uid}`); } catch (e) { UI.showToast("Connection issue checking profile.", "error"); return App.auth.logout(); }
-                    if (!restData) { return UI.showScreen('onboarding-screen', true, true); }
+                    
+                    if (!restData) { 
+                        try {
+                            const affData = await DB.get(`affiliates/${state.user.uid}`);
+                            if (affData) {
+                                window.location.href = 'affiliate.html';
+                                return;
+                            }
+                        } catch(e) {}
+                        return UI.showScreen('onboarding-screen', true, true); 
+                    }
+                    
                     state.restaurant = restData;
                     try { orderData = await DB.get(`orders/${state.user.uid}`); } catch (e) { orderData = null; }
                     if (!orderData) { return UI.showScreen('card-order-screen', true, true); }
@@ -545,9 +556,9 @@
                 }
             },
             order: {
-                selectedQty: 100, pricePerCard: 6, secretTapCount: 0,
+                selectedQty: 100, pricePerCard: 4, secretTapCount: 0,
                 selectQty: (qty) => {
-                    App.order.selectedQty = qty; App.order.pricePerCard = 6;
+                    App.order.selectedQty = qty; App.order.pricePerCard = 4;
                     document.querySelectorAll('.qty-btn').forEach(b => { b.classList.remove('bg-tc-blueLight', 'border-tc-blue', 'text-tc-blue', 'font-semibold', 'shadow-sm'); if(b.innerText.trim() === String(qty)) b.classList.add('bg-tc-blueLight', 'border-tc-blue', 'text-tc-blue', 'font-semibold', 'shadow-sm'); });
                     document.getElementById('summary-qty').innerText = App.order.selectedQty; document.getElementById('price-per-card').innerText = App.order.pricePerCard; document.getElementById('order-subtotal').innerText = App.order.selectedQty * App.order.pricePerCard; document.getElementById('order-total').innerText = (App.order.selectedQty * App.order.pricePerCard) + 80;
                 },
@@ -555,7 +566,7 @@
                     e.preventDefault(); if(!state.user) { UI.showToast("Authentication required.", "error"); UI.showScreen('email-auth-screen'); return; }
                     const generatedCards = []; for(let i=0; i<App.order.selectedQty; i++){ generatedCards.push('TC-' + Math.floor(1000 + Math.random() * 9000) + '-' + Math.floor(1000 + Math.random() * 9000)); }
                     const nowStr = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
-                    const orderData = { qty: App.order.selectedQty, total: (App.order.selectedQty * App.order.pricePerCard) + 80, shippingFee: 0, deliveryFee: 80, address: `${document.getElementById('order-fullname').value.trim()} (${document.getElementById('order-mobile').value.trim()}), ${document.getElementById('order-house').value.trim()}, ${document.getElementById('order-street').value.trim()}, ${document.getElementById('order-area').value.trim()}, ${document.getElementById('order-city').value.trim()}, ${document.getElementById('order-state').value.trim()} - ${document.getElementById('order-pincode').value.trim()}`, status: 'Processing', history: { 'Order Confirmed': nowStr, 'Processing': nowStr }, trackingId: 'TC-' + Math.random().toString(36).substring(2, 10).toUpperCase(), expectedDate: 'Pending...', deliveryMessage: 'Cards are being printed and securely encoded.', generatedCards: generatedCards, date: serverTimestamp() };
+                    const orderData = { qty: App.order.selectedQty, total: (App.order.selectedQty * 4) + 80, shippingFee: 0, deliveryFee: 80, address: `${document.getElementById('order-fullname').value.trim()} (${document.getElementById('order-mobile').value.trim()}), ${document.getElementById('order-house').value.trim()}, ${document.getElementById('order-street').value.trim()}, ${document.getElementById('order-area').value.trim()}, ${document.getElementById('order-city').value.trim()}, ${document.getElementById('order-state').value.trim()} - ${document.getElementById('order-pincode').value.trim()}`, status: 'Processing', history: { 'Order Confirmed': nowStr, 'Processing': nowStr }, trackingId: 'TC-' + Math.random().toString(36).substring(2, 10).toUpperCase(), expectedDate: 'Pending...', deliveryMessage: 'Cards are being printed and securely encoded.', generatedCards: generatedCards, date: serverTimestamp() };
                     
                     if (localStorage.getItem('tc_affiliate_ref')) {
                         orderData.referredBy = localStorage.getItem('tc_affiliate_ref');
