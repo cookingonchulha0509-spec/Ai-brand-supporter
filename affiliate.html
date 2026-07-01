@@ -313,7 +313,7 @@
     <!-- Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update, push, child, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         // Same Firebase Config as main app
@@ -360,17 +360,22 @@
         const App = {
             ui: UI,
             init: () => {
-                setTimeout(() => { 
-                    onAuthStateChanged(auth, async (user) => { 
-                        if (user) { 
-                            state.user = user; 
-                            await App.auth.checkProfile(); 
-                        } else { 
-                            if(state.unsubscribe) state.unsubscribe();
-                            UI.showScreen('login-screen'); 
-                        } 
-                    }); 
-                }, 500);
+                // Ensure auth persistence is set so users aren't logged out on refresh
+                setPersistence(auth, browserLocalPersistence).then(() => {
+                    setTimeout(() => { 
+                        onAuthStateChanged(auth, async (user) => { 
+                            if (user) { 
+                                state.user = user; 
+                                await App.auth.checkProfile(); 
+                            } else { 
+                                if(state.unsubscribe) state.unsubscribe();
+                                UI.showScreen('login-screen'); 
+                            } 
+                        }); 
+                    }, 500);
+                }).catch((error) => {
+                    console.error("Auth persistence error:", error);
+                });
             },
             auth: {
                 isLogin: true,
