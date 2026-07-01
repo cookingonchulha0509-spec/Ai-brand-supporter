@@ -72,6 +72,13 @@
                 <i class="fa-regular fa-envelope text-lg"></i> Continue with Email
             </button>
 
+            <!-- Premium Affiliate Button -->
+            <button onclick="window.location.href='affiliate.html'" class="w-full bg-tc-navy text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-3 active:scale-95 transition-transform hover:bg-black shadow-md border border-gray-700 mt-4 relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-r from-yellow-600/10 to-yellow-400/10 z-0 group-hover:opacity-100 opacity-0 transition-opacity"></div>
+                <i class="fa-solid fa-handshake text-yellow-400 text-lg relative z-10"></i> 
+                <span class="relative z-10 tracking-wide">Join Affiliate Partner Program</span>
+            </button>
+
             <!-- Professional Navigation Links -->
             <div class="mt-8 pt-5 border-t border-gray-100 w-full">
                 <div class="flex justify-center gap-5 mb-5">
@@ -490,9 +497,12 @@
         const App = {
             ui: UI,
             init: () => {
-                const params = new URLSearchParams(window.location.search);
-                if(params.get('view') === 'superadmin') { App.superadmin.init(); return; }
-                if(params.get('view') === 'wallet') { App.wallet.initView(params.get('card')); return; }
+                const urlParams = new URLSearchParams(window.location.search);
+                const refId = urlParams.get('ref');
+                if(refId) localStorage.setItem('tc_affiliate_ref', refId);
+                
+                if(urlParams.get('view') === 'superadmin') { App.superadmin.init(); return; }
+                if(urlParams.get('view') === 'wallet') { App.wallet.initView(urlParams.get('card')); return; }
                 setTimeout(() => { onAuthStateChanged(auth, async (user) => { if (user) { state.user = user; await App.auth.checkProfile(); } else { UI.showScreen('welcome-screen', true, true); } }); }, 500); 
             },
             auth: {
@@ -546,6 +556,11 @@
                     const generatedCards = []; for(let i=0; i<App.order.selectedQty; i++){ generatedCards.push('TC-' + Math.floor(1000 + Math.random() * 9000) + '-' + Math.floor(1000 + Math.random() * 9000)); }
                     const nowStr = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
                     const orderData = { qty: App.order.selectedQty, total: (App.order.selectedQty * App.order.pricePerCard) + 80, shippingFee: 0, deliveryFee: 80, address: `${document.getElementById('order-fullname').value.trim()} (${document.getElementById('order-mobile').value.trim()}), ${document.getElementById('order-house').value.trim()}, ${document.getElementById('order-street').value.trim()}, ${document.getElementById('order-area').value.trim()}, ${document.getElementById('order-city').value.trim()}, ${document.getElementById('order-state').value.trim()} - ${document.getElementById('order-pincode').value.trim()}`, status: 'Processing', history: { 'Order Confirmed': nowStr, 'Processing': nowStr }, trackingId: 'TC-' + Math.random().toString(36).substring(2, 10).toUpperCase(), expectedDate: 'Pending...', deliveryMessage: 'Cards are being printed and securely encoded.', generatedCards: generatedCards, date: serverTimestamp() };
+                    
+                    if (localStorage.getItem('tc_affiliate_ref')) {
+                        orderData.referredBy = localStorage.getItem('tc_affiliate_ref');
+                    }
+                    
                     await DB.set(`orders/${state.user.uid}`, orderData); state.order = orderData; App.order.trackInit(orderData); UI.showToast("Order placed & IDs Generated!");
                 },
                 trackInit: (order) => {

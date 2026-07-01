@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>TapCraves Affiliate | Premium Partner Dashboard</title>
+    <meta name="title" content="TapCraves Affiliate | Premium Partner Dashboard">
+    <meta name="description" content="Join the TapCraves premium affiliate program. Refer restaurants and earn high commissions instantly.">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    colors: {
+                        tc: {
+                            blue: '#0A66C2',
+                            blueDark: '#004182',
+                            blueLight: '#E0EFFF',
+                            bg: '#F8FAFC',
+                            surface: '#FFFFFF',
+                            navy: '#0F172A',
+                            silver: '#E2E8F0',
+                            danger: '#EF4444',
+                            success: '#10B981',
+                            textMain: '#1E293B',
+                            textMuted: '#64748B',
+                            gold: '#F59E0B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Styles -->
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { background-color: #0F172A; color: #FFFFFF; overflow-x: hidden; min-height: 100vh; }
+        
+        /* Glassmorphism for Dark Mode Luxury */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #0A66C2;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.2);
+        }
+        .glass-input::placeholder { color: #94A3B8; }
+
+        .gold-gradient {
+            background: linear-gradient(135deg, #FDE68A 0%, #D97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .blue-gradient {
+            background: linear-gradient(135deg, #3B82F6 0%, #0A66C2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .screen { display: none; min-height: 100vh; width: 100%; max-width: 480px; margin: 0 auto; position: relative; }
+        .screen.active { display: flex; flex-direction: column; }
+        
+        /* Background Ambient Orbs */
+        .ambient-orb {
+            position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.4;
+        }
+        .orb-1 { top: -10%; left: -10%; width: 300px; height: 300px; background: #0A66C2; }
+        .orb-2 { bottom: -10%; right: -10%; width: 250px; height: 250px; background: #D97706; opacity: 0.2; }
+
+        /* Loader */
+        .loader-ring {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: #FDE68A;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
+
+        /* Toast */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
+        .toast { padding: 12px 20px; border-radius: 12px; font-weight: 500; font-size: 14px; animation: fadeIn 0.3s ease; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+        .toast.error { background: rgba(239, 68, 68, 0.1); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .toast.success { background: rgba(16, 185, 129, 0.1); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.3); }
+    </style>
+</head>
+<body class="bg-tc-navy font-sans antialiased selection:bg-tc-blue selection:text-white">
+    <!-- Ambient Background -->
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+    <div id="toast-container"></div>
+
+    <!-- 1. SPLASH SCREEN -->
+    <div id="splash-screen" class="screen active justify-center items-center">
+        <div class="loader-ring mb-6"></div>
+        <h1 class="text-3xl font-bold tracking-tight text-white"><span class="gold-gradient">Partner</span> Portal</h1>
+    </div>
+
+    <!-- 2. LOGIN SCREEN -->
+    <div id="login-screen" class="screen justify-center p-6">
+        <div class="w-full max-w-sm mx-auto text-center animate-fade-in">
+            <div class="w-20 h-20 mx-auto bg-gradient-to-br from-gray-800 to-black rounded-2xl border border-gray-700 flex items-center justify-center shadow-2xl mb-8 transform rotate-3">
+                <i class="fa-solid fa-gem text-4xl gold-gradient"></i>
+            </div>
+            <h1 class="text-3xl font-bold mb-2">TapCraves <span class="gold-gradient">Affiliate</span></h1>
+            <p class="text-tc-silver opacity-70 text-sm mb-10 leading-relaxed px-4">Join our exclusive network. Refer restaurants to TapCraves and earn premium recurring commissions.</p>
+            
+            <div class="glass-panel p-8 rounded-3xl">
+                <button onclick="app.auth.googleLogin()" class="w-full bg-white text-tc-navy font-bold py-4 rounded-xl flex items-center justify-center gap-3 active:scale-95 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google"> Continue with Google
+                </button>
+                
+                <button onclick="app.ui.showScreen('email-auth-screen')" class="w-full bg-transparent border border-white/20 text-white font-bold py-4 rounded-xl mt-4 flex items-center justify-center gap-3 active:scale-95 transition-transform hover:bg-white/5">
+                    <i class="fa-regular fa-envelope text-lg"></i> Continue with Email
+                </button>
+
+                <div class="mt-6 flex items-center justify-center gap-2 text-xs text-tc-silver opacity-50 font-medium">
+                    <i class="fa-solid fa-shield-halved"></i> Enterprise Grade Security
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2b. EMAIL AUTH SCREEN -->
+    <div id="email-auth-screen" class="screen p-6">
+        <button onclick="app.ui.showScreen('login-screen')" class="absolute top-6 left-6 w-10 h-10 rounded-full glass-panel flex items-center justify-center text-tc-silver hover:text-white transition-colors">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="flex-1 flex flex-col justify-center animate-fade-in mt-12 w-full max-w-sm mx-auto">
+            <h2 class="text-3xl font-bold mb-2 text-white" id="auth-title">Welcome Back</h2>
+            <p class="text-tc-silver opacity-70 mb-8 text-sm" id="auth-subtitle">Login to your affiliate account</p>
+            <form id="auth-form" onsubmit="app.auth.handleEmailSubmit(event)" class="space-y-4 glass-panel p-6 rounded-3xl">
+                <div>
+                    <label class="block text-xs font-semibold text-tc-silver uppercase tracking-wider mb-2 ml-1">Email Address</label>
+                    <input type="email" id="auth-email" class="glass-input w-full py-3.5 px-4 rounded-xl" required placeholder="partner@email.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-tc-silver uppercase tracking-wider mb-2 ml-1">Password</label>
+                    <input type="password" id="auth-password" class="glass-input w-full py-3.5 px-4 rounded-xl" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-tc-blue hover:bg-tc-blueDark text-white font-bold py-4 rounded-xl mt-6 active:scale-95 transition-transform shadow-[0_0_20px_rgba(10,102,194,0.3)]">
+                    <span id="auth-btn-text">Login</span>
+                </button>
+            </form>
+            <div class="mt-6 text-center text-sm text-tc-silver opacity-80">
+                <span id="auth-switch-text">Don't have an account?</span> 
+                <a href="#" onclick="app.auth.toggleAuthMode()" class="text-yellow-400 hover:text-yellow-300 font-bold ml-1 transition-colors" id="auth-switch-btn">Register</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. REGISTRATION SCREEN -->
+    <div id="registration-screen" class="screen p-6 overflow-y-auto">
+        <div class="w-full max-w-sm mx-auto animate-fade-in pt-12 pb-8">
+            <button onclick="app.auth.logout()" class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-tc-silver hover:text-white mb-6 transition-colors">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <h2 class="text-3xl font-bold mb-2 text-white">Complete Profile</h2>
+            <p class="text-tc-silver opacity-70 text-sm mb-8">Setup your payment details to receive commissions.</p>
+            
+            <form onsubmit="app.auth.submitRegistration(event)" class="space-y-5 glass-panel p-6 rounded-3xl">
+                <div>
+                    <label class="block text-xs font-semibold text-tc-silver uppercase tracking-wider mb-2 ml-1">Full Legal Name</label>
+                    <input type="text" id="reg-name" class="glass-input w-full py-3.5 px-4 rounded-xl" required placeholder="John Doe">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-tc-silver uppercase tracking-wider mb-2 ml-1">Mobile Number</label>
+                    <input type="tel" id="reg-mobile" class="glass-input w-full py-3.5 px-4 rounded-xl" required placeholder="+91 98765 43210">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-tc-gold text-yellow-400 uppercase tracking-wider mb-2 ml-1 flex items-center gap-2">
+                        <i class="fa-brands fa-google-pay"></i> UPI ID (For Payouts)
+                    </label>
+                    <input type="text" id="reg-upi" class="glass-input w-full py-3.5 px-4 rounded-xl text-yellow-100 focus:border-yellow-500 focus:shadow-[0_0_0_3px_rgba(245,158,11,0.2)]" required placeholder="number@upi">
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold py-4 rounded-xl mt-4 active:scale-95 transition-transform shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                    Create Partner Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. DASHBOARD SCREEN -->
+    <div id="dashboard-screen" class="screen pb-20">
+        <!-- Header -->
+        <div class="px-6 pt-12 pb-6 flex justify-between items-center sticky top-0 z-20 bg-tc-navy/80 backdrop-blur-xl border-b border-white/5">
+            <div>
+                <p class="text-[10px] font-bold text-yellow-500 uppercase tracking-[0.2em] mb-1"><i class="fa-solid fa-crown mr-1"></i> Premium Partner</p>
+                <h2 class="text-xl font-bold text-white" id="dash-name">Loading...</h2>
+            </div>
+            <button onclick="app.auth.logout()" class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-tc-silver hover:text-white transition-colors border border-white/10">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-6">
+            <!-- Wallet Card -->
+            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group">
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-yellow-500 rounded-full opacity-10 blur-3xl group-hover:opacity-20 transition-opacity duration-500"></div>
+                <div class="relative z-10 flex flex-col justify-between h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-yellow-400 border border-white/5">
+                            <i class="fa-solid fa-wallet text-xl"></i>
+                        </div>
+                        <span class="bg-green-500/20 text-green-400 border border-green-500/30 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Available</span>
+                    </div>
+                    <div>
+                        <p class="text-xs text-tc-silver opacity-70 uppercase tracking-widest font-medium mb-1">Current Balance</p>
+                        <h3 class="text-4xl font-bold text-white tracking-tight flex items-center gap-1">
+                            <span class="text-yellow-500">₹</span><span id="dash-balance">0.00</span>
+                        </h3>
+                    </div>
+                    <button onclick="app.affiliate.withdraw()" class="w-full bg-white/10 hover:bg-white/20 border border-white/10 text-white font-semibold py-3.5 rounded-xl mt-6 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        Withdraw Funds <i class="fa-solid fa-arrow-right text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Link Generator -->
+            <div>
+                <h3 class="font-bold text-sm text-white mb-3 tracking-wide uppercase opacity-90 flex items-center gap-2">
+                    <i class="fa-solid fa-link text-tc-blue"></i> Your Referral Link
+                </h3>
+                <div class="glass-panel p-2 pl-4 rounded-2xl flex items-center justify-between border-white/10">
+                    <div class="overflow-hidden flex-1 mr-3">
+                        <p class="text-sm font-mono text-tc-silver opacity-80 whitespace-nowrap truncate select-all" id="dash-ref-link">https://tapcraves.shop/?ref=...</p>
+                    </div>
+                    <button onclick="app.affiliate.copyLink()" class="bg-tc-blue hover:bg-tc-blueDark text-white w-12 h-12 rounded-xl flex items-center justify-center transition-colors shadow-lg flex-shrink-0">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+                <p class="text-[10px] text-tc-silver opacity-50 mt-2 px-1">Share this link with restaurants. You earn when they place an order.</p>
+            </div>
+
+            <!-- Analytics Grid -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass-panel p-4 rounded-2xl flex flex-col justify-center border-white/10">
+                    <i class="fa-solid fa-chart-line text-blue-400 mb-2"></i>
+                    <p class="text-2xl font-bold text-white" id="dash-sales">0</p>
+                    <p class="text-[10px] text-tc-silver opacity-70 uppercase tracking-wider mt-1">Total Sales</p>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl flex flex-col justify-center border-white/10">
+                    <i class="fa-solid fa-users text-purple-400 mb-2"></i>
+                    <p class="text-2xl font-bold text-white" id="dash-referrals">0</p>
+                    <p class="text-[10px] text-tc-silver opacity-70 uppercase tracking-wider mt-1">Restaurants Referred</p>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl flex flex-col justify-center border-white/10 col-span-2 relative overflow-hidden">
+                    <div class="absolute right-0 bottom-0 w-24 h-24 bg-green-500 rounded-full opacity-10 blur-2xl"></div>
+                    <i class="fa-solid fa-money-bill-trend-up text-green-400 mb-2"></i>
+                    <p class="text-2xl font-bold text-white">₹<span id="dash-earnings">0.00</span></p>
+                    <p class="text-[10px] text-tc-silver opacity-70 uppercase tracking-wider mt-1">Total Lifetime Earnings</p>
+                </div>
+            </div>
+
+            <!-- Commission Rules -->
+            <div>
+                <h3 class="font-bold text-sm text-white mb-4 tracking-wide uppercase opacity-90 flex items-center gap-2 mt-2">
+                    <i class="fa-solid fa-scale-balanced text-yellow-500"></i> Commission Structure
+                </h3>
+                <div class="glass-panel rounded-2xl overflow-hidden border-white/10">
+                    <div class="flex justify-between items-center p-4 border-b border-white/5 bg-white/5">
+                        <span class="text-xs font-semibold text-tc-silver uppercase tracking-wider">Restaurant Order</span>
+                        <span class="text-xs font-semibold text-yellow-400 uppercase tracking-wider">Your Commission</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 border-b border-white/5">
+                        <span class="text-sm font-medium text-white flex items-center gap-2"><i class="fa-solid fa-layer-group text-tc-silver/50 text-xs"></i> 50 Cards</span>
+                        <span class="text-sm font-bold text-green-400">₹25</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 border-b border-white/5">
+                        <span class="text-sm font-medium text-white flex items-center gap-2"><i class="fa-solid fa-layer-group text-tc-silver/50 text-xs"></i> 100 Cards</span>
+                        <span class="text-sm font-bold text-green-400">₹50</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 border-b border-white/5">
+                        <span class="text-sm font-medium text-white flex items-center gap-2"><i class="fa-solid fa-layer-group text-tc-silver/50 text-xs"></i> 250 Cards</span>
+                        <span class="text-sm font-bold text-green-400">₹140</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4">
+                        <span class="text-sm font-medium text-white flex items-center gap-2"><i class="fa-solid fa-layer-group text-tc-silver/50 text-xs"></i> 500 Cards</span>
+                        <span class="text-sm font-bold text-green-400">₹280</span>
+                    </div>
+                </div>
+                <p class="text-[10px] text-tc-silver opacity-50 mt-3 text-center">Commissions are credited automatically when an order is successfully processed.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, set, get, update, push, child, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Same Firebase Config as main app
+        const firebaseConfig = { 
+            apiKey: "AIzaSyB49ap7eeOKV-2bnzZ8LzrznjhU990UmtQ", 
+            authDomain: "tap-crabe.firebaseapp.com", 
+            databaseURL: "https://tap-crabe-default-rtdb.firebaseio.com", 
+            projectId: "tap-crabe", 
+            storageBucket: "tap-crabe.firebasestorage.app", 
+            messagingSenderId: "211890731218", 
+            appId: "1:211890731218:web:2bcae1f8d26fddfe0f950b" 
+        };
+        
+        const appInstance = initializeApp(firebaseConfig);
+        const auth = getAuth(appInstance);
+        const db = getDatabase(appInstance);
+        
+        const state = { 
+            user: null, 
+            profile: null,
+            unsubscribe: null
+        };
+
+        const UI = {
+            showScreen: (id) => {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(id).classList.add('active'); 
+                window.scrollTo(0,0);
+            },
+            showToast: (msg, type = 'success') => {
+                const container = document.getElementById('toast-container'); 
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`; 
+                toast.innerHTML = type === 'success' ? `<i class="fa-solid fa-circle-check"></i> ${msg}` : `<i class="fa-solid fa-circle-exclamation"></i> ${msg}`;
+                container.appendChild(toast);
+                setTimeout(() => { 
+                    toast.style.opacity = '0'; 
+                    toast.style.transition = 'opacity 0.3s ease'; 
+                    setTimeout(() => toast.remove(), 300); 
+                }, 3000);
+            }
+        };
+
+        const App = {
+            ui: UI,
+            init: () => {
+                setTimeout(() => { 
+                    onAuthStateChanged(auth, async (user) => { 
+                        if (user) { 
+                            state.user = user; 
+                            await App.auth.checkProfile(); 
+                        } else { 
+                            if(state.unsubscribe) state.unsubscribe();
+                            UI.showScreen('login-screen'); 
+                        } 
+                    }); 
+                }, 500);
+            },
+            auth: {
+                isLogin: true,
+                toggleAuthMode: () => {
+                    App.auth.isLogin = !App.auth.isLogin;
+                    document.getElementById('auth-title').innerText = App.auth.isLogin ? 'Welcome Back' : 'Create Account';
+                    document.getElementById('auth-subtitle').innerText = App.auth.isLogin ? 'Login to your affiliate account' : 'Register as a TapCraves affiliate';
+                    document.getElementById('auth-btn-text').innerText = App.auth.isLogin ? 'Login' : 'Register';
+                    document.getElementById('auth-switch-text').innerText = App.auth.isLogin ? "Don't have an account?" : "Already have an account?";
+                    document.getElementById('auth-switch-btn').innerText = App.auth.isLogin ? 'Register' : 'Login';
+                },
+                googleLogin: async () => { 
+                    try { 
+                        UI.showScreen('splash-screen');
+                        state.user = (await signInWithPopup(auth, new GoogleAuthProvider())).user; 
+                        await App.auth.checkProfile(); 
+                    } catch(e) { 
+                        UI.showScreen('login-screen');
+                        UI.showToast(e.message, 'error'); 
+                    } 
+                },
+                handleEmailSubmit: async (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('auth-email').value;
+                    const pass = document.getElementById('auth-password').value;
+                    try {
+                        UI.showScreen('splash-screen');
+                        if (App.auth.isLogin) {
+                            state.user = (await signInWithEmailAndPassword(auth, email, pass)).user;
+                        } else {
+                            state.user = (await createUserWithEmailAndPassword(auth, email, pass)).user;
+                        }
+                        await App.auth.checkProfile();
+                    } catch (error) {
+                        UI.showScreen('email-auth-screen');
+                        UI.showToast(error.message, 'error');
+                    }
+                },
+                checkProfile: async () => {
+                    UI.showScreen('splash-screen');
+                    if (!state.user) { UI.showScreen('login-screen'); return; }
+                    
+                    try { 
+                        const snapshot = await get(child(ref(db), `affiliates/${state.user.uid}`));
+                        if (snapshot.exists()) {
+                            state.profile = snapshot.val();
+                            App.affiliate.initDashboard();
+                        } else {
+                            UI.showScreen('registration-screen');
+                        }
+                    } catch (e) { 
+                        let msg = e.message || "Connection error.";
+                        if(msg.toLowerCase().includes("permission denied")) {
+                            msg = "Firebase Rules Error: Please allow read/write for 'affiliates'.";
+                        }
+                        UI.showToast(msg, "error"); 
+                        App.auth.logout(); 
+                    }
+                },
+                submitRegistration: async (e) => {
+                    e.preventDefault();
+                    if(!state.user) return;
+                    
+                    const name = document.getElementById('reg-name').value.trim();
+                    const mobile = document.getElementById('reg-mobile').value.trim();
+                    const upi = document.getElementById('reg-upi').value.trim();
+                    
+                    const profileData = { 
+                        name: name, 
+                        mobile: mobile, 
+                        upi: upi, 
+                        email: state.user.email,
+                        balance: 0,
+                        totalEarnings: 0,
+                        totalSales: 0,
+                        referrals: 0,
+                        createdAt: serverTimestamp() 
+                    };
+                    
+                    try { 
+                        UI.showScreen('splash-screen');
+                        await set(ref(db, `affiliates/${state.user.uid}`), profileData); 
+                        state.profile = profileData; 
+                        UI.showToast("Account Created Successfully!");
+                        App.affiliate.initDashboard();
+                    } catch(err) { 
+                        UI.showScreen('registration-screen');
+                        let msg = err.message || "Error saving profile";
+                        if(msg.toLowerCase().includes("permission denied")) {
+                            msg = "Firebase Rules Error: Please allow read/write for 'affiliates'.";
+                        }
+                        UI.showToast(msg, 'error'); 
+                    }
+                },
+                logout: async () => { 
+                    try { 
+                        if(state.unsubscribe) state.unsubscribe();
+                        await signOut(auth); 
+                    } catch(e) {} 
+                    state.user = null; 
+                    state.profile = null; 
+                    UI.showScreen('login-screen'); 
+                }
+            },
+            affiliate: {
+                initDashboard: () => {
+                    UI.showScreen('dashboard-screen');
+                    
+                    // Generate Affiliate Link
+                    const baseUrl = window.location.origin + window.location.pathname.replace('affiliate.html', 'index.html');
+                    const link = `${baseUrl}?ref=${state.user.uid}`;
+                    document.getElementById('dash-ref-link').innerText = link;
+                    
+                    // Set static info initially
+                    App.affiliate.updateUI(state.profile);
+
+                    // Setup Realtime Listener for Balance & Stats
+                    state.unsubscribe = onValue(ref(db, `affiliates/${state.user.uid}`), (snapshot) => {
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            state.profile = data;
+                            App.affiliate.updateUI(data);
+                        }
+                    });
+                },
+                updateUI: (data) => {
+                    document.getElementById('dash-name').innerText = data.name || 'Partner';
+                    document.getElementById('dash-balance').innerText = parseFloat(data.balance || 0).toFixed(2);
+                    document.getElementById('dash-earnings').innerText = parseFloat(data.totalEarnings || 0).toFixed(2);
+                    document.getElementById('dash-sales').innerText = data.sales || data.totalSales || 0;
+                    document.getElementById('dash-referrals').innerText = data.referrals || 0;
+                },
+                copyLink: () => {
+                    const link = document.getElementById('dash-ref-link').innerText;
+                    navigator.clipboard.writeText(link).then(() => {
+                        UI.showToast("Link Copied to Clipboard!");
+                    }).catch(err => {
+                        UI.showToast("Failed to copy link", "error");
+                    });
+                },
+                withdraw: async () => {
+                    const currentBalance = parseFloat(state.profile?.balance || 0);
+                    
+                    if(currentBalance < 100) {
+                        UI.showToast("Minimum withdrawal amount is ₹100", "error");
+                        return;
+                    }
+                    
+                    try {
+                        const requestData = {
+                            affiliateId: state.user.uid,
+                            name: state.profile.name,
+                            upi: state.profile.upi,
+                            amount: currentBalance,
+                            status: 'Pending',
+                            date: serverTimestamp()
+                        };
+                        
+                        // Push to withdrawal_requests
+                        await push(ref(db, `withdrawal_requests`), requestData);
+                        
+                        // Deduct balance
+                        await update(ref(db, `affiliates/${state.user.uid}`), {
+                            balance: 0
+                        });
+                        
+                        UI.showToast("Withdrawal Request Submitted!");
+                    } catch (error) {
+                        let msg = error.message || "Failed to process withdrawal";
+                        if(msg.toLowerCase().includes("permission denied")) {
+                            msg = "Firebase Rules Error: Please allow write access for 'withdrawal_requests'.";
+                        }
+                        UI.showToast(msg, "error");
+                    }
+                }
+            }
+        };
+
+        window.app = App; 
+        window.onload = App.init;
+    </script>
+</body>
+</html>
