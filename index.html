@@ -257,6 +257,15 @@
                 <div class="glass-panel bg-white p-4 rounded-2xl shadow-sm border border-gray-100"><div class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-3 text-sm"><i class="fa-solid fa-credit-card"></i></div><p class="text-2xl font-bold text-tc-textMain"><span id="stat-active-cards">0</span>/<span id="stat-total-cards">0</span></p><p class="text-xs text-tc-textMuted mt-1">Cards Issued</p></div>
                 <div class="glass-panel bg-white p-4 rounded-2xl shadow-sm border border-gray-100"><div class="w-8 h-8 rounded-full bg-orange-100 text-orange-50 flex items-center justify-center mb-3 text-sm"><i class="fa-solid fa-arrow-trend-up"></i></div><p class="text-2xl font-bold text-tc-textMain" id="stat-transactions">0</p><p class="text-xs text-tc-textMuted mt-1">Transactions</p></div>
             </div>
+
+            <!-- Dashboard Daily Game Stats -->
+            <div class="glass-panel bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-lg text-tc-textMain mb-4 border-b border-gray-100 pb-2 flex items-center gap-2"><i class="fa-solid fa-trophy text-yellow-500"></i> Today's Game Stats</h3>
+                <div id="dash-game-stats-content">
+                    <p class="text-sm text-tc-textMuted text-center py-2">Loading game stats...</p>
+                </div>
+            </div>
+
             <div><h3 class="font-bold text-lg text-tc-textMain mb-4">Recent Transactions</h3><div class="glass-panel bg-white rounded-2xl p-2 shadow-sm border border-gray-100" id="recent-tx-list"></div></div>
         </div>
     </div>
@@ -300,8 +309,8 @@
 
             <!-- Gamification Config Form -->
             <form id="game-form" onsubmit="app.rewards.saveGame(event)" class="glass-panel bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4 mt-8">
-                <h3 class="font-bold text-lg text-tc-textMain mb-2 border-b border-gray-100 pb-2 flex items-center gap-2"><i class="fa-solid fa-gamepad text-tc-blue"></i> Daily Play & Win</h3>
-                <div><label class="block text-sm font-medium text-tc-textMain mb-1 ml-1">Today's Game Prize</label><input type="text" id="game-prize" class="tc-input" required placeholder="e.g. Free Pizza"></div>
+                <h3 class="font-bold text-lg text-tc-textMain mb-2 border-b border-gray-100 pb-2 flex items-center gap-2"><i class="fa-solid fa-gamepad text-tc-blue"></i> Daily Game Setup</h3>
+                <div><label class="block text-sm font-medium text-tc-textMain mb-1 ml-1">Today's Prize</label><input type="text" id="game-prize" class="tc-input" required placeholder="e.g. Free Pizza"></div>
                 <div><label class="block text-sm font-medium text-tc-textMain mb-1 ml-1">Winner Announce Time</label><input type="time" id="game-time" class="tc-input" required></div>
                 <button type="submit" class="w-full bg-tc-navy text-white font-bold py-3.5 rounded-xl mt-4 active:scale-95 transition-transform shadow-md hover:bg-black">Save Game Config</button>
             </form>
@@ -444,7 +453,7 @@
                 <div class="absolute -right-6 -top-6 text-white opacity-10 text-9xl"><i class="fa-solid fa-gamepad"></i></div>
                 <div class="relative z-10">
                     <h3 class="font-bold text-xl mb-1 flex items-center gap-2"><i class="fa-solid fa-trophy text-yellow-400"></i> Play & Win</h3>
-                    <p class="text-xs opacity-90 mb-3">Play our daily game! Only 1 winner per day. You can play only once every 24 hours.</p>
+                    <p class="text-xs opacity-90 mb-3">Play our daily game! Only 1 winner per day. You can play once every 24 hours.</p>
                     <div id="cw-game-prize-box" class="bg-white/20 rounded-xl p-3 mb-4 backdrop-blur-sm border border-white/30">
                         <p class="text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">Today's Prize</p>
                         <p class="font-bold text-lg text-yellow-300" id="cw-game-prize-name">Loading...</p>
@@ -453,7 +462,7 @@
                     <div id="cw-game-status-box">
                         <div id="cw-game-countdown" class="bg-black/30 rounded-lg py-2 px-3 mb-3 text-center">
                             <p class="text-xs text-gray-300 mb-0.5">Winner announced in</p>
-                            <p class="font-mono font-bold text-lg tracking-widest" id="cw-game-timer">00:00:00</p>
+                            <p class="font-mono font-bold text-lg tracking-widest" id="cw-game-timer">00h 00m 00s</p>
                         </div>
                         <button id="cw-game-play-btn" class="w-full bg-yellow-400 hover:bg-yellow-500 text-tc-navy font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
                             <i class="fa-solid fa-play"></i> Play Now
@@ -461,11 +470,7 @@
                     </div>
                     
                     <div id="cw-game-winner-box" class="hidden text-center py-2">
-                        <h2 class="text-2xl font-bold text-yellow-400 mb-2 animate-bounce">🎉 You Won! 🎉</h2>
-                        <p class="text-sm mb-4">Congratulations! You won the <strong id="cw-game-won-prize"></strong>!</p>
-                        <a href="#" id="cw-game-call-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-phone"></i> Call to Claim
-                        </a>
+                        <!-- Content dynamically inserted -->
                     </div>
                 </div>
             </div>
@@ -689,6 +694,22 @@
                         });
                     } else { txHtml = '<div class="text-center p-6 text-sm text-tc-textMuted">No transactions found</div>'; }
                     txList.innerHTML = txHtml; document.getElementById('stat-revenue').innerText = rev.toFixed(2); document.getElementById('stat-transactions').innerText = filteredTx.length;
+
+                    // GAME STATS
+                    const todayStr = new Date().toLocaleDateString('en-IN');
+                    const customersArr = Object.values(state.customers || {});
+                    let topScorer = null; let highestScore = -1; let playersToday = 0;
+                    customersArr.forEach(c => {
+                        if (c.lastPlayedDate === todayStr) {
+                            playersToday++;
+                            if (c.lastScore !== undefined && c.lastScore > highestScore) { highestScore = c.lastScore; topScorer = c; }
+                        }
+                    });
+                    let gameStatsHtml = `<div class="flex justify-between items-center mb-3"><span class="text-sm font-medium text-tc-textMuted">Players Today</span><span class="font-bold text-tc-textMain">${playersToday}</span></div>`;
+                    if (topScorer) {
+                        gameStatsHtml += `<div class="bg-yellow-50 p-3 rounded-xl border border-yellow-200"><p class="text-[10px] font-bold text-yellow-600 uppercase tracking-wider mb-1">Current Top Scorer</p><div class="flex justify-between items-center"><div><p class="font-bold text-tc-textMain">${topScorer.name}</p><p class="text-xs text-tc-textMuted">${topScorer.mobile}</p></div><div class="text-right"><p class="text-xl font-black text-yellow-500">${topScorer.lastScore}</p><p class="text-[10px] text-tc-textMuted">pts</p></div></div></div>`;
+                    } else { gameStatsHtml += `<p class="text-sm text-tc-textMuted text-center py-2 italic">No players yet today.</p>`; }
+                    if(document.getElementById('dash-game-stats-content')) document.getElementById('dash-game-stats-content').innerHTML = gameStatsHtml;
                 }
             },
             cards: {
@@ -721,9 +742,26 @@
                         const todayStr = new Date().toLocaleDateString('en-IN');
                         const winnerDisplay = document.getElementById('game-winner-display');
                         const winnerContent = document.getElementById('game-winner-content');
-                        if (gameConf.winner && gameConf.winnerDate === todayStr) {
+                        
+                        let topScorer = null;
+                        let highestScore = -1;
+                        Object.values(state.customers || {}).forEach(c => {
+                            if (c.lastPlayedDate === todayStr && c.lastScore !== undefined && c.lastScore > highestScore) {
+                                highestScore = c.lastScore;
+                                topScorer = c;
+                            }
+                        });
+
+                        const now = new Date();
+                        let targetTime = new Date();
+                        if (gameConf.time) {
+                            const [hours, minutes] = gameConf.time.split(':').map(Number);
+                            targetTime.setHours(hours, minutes, 0, 0);
+                        }
+                        
+                        if (now >= targetTime && topScorer) {
                             winnerDisplay.classList.remove('hidden');
-                            winnerContent.innerHTML = `<p class="font-bold text-tc-success text-lg">${gameConf.winner.name}</p><p class="text-sm font-medium text-tc-textMuted">${gameConf.winner.mobile}</p><p class="text-xs text-tc-blue font-mono mt-1">${gameConf.winner.cardId}</p>`;
+                            winnerContent.innerHTML = `<p class="font-bold text-tc-success text-lg">${topScorer.name}</p><p class="text-sm font-medium text-tc-textMuted">${topScorer.mobile}</p><p class="text-xs text-tc-blue font-mono mt-1">Score: ${highestScore} pts</p>`;
                         } else {
                             winnerDisplay.classList.add('hidden');
                         }
@@ -738,13 +776,6 @@
                     const prize = document.getElementById('game-prize').value;
                     const time = document.getElementById('game-time').value;
                     const config = { prize, time };
-                    
-                    const existingConf = state.restaurant?.gameConfig;
-                    const todayStr = new Date().toLocaleDateString('en-IN');
-                    if (existingConf && existingConf.winner && existingConf.winnerDate === todayStr) {
-                        config.winner = existingConf.winner;
-                        config.winnerDate = existingConf.winnerDate;
-                    }
                     
                     try { 
                         await DB.update(`restaurants/${state.user.uid}`, { gameConfig: config }); 
@@ -817,9 +848,19 @@
                 initView: async (cardId) => { if(!cardId) { App.ui.showScreen('dashboard-screen'); return; } App.wallet.cardToVerify = cardId; document.getElementById('wallet-pin-input').value = ''; UI.showScreen('pin-verification-screen'); },
                 verifyPin: async (e) => {
                     e.preventDefault(); const enteredPin = document.getElementById('wallet-pin-input').value; if(enteredPin.length !== 4) { UI.showToast("Please enter a 4-digit PIN", "error"); return; }
-                    try { const cardData = await DB.get(`cards/${App.wallet.cardToVerify}`); if(!cardData) { UI.showToast("Invalid Card. Please contact restaurant.", "error"); return; } if(cardData.pin === enteredPin) { UI.showToast("Verification Successful!"); App.wallet.loadWalletData(cardData); } else { UI.showToast("Incorrect PIN! Access Denied.", "error"); } } catch(err) { UI.showToast("Network Error verifying PIN.", "error"); }
+                    try { 
+                        const cardData = await DB.get(`cards/${App.wallet.cardToVerify}`); 
+                        if(!cardData) { UI.showToast("Invalid Card. Please contact restaurant.", "error"); return; } 
+                        if(cardData.pin === enteredPin) { 
+                            UI.showToast("Verification Successful!"); 
+                            sessionStorage.setItem('tc_wallet_auth_' + App.wallet.cardToVerify, 'true');
+                            App.wallet.loadWalletData(cardData); 
+                        } else { 
+                            UI.showToast("Incorrect PIN! Access Denied.", "error"); 
+                        } 
+                    } catch(err) { UI.showToast("Network Error verifying PIN.", "error"); }
                 },
-                startCountdown: (announceTimeStr, gameConfig, custData, restData, cardData) => {
+                startCountdown: async (announceTimeStr, gameConfig, custData, restData, cardData) => {
                     if (window.gameCountdownInterval) clearInterval(window.gameCountdownInterval);
                     const now = new Date();
                     const [hours, minutes] = announceTimeStr.split(':').map(Number);
@@ -827,18 +868,41 @@
                     targetTime.setHours(hours, minutes, 0, 0);
 
                     const todayStr = now.toLocaleDateString('en-IN');
-                    const isWinner = gameConfig.winner && gameConfig.winner.cardId === cardData.cardId && gameConfig.winnerDate === todayStr;
+                    
+                    let highestScore = -1;
+                    let topScorerName = '';
+                    
+                    try {
+                        const allCust = await DB.get(`customers/${cardData.restId}`);
+                        if(allCust) {
+                            Object.values(allCust).forEach(c => {
+                                if(c.lastPlayedDate === todayStr && c.lastScore !== undefined) {
+                                    if(c.lastScore > highestScore) {
+                                        highestScore = c.lastScore;
+                                        topScorerName = c.name;
+                                    }
+                                }
+                            });
+                        }
+                    } catch(e) { console.error(e); }
+                    
+                    const isWinner = (custData.lastPlayedDate === todayStr && custData.lastScore !== undefined && highestScore > -1 && custData.lastScore === highestScore);
 
                     if (now >= targetTime) {
                         if(isWinner) {
                             document.getElementById('cw-game-status-box').classList.add('hidden');
                             document.getElementById('cw-game-winner-box').classList.remove('hidden');
-                            document.getElementById('cw-game-won-prize').innerText = gameConfig.prize;
-                            document.getElementById('cw-game-call-btn').href = `tel:${restData.mobile}`;
+                            document.getElementById('cw-game-winner-box').innerHTML = `
+                                <h2 class="text-2xl font-bold text-yellow-400 mb-2 animate-bounce">🎉 You Won! 🎉</h2>
+                                <p class="text-sm mb-4 text-white">Congratulations! You scored the highest (${highestScore} pts) and won the <strong class="text-white">${gameConfig.prize}</strong>!</p>
+                                <a href="tel:${restData.mobile}" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-phone"></i> Call to Claim
+                                </a>
+                            `;
                         } else {
                             document.getElementById('cw-game-status-box').classList.remove('hidden');
                             document.getElementById('cw-game-winner-box').classList.add('hidden');
-                            document.getElementById('cw-game-countdown').innerHTML = `<p class="text-sm font-bold text-yellow-300 py-1">Winner has been announced!</p>`;
+                            document.getElementById('cw-game-countdown').innerHTML = `<p class="text-sm font-bold text-yellow-300 py-1">Winner has been announced!</p><p class="text-xs text-white opacity-90 mt-1">${topScorerName ? 'Winner: ' + topScorerName : 'No winner today'}</p><p class="text-xs text-white opacity-80 mt-1">Better luck next time.</p>`;
                             document.getElementById('cw-game-play-btn').className = 'w-full bg-gray-500 text-white font-bold py-3 rounded-xl shadow-lg opacity-80 cursor-not-allowed';
                             document.getElementById('cw-game-play-btn').innerText = 'Come back tomorrow';
                             document.getElementById('cw-game-play-btn').onclick = null;
@@ -846,14 +910,15 @@
                         return;
                     }
 
+              
                     document.getElementById('cw-game-status-box').classList.remove('hidden');
                     document.getElementById('cw-game-winner-box').classList.add('hidden');
-                    document.getElementById('cw-game-countdown').innerHTML = `<p class="text-xs text-gray-300 mb-0.5">Winner announced in</p><p class="font-mono font-bold text-lg tracking-widest" id="cw-game-timer">00:00:00</p>`;
+                    document.getElementById('cw-game-countdown').innerHTML = `<p class="text-xs text-gray-300 mb-0.5">Winner announced in</p><p class="font-mono font-bold text-lg tracking-widest" id="cw-game-timer">00h 00m 00s</p>`;
 
                     const btn = document.getElementById('cw-game-play-btn');
                     if (custData.lastPlayedDate === todayStr) {
-                        btn.className = 'w-full bg-gray-500 text-white font-bold py-3 rounded-xl shadow-lg opacity-80 cursor-not-allowed';
-                        btn.innerText = 'Already Played Today';
+                        btn.className = 'w-full bg-gray-500 text-white font-bold py-3 rounded-xl shadow-lg opacity-80 cursor-not-allowed text-sm';
+                        btn.innerText = 'You have played today. Await results!';
                         btn.onclick = null;
                     } else {
                         btn.className = 'w-full bg-yellow-400 hover:bg-yellow-500 text-tc-navy font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2';
@@ -874,7 +939,7 @@
                         const m = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');
                         const s = Math.floor((diff / 1000) % 60).toString().padStart(2, '0');
                         if(document.getElementById('cw-game-timer')) {
-                            document.getElementById('cw-game-timer').innerText = `${h}:${m}:${s}`;
+                            document.getElementById('cw-game-timer').innerText = `${h}h ${m}m ${s}s`;
                         }
                     }, 1000);
                 },
