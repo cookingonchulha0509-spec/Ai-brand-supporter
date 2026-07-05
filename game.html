@@ -6,6 +6,7 @@
     <title>TapCraves | Daily Play & Win</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body, html {
             margin: 0;
@@ -104,7 +105,10 @@
 <body>
 
     <div id="game-container">
+        <!-- Visual effects overlays -->
         <div id="flash-overlay"></div>
+        
+        <!-- Player Asset -->
         <img id="bird-gif" src="bird.gif" alt="Player">
         <canvas id="gameCanvas"></canvas>
         
@@ -127,7 +131,9 @@
                 <i class="fa-solid fa-circle-exclamation text-4xl text-yellow-400 mb-4 block"></i>
                 <h2 class="font-black text-2xl mb-2" id="notice-title">Notice</h2>
                 <p class="text-sm opacity-80 mb-6" id="notice-msg">You have already played today! Come back tomorrow to win.</p>
-                <button class="btn w-full" onclick="returnToWallet()">Go Back to Wallet</button>
+                <button class="btn w-full flex items-center justify-center gap-2" onclick="returnToWallet()">
+                    <i class="fa-solid fa-wallet"></i> Go Back to Wallet
+                </button>
             </div>
 
             <!-- Game Over Panel -->
@@ -145,11 +151,9 @@
         </div>
     </div>
 
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, query, orderByChild, equalTo, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         // 1. Firebase Configuration
@@ -164,6 +168,7 @@
         };
         
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getDatabase(app);
 
         // State Variables
@@ -198,6 +203,9 @@
             }
 
             try {
+                // CRITICAL FIX: Sign in anonymously BEFORE requesting DB access
+                await signInAnonymously(auth);
+
                 // Fetch customer by matching cardId
                 const custRef = query(ref(db, `customers/${restId}`), orderByChild('cardId'), equalTo(cardId));
                 const snapshot = await get(custRef);
@@ -207,7 +215,8 @@
                     customerKey = Object.keys(data)[0];
                     customerData = data[customerKey];
                     
-                    const todayStr = new Date().toLocaleDateString('en-IN');
+                    const todayStr = new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+                    
                     if (customerData.lastPlayedDate === todayStr) {
                         showNotice("Already Played!", "You have already played today. Come back tomorrow to beat the high score!");
                     } else {
@@ -220,7 +229,7 @@
                     showNotice("Card Not Registered", "Please link your card with the restaurant first.");
                 }
             } catch (err) {
-                console.error(err);
+                console.error("Auth/Database Error:", err);
                 showNotice("Network Error", "Failed to connect to server. Please try again.");
             }
         };
@@ -273,6 +282,7 @@
             }
         }
 
+        // Visual Polish FX
         function flashScreen() {
             flashOverlay.classList.add('flash-active');
             setTimeout(() => { flashOverlay.classList.remove('flash-active'); }, 50);
@@ -425,7 +435,7 @@
         }
 
         async function saveScoreToFirebase() {
-            const todayStr = new Date().toLocaleDateString('en-IN');
+            const todayStr = new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
             const saveEl = document.getElementById('save-status');
             
             const updates = { lastPlayedDate: todayStr, lastScore: score };
@@ -436,7 +446,7 @@
                 saveEl.className = "text-sm font-semibold text-green-400 mb-6";
                 saveEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Score Saved Successfully!<br><span class="text-xs text-gray-300 mt-1 block">Check wallet at winner announce time!</span>`;
             } catch (error) {
-                console.error(error);
+                console.error("Firebase Error:", error);
                 saveEl.className = "text-sm font-semibold text-red-400 mb-6";
                 saveEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Error saving score.`;
             }
