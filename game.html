@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TapCraves | Daily Play & Win</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0F172A;
+            font-family: 'Outfit', sans-serif;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        #game-container { position: relative; width: 100%; height: 100%; }
+        canvas { display: block; width: 100%; height: 100%; }
+        
+        #bird-gif {
+            position: absolute; top: 0; left: 0; width: 65px; height: 65px;
+            pointer-events: none; z-index: 5; display: none; transform-origin: center;
+        }
+
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 10;
+        }
+        
+        #game-title {
+            font-size: 3.5rem; color: #fff; font-weight: 900; text-transform: uppercase;
+            text-shadow: 4px 4px 0 #0A66C2, -2px -2px 0 #10B981;
+            margin-bottom: 5px; display: none;
+            animation: slideDown 1s cubic-bezier(0.25, 1.5, 0.5, 1) forwards;
+        }
+        
+        #game-subtitle {
+            font-size: 1.2rem; color: #FFD700; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 2px; text-shadow: 2px 2px 0 rgba(0,0,0,0.5); margin-bottom: 30px;
+            display: none; animation: fadeIn 1s 0.5s forwards; opacity: 0;
+        }
+
+        #score-display {
+            position: absolute; top: 10%; font-size: 4.5rem; color: #fff; font-weight: 900;
+            text-shadow: 3px 3px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+            z-index: 10; display: none;
+        }
+
+        .btn {
+            pointer-events: auto; padding: 15px 40px; font-size: 1.2rem; font-weight: 800;
+            background: linear-gradient(135deg, #0A66C2 0%, #004182 100%);
+            color: #fff; border: 2px solid rgba(255,255,255,0.2); border-radius: 12px;
+            cursor: pointer; box-shadow: 0 8px 25px rgba(10,102,194,0.5);
+            text-transform: uppercase; transition: transform 0.1s, filter 0.2s;
+        }
+        
+        .btn:active { transform: translateY(4px); filter: brightness(0.9); }
+        .btn-yellow { background: linear-gradient(135deg, #FBBF24 0%, #D97706 100%); color: #0F172A; box-shadow: 0 8px 25px rgba(217,119,6,0.4); }
+
+        #start-btn { display: none; animation: pulseGlow 1.5s infinite alternate; }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px;
+            padding: 30px 25px; text-align: center; width: 90%; max-width: 350px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); pointer-events: auto;
+        }
+
+        /* Screen Flash & Shake */
+        #flash-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; opacity: 0; pointer-events: none; z-index: 100;
+            transition: opacity 0.3s ease-out;
+        }
+        .flash-active { opacity: 0.6 !important; transition: none !important; }
+        
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake { animation: shake 0.4s; }
+
+        @keyframes slideDown { 0% { transform: translateY(-150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes pulseGlow { 0% { transform: scale(1); box-shadow: 0 8px 0 #004182, 0 0 15px rgba(10,102,194,0.4); } 100% { transform: scale(1.05); box-shadow: 0 12px 0 #004182, 0 0 35px rgba(10,102,194,0.8); } }
+        
+        .loader-ring {
+            width: 40px; height: 40px; border: 4px solid rgba(255, 255, 255, 0.2); border-radius: 50%;
+            border-top-color: #0A66C2; animation: spin 1s ease-in-out infinite; margin: 0 auto 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="flash-overlay"></div>
+        <img id="bird-gif" src="bird.gif" alt="Player">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="ui-layer">
+            <!-- Loading State -->
+            <div id="loading-panel" class="glass-panel text-white">
+                <div class="loader-ring"></div>
+                <h3 class="font-bold text-xl mb-1">Authenticating...</h3>
+                <p class="text-xs opacity-70">Verifying your daily play ticket.</p>
+            </div>
+
+            <!-- Main Menu -->
+            <div id="game-title">TapCraves</div>
+            <div id="game-subtitle">Daily Play & Win!</div>
+            <div id="score-display">0</div>
+            <button id="start-btn" class="btn">Play Now</button>
+
+            <!-- Error / Already Played Panel -->
+            <div id="notice-panel" class="glass-panel text-white hidden">
+                <i class="fa-solid fa-circle-exclamation text-4xl text-yellow-400 mb-4 block"></i>
+                <h2 class="font-black text-2xl mb-2" id="notice-title">Notice</h2>
+                <p class="text-sm opacity-80 mb-6" id="notice-msg">You have already played today! Come back tomorrow to win.</p>
+                <button class="btn w-full" onclick="returnToWallet()">Go Back to Wallet</button>
+            </div>
+
+            <!-- Game Over Panel -->
+            <div id="game-over-panel" class="glass-panel text-white hidden">
+                <h2 class="font-black text-3xl text-red-500 mb-2 drop-shadow-md">GAME OVER</h2>
+                <div class="bg-black/30 rounded-xl p-4 mb-4 border border-white/10">
+                    <p class="text-xs uppercase tracking-widest text-gray-400 font-bold mb-1">Final Score</p>
+                    <p class="font-black text-5xl text-yellow-400" id="final-score">0</p>
+                </div>
+                <p id="save-status" class="text-sm font-semibold text-blue-300 mb-6 animate-pulse">Saving score to server...</p>
+                <button class="btn btn-yellow w-full flex items-center justify-center gap-2" onclick="returnToWallet()">
+                    <i class="fa-solid fa-wallet"></i> Return to Wallet
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, query, orderByChild, equalTo, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // 1. Firebase Configuration
+        const firebaseConfig = { 
+            apiKey: "AIzaSyB49ap7eeOKV-2bnzZ8LzrznjhU990UmtQ", 
+            authDomain: "tap-crabe.firebaseapp.com", 
+            databaseURL: "https://tap-crabe-default-rtdb.firebaseio.com", 
+            projectId: "tap-crabe", 
+            storageBucket: "tap-crabe.firebasestorage.app", 
+            messagingSenderId: "211890731218", 
+            appId: "1:211890731218:web:2bcae1f8d26fddfe0f950b" 
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // State Variables
+        let currentState = 'LOADING'; // LOADING, START, PLAYING, GAMEOVER
+        let customerData = null;
+        let customerKey = null;
+        let cardId = null;
+        let restId = null;
+
+        // UI Elements
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score-display');
+        const startBtn = document.getElementById('start-btn');
+        const gameTitle = document.getElementById('game-title');
+        const gameSubtitle = document.getElementById('game-subtitle');
+        const birdGif = document.getElementById('bird-gif');
+        const flashOverlay = document.getElementById('flash-overlay');
+        const loadingPanel = document.getElementById('loading-panel');
+        const noticePanel = document.getElementById('notice-panel');
+        const gameOverPanel = document.getElementById('game-over-panel');
+
+        // URL Parsing & Auth Check
+        window.onload = async () => {
+            const params = new URLSearchParams(window.location.search);
+            cardId = params.get('cardId');
+            restId = params.get('restId');
+
+            if(!cardId || !restId) {
+                showNotice("Invalid Link", "Please scan your smart card to play.");
+                return;
+            }
+
+            try {
+                // Fetch customer by matching cardId
+                const custRef = query(ref(db, `customers/${restId}`), orderByChild('cardId'), equalTo(cardId));
+                const snapshot = await get(custRef);
+                
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    customerKey = Object.keys(data)[0];
+                    customerData = data[customerKey];
+                    
+                    const todayStr = new Date().toLocaleDateString('en-IN');
+                    if (customerData.lastPlayedDate === todayStr) {
+                        showNotice("Already Played!", "You have already played today. Come back tomorrow to beat the high score!");
+                    } else {
+                        // Authorized to play
+                        loadingPanel.style.display = 'none';
+                        currentState = 'START';
+                        if(!animationId) loop(); // Start drawing START screen
+                    }
+                } else {
+                    showNotice("Card Not Registered", "Please link your card with the restaurant first.");
+                }
+            } catch (err) {
+                console.error(err);
+                showNotice("Network Error", "Failed to connect to server. Please try again.");
+            }
+        };
+
+        function showNotice(title, msg) {
+            currentState = 'LOCKED';
+            loadingPanel.style.display = 'none';
+            noticePanel.classList.remove('hidden');
+            document.getElementById('notice-title').innerText = title;
+            document.getElementById('notice-msg').innerText = msg;
+        }
+
+        window.returnToWallet = () => {
+            if(cardId) window.location.href = `index.html?view=wallet&card=${cardId}`;
+            else window.location.href = `index.html`;
+        };
+
+        // --- WEB AUDIO API (Synthesized SFX - No downloads needed!) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+            if (type === 'jump') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'score') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.setValueAtTime(1200, now + 0.05);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'crash') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            }
+        }
+
+        function flashScreen() {
+            flashOverlay.classList.add('flash-active');
+            setTimeout(() => { flashOverlay.classList.remove('flash-active'); }, 50);
+        }
+
+        function shakeScreen() {
+            document.getElementById('game-container').classList.add('shake');
+            setTimeout(() => { document.getElementById('game-container').classList.remove('shake'); }, 400);
+        }
+
+        // --- GAME LOGIC ---
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const assets = { bg1: new Image(), p1: new Image() };
+        assets.bg1.src = 'bg1.png';
+        assets.p1.src = 'piller1.png';
+
+        const gravity = 0.22; 
+        const jumpStrength = -5.5; 
+        const gameSpeed = 2.5; 
+        const pipeWidth = 110; 
+        const pipeGap = 270; 
+        const pipeSpawnRate = 140; 
+        
+        let frames = 0; let score = 0; let bgOffset = 0;
+        
+        const player = {
+            x: canvas.width * 0.15, y: canvas.height / 2, width: 65, height: 65,
+            velocity: 0, rotation: 0,
+            
+            draw() {
+                if(currentState === 'LOADING' || currentState === 'LOCKED') return;
+                birdGif.style.display = 'block';
+                birdGif.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}rad)`;
+            },
+            
+            update() {
+                this.velocity += gravity;
+                this.y += this.velocity;
+                this.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (this.velocity * 0.12)));
+                
+                if (this.y + this.height >= canvas.height || this.y <= 0) gameOver();
+            },
+
+            deathAnimationUpdate() {
+                if (this.y + this.height < canvas.height) {
+                    this.velocity += gravity * 1.5;
+                    this.y += this.velocity;
+                    this.rotation = Math.min(Math.PI / 2, this.rotation + 0.1);
+                } else {
+                    this.y = canvas.height - this.height;
+                }
+            },
+            
+            jump() { this.velocity = jumpStrength; playSound('jump'); },
+            reset() { this.y = canvas.height / 2; this.velocity = 0; this.rotation = 0; }
+        };
+
+        let pipes = [];
+
+        function spawnPipe() {
+            let minHeight = 80;
+            let maxHeight = canvas.height - pipeGap - 80;
+            let topHeight = Math.floor(Math.random() * (maxHeight - minHeight + 1) + minHeight);
+            
+            pipes.push({ x: canvas.width, topY: 0, topHeight: topHeight, bottomY: topHeight + pipeGap, bottomHeight: canvas.height - (topHeight + pipeGap), passed: false });
+        }
+
+        function drawPipes() {
+            for (let i = 0; i < pipes.length; i++) {
+                let p = pipes[i]; let pipeImg = assets.p1;
+                if (pipeImg.complete && pipeImg.naturalWidth !== 0) {
+                    ctx.save();
+                    ctx.translate(p.x + pipeWidth / 2, p.topY + p.topHeight / 2);
+                    ctx.scale(1, -1);
+                    ctx.drawImage(pipeImg, -pipeWidth / 2, -p.topHeight / 2, pipeWidth, p.topHeight);
+                    ctx.restore();
+                    ctx.drawImage(pipeImg, p.x, p.bottomY, pipeWidth, p.bottomHeight);
+                } else {
+                    ctx.fillStyle = '#10B981';
+                    ctx.fillRect(p.x, p.topY, pipeWidth, p.topHeight);
+                    ctx.fillRect(p.x, p.bottomY, pipeWidth, p.bottomHeight);
+                }
+            }
+        }
+
+        function updatePipes() {
+            if (frames % pipeSpawnRate === 0) spawnPipe();
+
+            for (let i = 0; i < pipes.length; i++) {
+                let p = pipes[i]; p.x -= gameSpeed;
+                let buffer = 15;
+                let hitTop = player.x + player.width - buffer > p.x && player.x + buffer < p.x + pipeWidth && player.y + buffer < p.topHeight;
+                let hitBottom = player.x + player.width - buffer > p.x && player.x + buffer < p.x + pipeWidth && player.y + player.height - buffer > p.bottomY;
+
+                if (hitTop || hitBottom) gameOver();
+
+                if (p.x + pipeWidth < player.x && !p.passed) {
+                    score++; scoreDisplay.innerText = score; p.passed = true;
+                    playSound('score'); flashScreen();
+                }
+
+                if (p.x + pipeWidth < 0) { pipes.shift(); i--; }
+            }
+        }
+
+        function drawBackground() {
+            if (currentState !== 'GAMEOVER' && currentState !== 'LOADING' && currentState !== 'LOCKED') {
+                bgOffset -= (gameSpeed * 0.4); 
+                if (bgOffset <= -canvas.width) bgOffset = 0;
+            }
+
+            if (assets.bg1.complete && assets.bg1.naturalWidth !== 0) {
+                ctx.drawImage(assets.bg1, bgOffset, 0, canvas.width, canvas.height);
+                ctx.drawImage(assets.bg1, bgOffset + canvas.width, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = '#0F172A';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function startGame() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            currentState = 'PLAYING';
+            startBtn.style.display = 'none';
+            gameTitle.style.display = 'none';
+            gameSubtitle.style.display = 'none';
+            scoreDisplay.style.display = 'block';
+            score = 0; scoreDisplay.innerText = score;
+            pipes = []; frames = 0;
+            player.reset(); player.jump(); 
+        }
+
+        function gameOver() {
+            if (currentState !== 'GAMEOVER') {
+                currentState = 'GAMEOVER';
+                playSound('crash');
+                shakeScreen();
+                player.velocity = -4; 
+
+                setTimeout(() => { 
+                    scoreDisplay.style.display = 'none';
+                    gameOverPanel.classList.remove('hidden');
+                    document.getElementById('final-score').innerText = score;
+                    saveScoreToFirebase();
+                }, 500); 
+            }
+        }
+
+        async function saveScoreToFirebase() {
+            const todayStr = new Date().toLocaleDateString('en-IN');
+            const saveEl = document.getElementById('save-status');
+            
+            const updates = { lastPlayedDate: todayStr, lastScore: score };
+            if (score > (customerData.highestScore || 0)) { updates.highestScore = score; }
+
+            try {
+                await update(ref(db, `customers/${restId}/${customerKey}`), updates);
+                saveEl.className = "text-sm font-semibold text-green-400 mb-6";
+                saveEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Score Saved Successfully!<br><span class="text-xs text-gray-300 mt-1 block">Check wallet at winner announce time!</span>`;
+            } catch (error) {
+                console.error(error);
+                saveEl.className = "text-sm font-semibold text-red-400 mb-6";
+                saveEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Error saving score.`;
+            }
+        }
+
+        function handleInput(e) {
+            if (e.target.tagName === 'BUTTON') return; // Let buttons click naturally
+            if (e.type === 'keydown' && e.code !== 'Space') return;
+            
+            if (currentState === 'START') startGame();
+            else if (currentState === 'PLAYING') player.jump();
+        }
+
+        window.addEventListener('keydown', handleInput);
+        window.addEventListener('touchstart', handleInput, {passive: false});
+        window.addEventListener('mousedown', handleInput);
+        startBtn.addEventListener('click', (e) => { e.stopPropagation(); startGame(); });
+
+        let animationId;
+        function loop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (currentState === 'START') {
+                startBtn.style.display = 'block';
+                gameTitle.style.display = 'block';
+                gameSubtitle.style.display = 'block';
+                drawBackground(); player.draw();
+            } 
+            else if (currentState === 'PLAYING') {
+                drawBackground(); updatePipes(); drawPipes(); player.update(); player.draw(); frames++;
+            } 
+            else if (currentState === 'GAMEOVER') {
+                drawBackground(); drawPipes(); player.deathAnimationUpdate(); player.draw();
+            }
+
+            animationId = requestAnimationFrame(loop);
+        }
+
+    </script>
+</body>
+</html>

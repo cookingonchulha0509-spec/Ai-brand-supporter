@@ -280,7 +280,7 @@
         </div>
     </div>
 
-    <div id="rewards-screen" class="screen bg-tc-bg pb-24">
+    <div id="rewards-screen" class="screen bg-tc-bg pb-24 overflow-y-auto">
         <div class="p-6 pt-10 flex flex-col h-full flex-1">
             <h2 class="text-2xl font-bold mb-2 text-tc-textMain">Gamified Rewards</h2>
             <p class="text-tc-textMuted text-sm mb-6">Configure custom loyalty rules to keep customers returning. This will be visible on their Wallet QR pass.</p>
@@ -297,20 +297,33 @@
                     <div class="z-10"><p class="font-bold text-tc-blue text-lg" id="disp-rew-name">Free Dessert</p><p class="text-sm font-medium text-tc-textMuted mt-0.5">Unlocked at ₹<span id="disp-rew-target">1000</span> total spend</p></div>
                 </div>
             </div>
+
+            <!-- Gamification Config Form -->
+            <form id="game-form" onsubmit="app.rewards.saveGame(event)" class="glass-panel bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4 mt-8">
+                <h3 class="font-bold text-lg text-tc-textMain mb-2 border-b border-gray-100 pb-2 flex items-center gap-2"><i class="fa-solid fa-gamepad text-tc-blue"></i> Daily Play & Win</h3>
+                <div><label class="block text-sm font-medium text-tc-textMain mb-1 ml-1">Today's Game Prize</label><input type="text" id="game-prize" class="tc-input" required placeholder="e.g. Free Pizza"></div>
+                <div><label class="block text-sm font-medium text-tc-textMain mb-1 ml-1">Winner Announce Time</label><input type="time" id="game-time" class="tc-input" required></div>
+                <button type="submit" class="w-full bg-tc-navy text-white font-bold py-3.5 rounded-xl mt-4 active:scale-95 transition-transform shadow-md hover:bg-black">Save Game Config</button>
+            </form>
+            
+            <div id="game-winner-display" class="mt-6 glass-panel bg-yellow-50 p-5 rounded-2xl shadow-sm border border-yellow-200 hidden animate-fade-in relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 text-yellow-300 opacity-20 text-6xl"><i class="fa-solid fa-trophy"></i></div>
+                <h3 class="font-bold text-lg mb-2 text-tc-textMain border-b border-yellow-200 pb-2 relative z-10">Today's Winner</h3>
+                <div id="game-winner-content" class="relative z-10"></div>
+            </div>
         </div>
     </div>
 
     <!-- 8c. PROFILE SCREEN -->
-    <div id="profile-screen" class="screen bg-tc-bg pb-24">
-        <div class="p-6 pt-10 flex flex-col items-center justify-center h-full text-center flex-1">
+    <div id="profile-screen" class="screen bg-tc-bg pb-24 overflow-y-auto">
+        <div class="p-6 pt-10 flex flex-col items-center h-full text-center flex-1">
             <div class="w-24 h-24 bg-gray-100 border-4 border-white shadow-md rounded-full flex items-center justify-center mb-6 text-gray-400 text-4xl">
                 <i class="fa-solid fa-store"></i>
             </div>
-            <h2 class="text-2xl font-bold mb-2 text-tc-textMain">Restaurant Profile</h2>
-            <p class="text-tc-textMuted text-sm max-w-[250px] mb-8">Settings and profile management will be available in the next update.</p>
+            <h2 class="text-2xl font-bold mb-6 text-tc-textMain">Restaurant Profile</h2>
             
             <!-- Professional Navigation Links -->
-            <div class="w-full max-w-sm space-y-3 text-left">
+            <div class="w-full max-w-sm space-y-3 text-left mb-8">
                 <a href="contact.html" class="glass-panel bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:border-tc-blue transition-colors block">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-blue-50 text-tc-blue flex items-center justify-center"><i class="fa-solid fa-headset"></i></div>
@@ -333,8 +346,15 @@
                     <i class="fa-solid fa-chevron-right text-tc-textMuted text-xs"></i>
                 </a>
             </div>
+            
+            <div class="w-full max-w-sm text-left mb-8">
+                <h3 class="font-bold text-lg mb-3 text-tc-textMain">Registered Customers</h3>
+                <div id="profile-customers-list" class="space-y-3">
+                    <p class="text-sm text-tc-textMuted text-center py-2">Loading customers...</p>
+                </div>
+            </div>
 
-            <div class="flex justify-center gap-6 mt-8">
+            <div class="flex justify-center gap-6 mt-4 mb-10">
                 <a href="mailto:tapcraves@gmail.com" class="text-gray-400 hover:text-red-500 transition-colors text-xl"><i class="fa-solid fa-envelope"></i></a>
                 <a href="https://wa.me/918860204675" target="_blank" class="text-gray-400 hover:text-green-500 transition-colors text-xl"><i class="fa-brands fa-whatsapp"></i></a>
                 <a href="tel:+918860204675" class="text-gray-400 hover:text-tc-blue transition-colors text-xl"><i class="fa-solid fa-phone"></i></a>
@@ -418,6 +438,38 @@
                 <div class="w-full bg-gray-100 rounded-full h-2.5 mt-3 relative z-10 border border-gray-200"><div class="bg-tc-blue h-2.5 rounded-full transition-all duration-700 ease-out shadow-[0_0_8px_rgba(10,102,194,0.6)]" id="cw-reward-bar" style="width: 0%"></div></div>
                 <p class="text-right text-[10px] text-tc-textMuted mt-1 font-mono relative z-10">₹<span id="cw-spend-current">0</span> / ₹<span id="cw-spend-target">0</span></p>
             </div>
+            
+            <!-- GAMIFICATION CONTAINER -->
+            <div class="bg-gradient-to-r from-tc-blueDark to-tc-blue p-5 rounded-2xl mb-8 shadow-md relative overflow-hidden text-white hidden" id="cw-game-container">
+                <div class="absolute -right-6 -top-6 text-white opacity-10 text-9xl"><i class="fa-solid fa-gamepad"></i></div>
+                <div class="relative z-10">
+                    <h3 class="font-bold text-xl mb-1 flex items-center gap-2"><i class="fa-solid fa-trophy text-yellow-400"></i> Play & Win</h3>
+                    <p class="text-xs opacity-90 mb-3">Play our daily game! Only 1 winner per day. You can play only once every 24 hours.</p>
+                    <div id="cw-game-prize-box" class="bg-white/20 rounded-xl p-3 mb-4 backdrop-blur-sm border border-white/30">
+                        <p class="text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">Today's Prize</p>
+                        <p class="font-bold text-lg text-yellow-300" id="cw-game-prize-name">Loading...</p>
+                    </div>
+                    
+                    <div id="cw-game-status-box">
+                        <div id="cw-game-countdown" class="bg-black/30 rounded-lg py-2 px-3 mb-3 text-center">
+                            <p class="text-xs text-gray-300 mb-0.5">Winner announced in</p>
+                            <p class="font-mono font-bold text-lg tracking-widest" id="cw-game-timer">00:00:00</p>
+                        </div>
+                        <button id="cw-game-play-btn" class="w-full bg-yellow-400 hover:bg-yellow-500 text-tc-navy font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play"></i> Play Now
+                        </button>
+                    </div>
+                    
+                    <div id="cw-game-winner-box" class="hidden text-center py-2">
+                        <h2 class="text-2xl font-bold text-yellow-400 mb-2 animate-bounce">🎉 You Won! 🎉</h2>
+                        <p class="text-sm mb-4">Congratulations! You won the <strong id="cw-game-won-prize"></strong>!</p>
+                        <a href="#" id="cw-game-call-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-phone"></i> Call to Claim
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <div>
                 <h3 class="font-bold text-lg mb-3 text-tc-textMain">History</h3>
                 <div class="space-y-3" id="cw-tx-list"><p class="text-sm text-tc-textMuted text-center py-4">Fetching transactions...</p></div>
@@ -476,7 +528,7 @@
                 if(tab === 'dashboard') UI.showScreen('dashboard-screen');
                 if(tab === 'cards') { UI.showScreen('card-management-screen'); App.cards.generateID(); App.cards.renderList(); }
                 if(tab === 'rewards') App.rewards.init();
-                if(tab === 'profile') UI.showScreen('profile-screen');
+                if(tab === 'profile') { UI.showScreen('profile-screen'); App.profile.renderCustomers(); }
                 UI.updateTabUI(document.querySelector('.screen.active').id);
             },
             showToast: (msg, type = 'success') => {
@@ -661,10 +713,60 @@
                 init: () => {
                     UI.showScreen('rewards-screen'); const conf = state.restaurant?.rewardConfig;
                     if(conf) { document.getElementById('rew-target').value = conf.target || ''; document.getElementById('rew-name').value = conf.name || ''; document.getElementById('active-reward-display').classList.remove('hidden'); document.getElementById('disp-rew-name').innerText = conf.name || 'Reward'; document.getElementById('disp-rew-target').innerText = conf.target || 0; }
+                    
+                    const gameConf = state.restaurant?.gameConfig;
+                    if(gameConf) {
+                        document.getElementById('game-prize').value = gameConf.prize || '';
+                        document.getElementById('game-time').value = gameConf.time || '';
+                        const todayStr = new Date().toLocaleDateString('en-IN');
+                        const winnerDisplay = document.getElementById('game-winner-display');
+                        const winnerContent = document.getElementById('game-winner-content');
+                        if (gameConf.winner && gameConf.winnerDate === todayStr) {
+                            winnerDisplay.classList.remove('hidden');
+                            winnerContent.innerHTML = `<p class="font-bold text-tc-success text-lg">${gameConf.winner.name}</p><p class="text-sm font-medium text-tc-textMuted">${gameConf.winner.mobile}</p><p class="text-xs text-tc-blue font-mono mt-1">${gameConf.winner.cardId}</p>`;
+                        } else {
+                            winnerDisplay.classList.add('hidden');
+                        }
+                    }
                 },
                 save: async (e) => {
                     e.preventDefault(); const config = { target: parseFloat(document.getElementById('rew-target').value), name: document.getElementById('rew-name').value };
                     try { await DB.update(`restaurants/${state.user.uid}`, { rewardConfig: config }); if(state.restaurant) state.restaurant.rewardConfig = config; UI.showToast("Reward Rule Saved Successfully!"); App.rewards.init(); } catch(err) { UI.showToast("Error saving rule", "error"); }
+                },
+                saveGame: async (e) => {
+                    e.preventDefault(); 
+                    const prize = document.getElementById('game-prize').value;
+                    const time = document.getElementById('game-time').value;
+                    const config = { prize, time };
+                    
+                    const existingConf = state.restaurant?.gameConfig;
+                    const todayStr = new Date().toLocaleDateString('en-IN');
+                    if (existingConf && existingConf.winner && existingConf.winnerDate === todayStr) {
+                        config.winner = existingConf.winner;
+                        config.winnerDate = existingConf.winnerDate;
+                    }
+                    
+                    try { 
+                        await DB.update(`restaurants/${state.user.uid}`, { gameConfig: config }); 
+                        if(state.restaurant) state.restaurant.gameConfig = config; 
+                        UI.showToast("Game Config Saved Successfully!"); 
+                        App.rewards.init(); 
+                    } catch(err) { UI.showToast("Error saving game config", "error"); }
+                }
+            },
+            profile: {
+                renderCustomers: () => {
+                    const list = document.getElementById('profile-customers-list');
+                    let htmlStr = '';
+                    const customers = Object.values(state.customers || {});
+                    if(customers.length > 0) {
+                        customers.forEach(c => { 
+                            htmlStr += `<div class="glass-panel bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-blue-50 text-tc-blue flex items-center justify-center font-bold text-lg">${c?.name ? c.name.charAt(0).toUpperCase() : 'C'}</div><div><p class="font-bold text-sm text-tc-textMain">${c?.name || 'Customer'}</p><p class="text-[11px] text-tc-textMuted font-mono"><i class="fa-solid fa-phone mr-1"></i>${c?.mobile || 'N/A'}</p></div></div><span class="text-[10px] bg-gray-100 text-tc-textMuted px-2 py-1 rounded font-mono">${c?.cardId || ''}</span></div>`; 
+                        });
+                    } else {
+                        htmlStr = '<p class="text-sm text-tc-textMuted text-center py-4">No registered customers yet.</p>';
+                    }
+                    list.innerHTML = htmlStr;
                 }
             },
             scanner: {
@@ -717,6 +819,65 @@
                     e.preventDefault(); const enteredPin = document.getElementById('wallet-pin-input').value; if(enteredPin.length !== 4) { UI.showToast("Please enter a 4-digit PIN", "error"); return; }
                     try { const cardData = await DB.get(`cards/${App.wallet.cardToVerify}`); if(!cardData) { UI.showToast("Invalid Card. Please contact restaurant.", "error"); return; } if(cardData.pin === enteredPin) { UI.showToast("Verification Successful!"); App.wallet.loadWalletData(cardData); } else { UI.showToast("Incorrect PIN! Access Denied.", "error"); } } catch(err) { UI.showToast("Network Error verifying PIN.", "error"); }
                 },
+                startCountdown: (announceTimeStr, gameConfig, custData, restData, cardData) => {
+                    if (window.gameCountdownInterval) clearInterval(window.gameCountdownInterval);
+                    const now = new Date();
+                    const [hours, minutes] = announceTimeStr.split(':').map(Number);
+                    let targetTime = new Date();
+                    targetTime.setHours(hours, minutes, 0, 0);
+
+                    const todayStr = now.toLocaleDateString('en-IN');
+                    const isWinner = gameConfig.winner && gameConfig.winner.cardId === cardData.cardId && gameConfig.winnerDate === todayStr;
+
+                    if (now >= targetTime) {
+                        if(isWinner) {
+                            document.getElementById('cw-game-status-box').classList.add('hidden');
+                            document.getElementById('cw-game-winner-box').classList.remove('hidden');
+                            document.getElementById('cw-game-won-prize').innerText = gameConfig.prize;
+                            document.getElementById('cw-game-call-btn').href = `tel:${restData.mobile}`;
+                        } else {
+                            document.getElementById('cw-game-status-box').classList.remove('hidden');
+                            document.getElementById('cw-game-winner-box').classList.add('hidden');
+                            document.getElementById('cw-game-countdown').innerHTML = `<p class="text-sm font-bold text-yellow-300 py-1">Winner has been announced!</p>`;
+                            document.getElementById('cw-game-play-btn').className = 'w-full bg-gray-500 text-white font-bold py-3 rounded-xl shadow-lg opacity-80 cursor-not-allowed';
+                            document.getElementById('cw-game-play-btn').innerText = 'Come back tomorrow';
+                            document.getElementById('cw-game-play-btn').onclick = null;
+                        }
+                        return;
+                    }
+
+                    document.getElementById('cw-game-status-box').classList.remove('hidden');
+                    document.getElementById('cw-game-winner-box').classList.add('hidden');
+                    document.getElementById('cw-game-countdown').innerHTML = `<p class="text-xs text-gray-300 mb-0.5">Winner announced in</p><p class="font-mono font-bold text-lg tracking-widest" id="cw-game-timer">00:00:00</p>`;
+
+                    const btn = document.getElementById('cw-game-play-btn');
+                    if (custData.lastPlayedDate === todayStr) {
+                        btn.className = 'w-full bg-gray-500 text-white font-bold py-3 rounded-xl shadow-lg opacity-80 cursor-not-allowed';
+                        btn.innerText = 'Already Played Today';
+                        btn.onclick = null;
+                    } else {
+                        btn.className = 'w-full bg-yellow-400 hover:bg-yellow-500 text-tc-navy font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2';
+                        btn.innerHTML = `<i class="fa-solid fa-play"></i> Play Now`;
+                        btn.onclick = () => { window.location.href = `game.html?cardId=${cardData.cardId}&restId=${cardData.restId}`; };
+                    }
+
+                    const timerEl = document.getElementById('cw-game-timer');
+                    window.gameCountdownInterval = setInterval(() => {
+                        const currentTime = new Date();
+                        const diff = targetTime - currentTime;
+                        if (diff <= 0) {
+                            clearInterval(window.gameCountdownInterval);
+                            App.wallet.loadWalletData(cardData); 
+                            return;
+                        }
+                        const h = Math.floor((diff / (1000 * 60 * 60)) % 24).toString().padStart(2, '0');
+                        const m = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');
+                        const s = Math.floor((diff / 1000) % 60).toString().padStart(2, '0');
+                        if(document.getElementById('cw-game-timer')) {
+                            document.getElementById('cw-game-timer').innerText = `${h}:${m}:${s}`;
+                        }
+                    }, 1000);
+                },
                 loadWalletData: async (cardData) => {
                     UI.showScreen('customer-wallet-screen');
                     try {
@@ -730,6 +891,16 @@
                                 if(spent >= target && target > 0) { document.getElementById('cw-reward-msg').innerHTML = `<span class="text-tc-success font-bold text-sm">Unlocked: ${rewardConf.name || 'Reward'}! 🎉</span>`; document.getElementById('cw-reward-bar').classList.remove('bg-tc-blue'); document.getElementById('cw-reward-bar').classList.add('bg-tc-success'); } 
                                 else { document.getElementById('cw-reward-msg').innerText = `Spend ₹${(target - spent).toFixed(2)} more to unlock a ${rewardConf.name || 'Reward'}!`; }
                             } else { document.getElementById('cw-reward-container').style.display = 'none'; }
+                            
+                            // Gamification integration
+                            if(restData.gameConfig && restData.gameConfig.time && restData.gameConfig.prize) {
+                                document.getElementById('cw-game-container').classList.remove('hidden');
+                                document.getElementById('cw-game-prize-name').innerText = restData.gameConfig.prize;
+                                App.wallet.startCountdown(restData.gameConfig.time, restData.gameConfig, custData, restData, cardData);
+                            } else {
+                                document.getElementById('cw-game-container').classList.add('hidden');
+                            }
+
                             const txData = await DB.query('transactions', 'cardId', cardId); const txList = document.getElementById('cw-tx-list'); let txHtml = ''; let hasTx = false;
                             if(txData) {
                                 const userTx = Object.values(txData).sort((a,b) => (b?.date || 0) - (a?.date || 0)); 
