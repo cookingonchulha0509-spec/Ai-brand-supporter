@@ -126,13 +126,13 @@
             <div id="score-display">0</div>
             <button id="start-btn" class="btn">Play Now</button>
 
-            <!-- Error / Already Played Panel -->
+            <!-- Error / Already Played / Security Panel -->
             <div id="notice-panel" class="glass-panel text-white hidden">
-                <i class="fa-solid fa-circle-exclamation text-4xl text-yellow-400 mb-4 block"></i>
+                <i id="notice-icon" class="fa-solid fa-circle-exclamation text-4xl text-yellow-400 mb-4 block"></i>
                 <h2 class="font-black text-2xl mb-2" id="notice-title">Notice</h2>
                 <p class="text-sm opacity-80 mb-6" id="notice-msg">You have already played today! Come back tomorrow to win.</p>
                 <button class="btn w-full flex items-center justify-center gap-2" onclick="returnToWallet()">
-                    <i class="fa-solid fa-wallet"></i> Go Back to Wallet
+                    <i id="notice-btn-icon" class="fa-solid fa-wallet"></i> <span id="notice-btn-text">Go Back to Wallet</span>
                 </button>
             </div>
 
@@ -202,6 +202,14 @@
                 return;
             }
 
+            // --- SECURITY FIX: VERIFY LOCAL SESSION TOKEN ---
+            const authKey = 'tc_wallet_auth_' + cardId;
+            if (sessionStorage.getItem(authKey) !== 'true') {
+                showNotice("Access Denied", "Security Error: Please open the game directly from your unlocked TapCraves wallet.", true);
+                return; // Blocks execution, DO NOT call Firebase
+            }
+            // -------------------------------------------------
+
             try {
                 // CRITICAL FIX: Sign in anonymously BEFORE requesting DB access
                 await signInAnonymously(auth);
@@ -234,12 +242,31 @@
             }
         };
 
-        function showNotice(title, msg) {
+        // Modified notice to handle the security error state
+        function showNotice(title, msg, isSecurityError = false) {
             currentState = 'LOCKED';
             loadingPanel.style.display = 'none';
             noticePanel.classList.remove('hidden');
-            document.getElementById('notice-title').innerText = title;
+            
+            const titleEl = document.getElementById('notice-title');
+            const icon = document.getElementById('notice-icon');
+            const btnText = document.getElementById('notice-btn-text');
+            const btnIcon = document.getElementById('notice-btn-icon');
+
+            titleEl.innerText = title;
             document.getElementById('notice-msg').innerText = msg;
+            
+            if (isSecurityError) {
+                icon.className = "fa-solid fa-shield-halved text-4xl text-red-500 mb-4 block";
+                titleEl.className = "font-black text-2xl mb-2 text-red-500";
+                btnText.innerText = "Go back to Login";
+                btnIcon.className = "fa-solid fa-arrow-left";
+            } else {
+                icon.className = "fa-solid fa-circle-exclamation text-4xl text-yellow-400 mb-4 block";
+                titleEl.className = "font-black text-2xl mb-2";
+                btnText.innerText = "Go Back to Wallet";
+                btnIcon.className = "fa-solid fa-wallet";
+            }
         }
 
         window.returnToWallet = () => {
