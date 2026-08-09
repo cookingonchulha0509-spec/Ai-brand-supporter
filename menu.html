@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TapCraves - Elite Partner</title>
+    
+    <!-- Scripts & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- HTML2Canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        appWhite: '#FFFFFF',
+                        appBg: '#F4F7FB',
+                        appBlueLight: '#EFF6FF',
+                        appBlue: '#2563EB',
+                        appBlueDark: '#1E3A8A',
+                        appGreen: '#10B981',
+                        appText: '#0F172A',
+                        appMuted: '#64748B',
+                    },
+                    animation: {
+                        'spin-slow': 'spin 2s linear infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                        'fade-in-up': 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        fadeInUp: { '0%': { opacity: '0', transform: 'translateY(15px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        pulseGlow: { '0%, 100%': { boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)' }, '50%': { boxShadow: '0 0 25px rgba(16, 185, 129, 0.9)', transform: 'scale(1.05)' } }
+                    },
+                    boxShadow: {
+                        'mirrorWhite': '0 8px 32px 0 rgba(37, 99, 235, 0.08)',
+                        'blueGlow': '0 8px 25px -5px rgba(37, 99, 235, 0.4)',
+                        'greenGlow': '0 8px 25px -5px rgba(16, 185, 129, 0.4)',
+                        'soft': '0 4px 20px rgba(0, 0, 0, 0.03)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F4F7FB; color: #0F172A; -webkit-tap-highlight-color: transparent; }
+        .hidden { display: none !important; }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .light-input { background: #FFFFFF; border: 1px solid #E2E8F0; color: #0F172A; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        .light-input:focus { border-color: #2563EB; outline: none; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+        
+        .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-flex; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .app-category-pill { transition: all 0.2s ease; }
+        .app-category-pill.active { background: linear-gradient(135deg, #1E3A8A, #2563EB); color: #FFFFFF; border-color: transparent; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
+        
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
+
+        /* MIRROR EFFECTS */
+        .mirror-blue { background: linear-gradient(135deg, #1E3A8A 0%, #0F172A 100%); position: relative; overflow: hidden; color: white; border: 1px solid rgba(255,255,255,0.1); }
+        .mirror-green { background: linear-gradient(135deg, #065F46 0%, #022C22 100%); position: relative; overflow: hidden; color: white; border: 1px solid rgba(16,185,129,0.2); }
+        .mirror-blue::after, .mirror-green::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to bottom right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.03) 40%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.03) 60%, rgba(255,255,255,0) 100%); transform: rotate(30deg) translate(-50%, -50%); animation: mirror-sweep 6s infinite ease-in-out; pointer-events: none; }
+        .mirror-white { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 1); box-shadow: 0 8px 32px 0 rgba(37, 99, 235, 0.05), inset 0 1px 0 0 rgba(255,255,255,0.8); }
+
+        @keyframes mirror-sweep { 0% { transform: rotate(30deg) translate(-100%, -100%); } 20%, 100% { transform: rotate(30deg) translate(100%, 100%); } }
+
+        /* Toast positioning */
+        #toast-container { z-index: 9999; }
+        
+        .customer-layout { @apply max-w-[430px] mx-auto min-h-screen bg-appBg relative overflow-x-hidden shadow-2xl pb-safe border-x border-gray-100; }
+        
+        /* Specific QR Container CSS to ensure Qrcode.js works perfectly */
+        #poster-qrcode img, #poster-qrcode canvas { width: 100%; height: 100%; display: block; }
+        #preview-qrcode img, #preview-qrcode canvas { width: 100%; height: 100%; display: block; border-radius: 12px; }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden selection:bg-appBlue selection:text-white pb-safe bg-appBg">
+
+    <!-- Global Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 left-4 md:left-auto md:w-96 flex flex-col gap-2 pointer-events-none z-[9999]"></div>
+
+    <!-- Global Loader -->
+    <div id="global-loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center transition-opacity duration-300">
+        <div class="relative w-24 h-24 flex items-center justify-center mb-4">
+            <i class="fa-solid fa-bell-concierge text-5xl text-appBlue animate-bounce-slow"></i>
+        </div>
+        <h2 class="text-xl font-bold text-appText tracking-tight" id="global-loader-text">Loading Workspace...</h2>
+    </div>
+
+    <!-- Exit Preview Button -->
+    <button id="btn-exit-preview" class="fixed top-6 right-6 md:right-10 z-[90] mirror-blue px-5 py-2.5 rounded-full text-sm font-bold hidden animate-fade-in flex items-center gap-2 shadow-blueGlow hover:scale-105 transition-transform">
+        <i class="fa-solid fa-arrow-left"></i> Exit Preview
+    </button>
+
+    <!-- Main Wrapper -->
+    <div id="app-wrapper" class="w-full min-h-screen relative flex">
+
+        <!-- ========================================== -->
+        <!-- AUTHENTICATION VIEW                        -->
+        <!-- ========================================== -->
+        <div id="view-auth" class="w-full min-h-screen flex hidden items-center justify-center p-6 bg-appBg relative overflow-hidden">
+            <div class="w-full max-w-md flex flex-col items-center animate-fade-in z-10">
+                <div class="w-16 h-16 mirror-blue rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-blueGlow">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <h1 class="text-4xl font-black text-appText mb-2 tracking-tighter">TapCraves<span class="text-appBlue">.</span></h1>
+                <p class="text-appMuted text-sm font-medium mb-10 text-center px-4 leading-relaxed">Platform for restaurant management and digital menu scaling.</p>
+
+                <div id="auth-intro" class="w-full space-y-4">
+                    <button type="button" id="btn-show-register" class="w-full mirror-blue rounded-2xl py-4 font-bold text-[15px] shadow-blueGlow hover:scale-[1.02] transition-transform">Create Workspace</button>
+                    <p class="text-center text-sm font-medium text-appMuted mt-6">Already a partner? <button id="btn-show-login" class="text-appBlue font-bold hover:underline">Sign In</button></p>
+                </div>
+
+                <!-- Registration Form -->
+                <form id="form-register" class="w-full mirror-white p-8 rounded-[24px] hidden animate-fade-in-up">
+                    <div class="text-center mb-6"><h2 class="text-2xl font-bold text-appText tracking-tight">Create Workspace</h2></div>
+                    
+                    <button type="button" id="btn-google-register" class="w-full bg-white text-appText font-bold py-3.5 rounded-xl shadow-sm border border-gray-200 flex items-center justify-center gap-2 mb-5 hover:bg-gray-50 transition-colors">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5"> Sign up with Google
+                    </button>
+                    
+                    <div class="flex items-center w-full mb-5">
+                        <div class="flex-grow border-t border-gray-200"></div><span class="px-3 text-appMuted text-xs font-bold">OR</span><div class="flex-grow border-t border-gray-200"></div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <input type="email" id="register-email" placeholder="Work Email Address" class="w-full light-input rounded-xl px-4 py-3.5 font-medium text-sm" required>
+                        <input type="password" id="register-password" placeholder="Password (Min 6 chars)" class="w-full light-input rounded-xl px-4 py-3.5 font-medium text-sm" required minlength="6">
+                        <button type="submit" id="btn-register-submit" class="w-full mirror-blue rounded-xl py-3.5 font-bold flex items-center justify-center gap-2 mt-2 shadow-blueGlow">Create Account</button>
+                    </div>
+                    <p class="text-center text-sm font-medium text-appMuted mt-5"><button type="button" id="back-to-intro-2" class="text-appText font-bold hover:underline">Back</button></p>
+                </form>
+
+                <!-- Login Form -->
+                <form id="form-login" class="w-full mirror-white p-8 rounded-[24px] hidden animate-fade-in-up">
+                    <div class="text-center mb-6"><h2 class="text-2xl font-bold text-appText tracking-tight">Sign In</h2></div>
+                    
+                    <button type="button" id="btn-google-login" class="w-full bg-white text-appText font-bold py-3.5 rounded-xl shadow-sm border border-gray-200 flex items-center justify-center gap-2 mb-5 hover:bg-gray-50 transition-colors">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5"> Sign in with Google
+                    </button>
+                    
+                    <div class="flex items-center w-full mb-5">
+                        <div class="flex-grow border-t border-gray-200"></div><span class="px-3 text-appMuted text-xs font-bold">OR</span><div class="flex-grow border-t border-gray-200"></div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <input type="email" id="login-email" placeholder="Work Email" class="w-full light-input rounded-xl px-4 py-3.5 font-medium text-sm" required>
+                        <input type="password" id="login-password" placeholder="Password" class="w-full light-input rounded-xl px-4 py-3.5 font-medium text-sm" required>
+                        <button type="submit" id="btn-login-submit" class="w-full mirror-blue rounded-xl py-3.5 font-bold flex items-center justify-center gap-2 mt-2 shadow-blueGlow">Sign In</button>
+                    </div>
+                    <p class="text-center text-sm font-medium text-appMuted mt-5"><button type="button" id="back-to-intro-1" class="text-appText font-bold hover:underline">Back</button></p>
+                </form>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ONBOARDING WIZARD                          -->
+        <!-- ========================================== -->
+        <div id="view-wizard" class="w-full min-h-screen flex hidden flex-col mirror-blue animate-fade-in relative overflow-hidden">
+            <div class="w-full max-w-md mx-auto pt-16 px-6 pb-24 z-10">
+                <h1 class="text-3xl font-black text-white mb-3 leading-tight tracking-tight">Configure Workspace</h1>
+                <p class="text-blue-200 font-medium text-sm mb-10">Set up your restaurant profile.</p>
+            </div>
+            <div class="w-full max-w-md mx-auto bg-white rounded-t-[32px] flex-grow px-6 py-10 relative -mt-16 z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]">
+                <div class="relative">
+                    <div class="absolute left-6 top-10 bottom-10 w-[2px] bg-slate-100 z-0"></div>
+                    
+                    <div class="flex gap-5 mb-10 relative z-10" id="wiz-step-1">
+                        <div class="w-12 h-12 rounded-2xl border-2 border-appBlue bg-white flex items-center justify-center shrink-0 z-10"><i class="fa-solid fa-store text-appBlue"></i></div>
+                        <div class="pt-1.5 w-full">
+                            <h3 class="text-lg font-bold text-appText">Restaurant Info</h3>
+                            <div id="wiz-form-1" class="space-y-4 mt-4">
+                                <input type="text" id="wiz-rest-name" placeholder="Restaurant Name" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium" required>
+                                <textarea id="wiz-address" placeholder="Complete Store Address" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium resize-none h-20" required></textarea>
+                                <button type="button" onclick="nextWizardStep(1, 2)" class="w-full mirror-blue rounded-xl py-3.5 font-bold text-sm mt-2 shadow-blueGlow">Continue</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-5 mb-10 relative z-10 opacity-40 pointer-events-none" id="wiz-step-2">
+                        <div class="w-12 h-12 rounded-2xl border-2 border-slate-200 bg-white flex items-center justify-center shrink-0 z-10"><i class="fa-solid fa-user-tie text-slate-300"></i></div>
+                        <div class="pt-1.5 w-full">
+                            <h3 class="text-lg font-bold text-appText">Operations</h3>
+                            <div id="wiz-form-2" class="space-y-4 mt-4 hidden">
+                                <input type="text" id="wiz-owner-name" placeholder="Owner Full Name" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium" required>
+                                <div class="relative rounded-xl">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-appMuted font-semibold border-r border-gray-200 pr-3 my-2">+91</span>
+                                    <input type="tel" id="wiz-whatsapp" placeholder="10-digit WhatsApp number" class="w-full light-input rounded-xl pl-16 pr-4 py-3.5 text-sm font-medium tracking-wide" required maxlength="10">
+                                </div>
+                                <button type="button" onclick="nextWizardStep(2, 3)" class="w-full mirror-blue rounded-xl py-3.5 font-bold text-sm mt-2 shadow-blueGlow">Continue</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-5 relative z-10 opacity-40 pointer-events-none" id="wiz-step-3">
+                        <div class="w-12 h-12 rounded-2xl border-2 border-slate-200 bg-white flex items-center justify-center shrink-0 z-10"><i class="fa-solid fa-flag-checkered text-slate-300"></i></div>
+                        <div class="pt-1.5 w-full">
+                            <h3 class="text-lg font-bold text-appText">Launch</h3>
+                            <form id="form-finish-wizard" class="space-y-4 hidden mt-4">
+                                <div class="p-5 border border-appBlue/20 rounded-2xl bg-appBlueLight shadow-sm">
+                                    <p class="font-black text-lg mb-2 text-appText truncate" id="summary-rest">...</p>
+                                    <p class="text-sm text-appMuted mb-1.5 truncate"><i class="fa-solid fa-user text-slate-400 mr-2"></i><span id="summary-owner">...</span></p>
+                                    <p class="text-sm text-appMuted truncate"><i class="fa-brands fa-whatsapp text-[#25D366] mr-2"></i><span id="summary-phone">...</span></p>
+                                </div>
+                                <button type="submit" id="btn-save-wizard" class="w-full mirror-blue rounded-xl py-4 font-bold text-sm mt-2 shadow-blueGlow">Generate Workspace</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SAAS DASHBOARD VIEW                        -->
+        <!-- ========================================== -->
+        <div id="view-dashboard" class="w-full min-h-screen hidden bg-appBg text-appText relative">
+            <div class="relative z-10 flex flex-col md:flex-row h-screen overflow-hidden pb-20 md:pb-0">
+                <!-- Sidebar (Desktop) -->
+                <aside class="hidden md:flex w-64 bg-white border-r border-gray-200 flex-col justify-between py-8 z-20 shadow-soft shrink-0">
+                    <div>
+                        <h2 class="text-2xl font-black px-8 mb-10 flex items-center gap-2 text-appText">Tap<span class="text-appBlue">Craves</span></h2>
+                        <nav class="space-y-2 px-4 hide-scrollbar overflow-y-auto">
+                            <button onclick="switchDashTab('home')" class="dash-nav-btn-desk w-full text-left px-5 py-3.5 rounded-2xl bg-appBlueLight text-appBlue font-bold flex items-center gap-3 transition-colors" data-tab="home"><i class="fa-solid fa-chart-pie w-5"></i> Analysis</button>
+                            <button onclick="switchDashTab('menu')" class="dash-nav-btn-desk w-full text-left px-5 py-3.5 rounded-2xl text-appMuted font-medium hover:bg-gray-50 flex items-center gap-3 transition-colors" data-tab="menu"><i class="fa-solid fa-utensils w-5"></i> Products</button>
+                            <button onclick="switchDashTab('orders')" class="dash-nav-btn-desk w-full text-left px-5 py-3.5 rounded-2xl text-appMuted font-medium hover:bg-gray-50 flex items-center gap-3 transition-colors" data-tab="orders"><i class="fa-solid fa-receipt w-5"></i> Orders</button>
+                            <button onclick="switchDashTab('qr')" class="dash-nav-btn-desk w-full text-left px-5 py-3.5 rounded-2xl text-appMuted font-medium hover:bg-gray-50 flex items-center gap-3 transition-colors" data-tab="qr"><i class="fa-solid fa-qrcode w-5"></i> Store QR</button>
+                            <button onclick="switchDashTab('reviews')" class="dash-nav-btn-desk w-full text-left px-5 py-3.5 rounded-2xl text-appMuted font-medium hover:bg-gray-50 flex items-center gap-3 transition-colors" data-tab="reviews"><i class="fa-solid fa-star w-5"></i> Feedback</button>
+                            <button onclick="switchDashTab('profile')" class="dash-nav-btn-desk w-full text-left px-5 py-3.5 rounded-2xl text-appMuted font-medium hover:bg-gray-50 flex items-center gap-3 transition-colors" data-tab="profile"><i class="fa-solid fa-gear w-5"></i> Settings</button>
+                        </nav>
+                    </div>
+                    <div class="px-4 border-t border-gray-100 pt-4 mt-4">
+                        <button id="btn-logout-desk" class="w-full text-left px-5 py-3.5 rounded-2xl text-red-500 hover:bg-red-50 font-medium flex items-center gap-3 transition-colors"><i class="fa-solid fa-arrow-right-from-bracket w-5"></i> Sign Out</button>
+                    </div>
+                </aside>
+
+                <!-- Main Content Area -->
+                <main class="flex-1 overflow-y-auto hide-scrollbar p-5 md:p-8 w-full max-w-5xl mx-auto">
+                    
+                    <!-- Header -->
+                    <header class="flex justify-between items-center mb-8 w-full animate-fade-in-up">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-appBlue font-bold text-xl shadow-sm border border-gray-200" id="dash-avatar-desk">R</div>
+                            <div>
+                                <p class="text-[11px] text-appMuted font-medium uppercase tracking-wide">Welcome Back!</p>
+                                <h1 class="text-lg md:text-xl font-bold text-appText flex items-center gap-2 truncate max-w-[150px] md:max-w-xs" id="dash-rest-name-desk">Store <span class="text-base">👋</span></h1>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="enterPreview()" class="text-appText text-xs md:text-sm font-semibold bg-white px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-all border border-gray-200 shadow-sm flex items-center gap-2">
+                                <i class="fa-solid fa-eye text-appMuted"></i> <span class="hidden md:inline">Preview</span>
+                            </button>
+                            <button onclick="enterPreview()" class="mirror-green text-white text-xs md:text-sm font-bold px-4 py-2.5 rounded-xl shadow-greenGlow flex items-center gap-2 hover:scale-[1.02] transition-transform">
+                                <i class="fa-solid fa-bolt text-yellow-300"></i> Go Live
+                            </button>
+                        </div>
+                    </header>
+
+                    <!-- TAB: OVERVIEW (HOME) -->
+                    <div id="dash-tab-home" class="dash-section animate-fade-in space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div class="mirror-blue rounded-[24px] p-6 md:p-8 shadow-blueGlow text-white relative flex flex-col justify-center min-h-[160px] md:col-span-3">
+                                <p class="text-sm font-medium text-blue-200 mb-1 relative z-10">Total Revenue</p>
+                                <h2 class="text-3xl md:text-5xl font-black mb-3 tracking-tight relative z-10 truncate" id="stat-sales">₹0</h2>
+                                <div class="flex items-center gap-2 relative z-10">
+                                    <span class="text-[10px] md:text-xs font-bold bg-white/20 text-white px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm"><i class="fa-solid fa-arrow-trend-up"></i> Live Tracking</span>
+                                </div>
+                            </div>
+
+                            <div class="mirror-green rounded-[20px] p-5 flex flex-col justify-center shadow-greenGlow">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 rounded-[12px] bg-white/20 text-white flex items-center justify-center text-sm"><i class="fa-solid fa-box"></i></div>
+                                    <span class="text-[10px] font-bold text-green-900 bg-white border border-green-100 px-2 py-1 rounded-md">All Time</span>
+                                </div>
+                                <p class="text-[11px] text-green-100 font-semibold uppercase tracking-wide">Total Orders</p>
+                                <h3 class="text-2xl font-bold text-white mt-1 truncate" id="stat-orders">0</h3>
+                            </div>
+
+                            <div class="mirror-white rounded-[20px] p-5 flex flex-col justify-center">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 rounded-[12px] bg-indigo-50 text-indigo-500 flex items-center justify-center text-sm"><i class="fa-solid fa-layer-group"></i></div>
+                                </div>
+                                <p class="text-[11px] text-appMuted font-semibold uppercase tracking-wide">Menu Items</p>
+                                <h3 class="text-2xl font-bold text-appText mt-1 truncate" id="stat-items">0</h3>
+                            </div>
+
+                            <!-- TOP SELLING DISH CARD -->
+                            <div class="mirror-white rounded-[20px] p-5 flex flex-col justify-center">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 rounded-[12px] bg-amber-50 text-amber-500 flex items-center justify-center text-sm"><i class="fa-solid fa-crown"></i></div>
+                                </div>
+                                <p class="text-[11px] text-appMuted font-semibold uppercase tracking-wide">Top Selling Dish</p>
+                                <h3 class="text-lg font-bold text-appText mt-1 truncate" id="stat-best-dish">N/A</h3>
+                                <p class="text-[10px] text-appGreen font-bold mt-1" id="stat-best-dish-count">0 Orders</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: MENU MANAGEMENT -->
+                    <div id="dash-tab-menu" class="dash-section hidden animate-fade-in space-y-6">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-xl font-bold text-appText">Menu Products</h2>
+                            <button onclick="openDishDrawer()" class="mirror-blue px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-blueGlow hover:scale-105 transition-transform"><i class="fa-solid fa-plus"></i> Add Product</button>
+                        </div>
+                        
+                        <div class="mirror-white rounded-2xl p-2 flex items-center gap-3 border border-gray-200">
+                            <i class="fa-solid fa-search text-appMuted ml-3"></i>
+                            <input type="text" id="dash-menu-search" oninput="renderDashboardMenu()" placeholder="Search dishes..." class="bg-transparent border-none outline-none text-sm text-appText font-medium w-full py-2">
+                        </div>
+                        
+                        <div id="dash-categories" class="flex gap-2 overflow-x-auto pb-2 snap-x hide-scrollbar"></div>
+                        
+                        <div id="dashboard-menu-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+                    </div>
+
+                    <!-- TAB: ORDERS -->
+                    <div id="dash-tab-orders" class="dash-section hidden animate-fade-in space-y-6">
+                        <h2 class="text-xl font-bold text-appText">Recent Orders</h2>
+                        <div class="mirror-white rounded-[24px] overflow-hidden border border-gray-200 shadow-soft">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm text-appText whitespace-nowrap">
+                                    <thead class="bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wide text-appMuted">
+                                        <tr>
+                                            <th class="px-5 py-4 font-bold">Table/Customer</th>
+                                            <th class="px-5 py-4 font-bold">Date & Time</th>
+                                            <th class="px-5 py-4 font-bold">Amount</th>
+                                            <th class="px-5 py-4 font-bold">Type</th>
+                                            <th class="px-5 py-4 font-bold text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orders-table-body" class="divide-y divide-gray-100 bg-white">
+                                        <tr><td colspan="5" class="p-8 text-center text-appMuted font-medium">No orders yet.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: STORE QR (UPDATED UI) -->
+                    <div id="dash-tab-qr" class="dash-section hidden py-4 animate-fade-in space-y-6">
+                        <h2 class="text-xl font-bold text-appText">Digital Store Links & QR</h2>
+                        
+                        <!-- Top Action Area -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="mirror-white rounded-[24px] p-6 border border-gray-200 shadow-soft flex flex-col justify-center">
+                                <div class="w-12 h-12 bg-appBlueLight text-appBlue rounded-full flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-link"></i></div>
+                                <h3 class="font-bold text-lg text-appText mb-1">Direct Menu Link</h3>
+                                <p class="text-xs text-appMuted mb-4">Share this link directly on WhatsApp or Instagram.</p>
+                                <div class="flex gap-2 w-full bg-gray-50 border border-gray-200 p-1.5 rounded-xl">
+                                    <input type="text" id="share-link-input" readonly class="w-full bg-transparent px-3 text-sm font-medium text-appText outline-none truncate">
+                                    <button id="btn-copy-link" class="mirror-blue px-4 py-2.5 rounded-lg text-sm font-bold text-white shadow-md">Copy</button>
+                                </div>
+                            </div>
+                            
+                            <div class="mirror-white rounded-[24px] p-6 border border-gray-200 shadow-soft flex flex-col justify-center items-center text-center">
+                                <div class="w-12 h-12 bg-green-50 text-appGreen rounded-full flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-print"></i></div>
+                                <h3 class="font-bold text-lg text-appText mb-1">Table Stand / Marketing Poster</h3>
+                                <p class="text-xs text-appMuted mb-4">Printable High-Resolution Black & Gold Theme.</p>
+                                <button onclick="downloadQRPoster()" id="btn-download-poster" class="w-full mirror-green text-white py-3.5 rounded-xl font-black shadow-greenGlow flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform">
+                                    <i class="fa-solid fa-download"></i> Download HD Poster
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Mini QR Preview -->
+                        <div class="mirror-white rounded-[24px] p-8 mt-6 border border-gray-200 shadow-soft max-w-md mx-auto flex flex-col items-center">
+                            <h3 class="font-bold text-appText mb-4 text-center">Basic QR Preview</h3>
+                            <div class="bg-gray-50 p-4 rounded-[16px] shadow-inner border border-gray-200">
+                                <div id="preview-qrcode" class="w-[160px] h-[160px]"></div>
+                            </div>
+                            <p class="text-xs text-appMuted text-center mt-4">This QR code is embedded in the high-res poster automatically.</p>
+                        </div>
+                    </div>
+
+                    <!-- TAB: REVIEWS -->
+                    <div id="dash-tab-reviews" class="dash-section hidden animate-fade-in space-y-6">
+                        <div class="mirror-white rounded-[24px] p-6">
+                            <h2 class="text-lg font-bold text-appText mb-2 flex items-center gap-2"><i class="fa-solid fa-shield-heart text-amber-500"></i> Internal Feedback</h2>
+                            <p class="text-xs text-appMuted mb-6 font-medium">Reviews with 1-3 stars are kept here internally to protect your Google Rating. 4-5 star reviews are sent directly to Google Maps!</p>
+                            <div id="internal-reviews-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Injected reviews -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: SETTINGS -->
+                    <div id="dash-tab-profile" class="dash-section hidden animate-fade-in space-y-6 max-w-2xl">
+                        <div class="mirror-white rounded-[24px] p-6 md:p-8 shadow-soft border border-gray-200">
+                            <h2 class="text-xl font-bold text-appText mb-6 flex items-center gap-2"><i class="fa-solid fa-gear text-appBlue"></i> Store Settings</h2>
+                            
+                            <form id="form-store-settings" class="space-y-5">
+                                <div>
+                                    <label class="block text-xs font-bold text-appMuted mb-2 uppercase tracking-wide">WhatsApp Number (For Orders)</label>
+                                    <input type="tel" id="set-whatsapp" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium" required maxlength="10">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-appMuted mb-2 uppercase tracking-wide">Complete Address</label>
+                                    <textarea id="set-address" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium resize-none h-20" required></textarea>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-appMuted mb-2 uppercase tracking-wide">Google Maps Link</label>
+                                        <input type="url" id="set-gmap" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-appMuted mb-2 uppercase tracking-wide">Instagram Link</label>
+                                        <input type="url" id="set-insta" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium">
+                                    </div>
+                                </div>
+                                
+                                <div class="border-t border-gray-100 pt-5 mt-5">
+                                    <h3 class="text-sm font-bold text-appText mb-4">Loyalty Program Settings</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-appMuted mb-2 uppercase tracking-wide">Return Visit Discount (%)</label>
+                                            <input type="number" id="set-disc-1" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium" required min="0" max="100">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-appMuted mb-2 uppercase tracking-wide">10+ Visits Discount (%)</label>
+                                            <input type="number" id="set-disc-10" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium" required min="0" max="100">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-4 flex md:hidden border-t border-gray-100">
+                                    <button type="button" class="w-full bg-red-50 text-red-600 font-bold py-3.5 rounded-xl border border-red-100" onclick="signOutApp()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out</button>
+                                </div>
+
+                                <button type="submit" id="btn-save-settings" class="w-full mirror-blue rounded-xl py-4 font-bold text-sm mt-4 shadow-blueGlow hover:scale-[1.02] transition-transform">Save Changes</button>
+                            </form>
+                        </div>
+                    </div>
+
+                </main>
+            </div>
+
+            <!-- Mobile Bottom Nav -->
+            <div class="md:hidden fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-md flex justify-around items-center pt-3 pb-safe z-40 border-t border-gray-200 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] rounded-t-[24px]">
+                <button onclick="switchDashTab('home')" class="dash-nav-btn-mob text-appBlue font-bold flex flex-col items-center gap-1 p-2 w-16 transition-colors" data-tab="home"><i class="fa-solid fa-chart-pie text-xl"></i><div class="w-1 h-1 bg-appBlue rounded-full mt-0.5 active-dot"></div></button>
+                <button onclick="switchDashTab('menu')" class="dash-nav-btn-mob text-appMuted font-medium flex flex-col items-center gap-1 p-2 w-16 transition-colors" data-tab="menu"><i class="fa-solid fa-utensils text-xl"></i><div class="w-1 h-1 bg-appBlue rounded-full mt-0.5 active-dot hidden"></div></button>
+                <button onclick="switchDashTab('orders')" class="dash-nav-btn-mob text-appMuted font-medium flex flex-col items-center gap-1 p-2 w-16 transition-colors" data-tab="orders"><i class="fa-solid fa-receipt text-xl"></i><div class="w-1 h-1 bg-appBlue rounded-full mt-0.5 active-dot hidden"></div></button>
+                <button onclick="switchDashTab('qr')" class="dash-nav-btn-mob text-appMuted font-medium flex flex-col items-center gap-1 p-2 w-16 transition-colors" data-tab="qr"><i class="fa-solid fa-qrcode text-xl"></i><div class="w-1 h-1 bg-appBlue rounded-full mt-0.5 active-dot hidden"></div></button>
+                <button onclick="switchDashTab('profile')" class="dash-nav-btn-mob text-appMuted font-medium flex flex-col items-center gap-1 p-2 w-16 transition-colors" data-tab="profile"><i class="fa-solid fa-gear text-xl"></i><div class="w-1 h-1 bg-appBlue rounded-full mt-0.5 active-dot hidden"></div></button>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- DASHBOARD MODALS (Drawer & Order Details)  -->
+        <!-- ========================================== -->
+
+        <!-- Add/Edit Dish Modal -->
+        <div id="drawer-dish" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-appText/60 backdrop-blur-sm transition-opacity opacity-0">
+            <div class="mirror-white rounded-[24px] border border-gray-100 w-full max-w-lg flex flex-col shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh]">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white/50 shrink-0 rounded-t-[24px]">
+                    <h3 class="font-black text-xl text-appText flex items-center gap-2" id="drawer-dish-title"><i class="fa-solid fa-circle-plus text-appBlue"></i> Add Product</h3>
+                    <button onclick="closeDishDrawer()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-appMuted hover:bg-gray-200 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                
+                <div class="p-6 overflow-y-auto flex-1 hide-scrollbar">
+                    <form id="form-add-dish" class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-appMuted mb-2 block uppercase">Dish Name *</label>
+                            <input type="text" id="dish-name" placeholder="e.g. Classic Burger" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium" required>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-bold text-appMuted mb-2 block uppercase">Category *</label>
+                                <select id="dish-category-select" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium text-appText" onchange="handleCategorySelect(this.value)" required>
+                                    <option value="" disabled selected>Select</option>
+                                    <!-- Dynamic options injected via JS + Custom -->
+                                </select>
+                                <input type="text" id="dish-category" placeholder="New Category" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium hidden mt-3">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-appMuted mb-2 block uppercase">Price (₹) *</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-appMuted font-bold">₹</span>
+                                    <input type="number" id="dish-price" placeholder="0" class="w-full light-input rounded-xl pl-8 pr-4 py-3.5 text-sm font-medium" required min="0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs font-bold text-appMuted mb-2 block uppercase">Food Type *</label>
+                            <select id="dish-type" class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium text-appText" required>
+                                <option value="veg">Veg</option>
+                                <option value="nonveg">Non-Veg</option>
+                                <option value="egg">Contains Egg</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs font-bold text-appMuted mb-2 block uppercase">Description *</label>
+                            <textarea id="dish-desc" placeholder="Brief details about the dish..." class="w-full light-input rounded-xl px-4 py-3.5 text-sm font-medium resize-none h-20" required></textarea>
+                        </div>
+                        
+                        <div class="flex flex-col gap-2">
+                            <label class="block text-xs font-bold text-appMuted mb-1 uppercase tracking-wide flex justify-between">
+                                <span>Dish Image *</span>
+                                <span class="text-[10px] text-appGreen">Auto Compressed</span>
+                            </label>
+                            
+                            <label id="upload-prompt" class="border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-appBlue hover:bg-appBlueLight transition-all">
+                                <i class="fa-solid fa-cloud-arrow-up text-3xl text-appBlue mb-2"></i>
+                                <span class="text-sm font-bold text-appText">Click to upload photo</span>
+                                <span class="text-xs text-appMuted mt-1">JPEG/PNG max 5MB</span>
+                                <input type="file" id="dish-image-file" accept="image/jpeg, image/png, image/webp" class="hidden">
+                            </label>
+                            
+                            <div id="upload-preview-box" class="hidden relative rounded-xl overflow-hidden border border-gray-200 bg-gray-100 h-40 w-full flex items-center justify-center group">
+                                <img id="dish-image-preview" class="object-cover w-full h-full">
+                                <button type="button" onclick="removeSelectedImage()" class="absolute inset-0 m-auto w-12 h-12 bg-red-500/90 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg backdrop-blur-sm"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="pt-6 mt-2 flex gap-3">
+                            <button type="button" onclick="closeDishDrawer()" class="flex-1 bg-gray-100 text-appText font-bold py-3.5 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+                            <button type="submit" id="btn-save-dish" class="flex-1 mirror-blue rounded-xl py-3.5 font-bold shadow-blueGlow">Save Dish</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Details Modal -->
+        <div id="modal-order-details" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-appText/60 backdrop-blur-sm transition-opacity opacity-0">
+            <div class="mirror-white rounded-[24px] border border-gray-100 w-full max-w-md flex flex-col shadow-2xl transform scale-95 transition-transform duration-300">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white/50 shrink-0 rounded-t-[24px]">
+                    <h3 class="font-black text-xl text-appText">Order Details</h3>
+                    <button onclick="closeOrderModal()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-appMuted hover:bg-gray-200 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="p-6 overflow-y-auto max-h-[70vh] hide-scrollbar" id="order-modal-content">
+                    <!-- Injected -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- CUSTOMER VIEW                              -->
+        <!-- ========================================== -->
+        <div id="view-customer" class="hidden w-full bg-appBg">
+            <div class="customer-layout">
+                
+                <!-- Hero Banner -->
+                <div class="relative w-full h-56 mirror-blue rounded-b-[32px] shadow-soft">
+                    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1599')] bg-cover bg-center opacity-20 mix-blend-overlay rounded-b-[32px]"></div>
+                    
+                    <div class="absolute top-0 w-full flex justify-between items-center p-5 pt-8 z-10">
+                        <button onclick="openLoyaltyModal()" class="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center bg-white/20 backdrop-blur-md text-white hover:bg-white hover:text-appGreen transition-colors relative shadow-sm" id="btn-cust-rewards">
+                            <i class="fa-solid fa-gift text-base"></i>
+                            <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-appBlueDark hidden" id="reward-dot"></span>
+                        </button>
+                        <div class="text-center flex-grow flex flex-col items-center justify-center">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-xl font-black text-appBlue mb-2 shadow-lg" id="cust-logo">R</div>
+                            <h1 class="text-base font-bold flex items-center justify-center gap-1.5 text-white tracking-wide"><span id="cust-rest-name">Store Name</span><i class="fa-solid fa-circle-check text-white text-[10px]"></i></h1>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="#" target="_blank" id="cust-insta-link" class="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center bg-white/10 backdrop-blur-md text-white hover:bg-white hover:text-pink-500 transition-colors hidden"><i class="fa-brands fa-instagram text-base"></i></a>
+                            <button onclick="openReviewModal()" class="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center bg-white/10 backdrop-blur-md text-white hover:bg-white hover:text-amber-500 transition-colors"><i class="fa-solid fa-ellipsis-vertical text-lg"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="absolute bottom-6 left-6 right-6 z-10 text-center">
+                        <h2 class="text-2xl font-black leading-tight tracking-tight text-white">Exquisite Taste<br><span class="text-green-300">Digital Menu</span></h2>
+                    </div>
+                </div>
+
+                <!-- Search & Categories -->
+                <div class="mt-5 px-5 animate-fade-in sticky top-0 z-20 bg-appBg/90 backdrop-blur-md pt-2 pb-2">
+                    <div class="bg-white border border-gray-200 rounded-[16px] px-4 py-3.5 flex items-center gap-3 mb-4 shadow-sm">
+                        <i class="fa-solid fa-search text-appMuted"></i>
+                        <input type="text" id="cust-search" oninput="renderCustomerMenu()" placeholder="Search menu..." class="bg-transparent text-appText font-medium outline-none w-full text-sm placeholder:text-gray-400">
+                    </div>
+                    <div id="customer-categories" class="flex gap-3 overflow-x-auto pb-2 snap-x hide-scrollbar"></div>
+                </div>
+
+                <!-- Menu List -->
+                <div class="px-5 mt-2 pb-28 min-h-[50vh]">
+                    <div id="customer-menu-list" class="space-y-4"></div>
+                </div>
+
+                <!-- Floating Cart -->
+                <div id="floating-cart" class="fixed bottom-6 left-5 right-5 max-w-[390px] mx-auto mirror-green rounded-2xl p-3 px-5 flex justify-between items-center transform translate-y-64 transition-transform duration-500 z-[45] shadow-greenGlow cursor-pointer" onclick="openCheckout()">
+                    <div class="flex items-center gap-4 relative z-10">
+                        <div class="relative"><div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30"><i class="fa-solid fa-bag-shopping text-xl text-white"></i></div><span class="absolute -top-1 -right-1 bg-white text-appGreen text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-md" id="cart-badge">0</span></div>
+                        <div class="flex flex-col"><span class="text-[13px] font-bold text-white" id="cart-item-count">0 Items</span><span class="text-[10px] text-green-200 mt-0.5 uppercase tracking-wide">View Order</span></div>
+                    </div>
+                    <div class="flex flex-col items-end relative z-10"><span class="text-lg font-black text-white leading-none mb-1 tracking-tight" id="cart-total">₹0</span><span class="text-[10px] font-bold text-green-200 flex items-center gap-1">Checkout <i class="fa-solid fa-chevron-right text-[8px]"></i></span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- CUSTOMER MODALS                            -->
+        <!-- ========================================== -->
+
+        <!-- Dish View Modal (Bottom Sheet) -->
+        <div id="modal-dish-view" class="fixed inset-0 z-[100] hidden flex-col justify-end max-w-[430px] mx-auto">
+            <div class="absolute inset-0 bg-appText/50 backdrop-blur-sm modal-bg opacity-0 transition-opacity duration-300" onclick="closeDishModal()"></div>
+            <div id="dish-view-sheet" class="bg-white w-full h-[85dvh] rounded-t-[32px] flex flex-col relative transform translate-y-full transition-transform duration-400 z-10 overflow-hidden shadow-2xl border-x border-gray-100">
+                <div class="absolute top-4 left-4 z-20">
+                    <button onclick="closeDishModal()" class="w-10 h-10 rounded-full bg-white/80 text-appText flex items-center justify-center backdrop-blur-md shadow-md"><i class="fa-solid fa-arrow-left"></i></button>
+                </div>
+                <div class="w-full h-[40%] bg-gray-100 relative"><img id="dish-modal-img" src="" class="w-full h-full object-cover"></div>
+                <div class="p-6 overflow-y-auto flex-grow relative z-10 -mt-8 bg-white rounded-t-[32px] hide-scrollbar">
+                    <h3 id="dish-modal-name" class="font-black text-2xl text-appText mb-2">Dish Name</h3>
+                    <p id="dish-modal-desc" class="text-[13px] text-appMuted leading-relaxed font-medium mb-6">Desc</p>
+                </div>
+                <div class="p-5 border-t border-gray-100 bg-white sticky bottom-0 shrink-0 flex justify-between items-center gap-5 pb-safe">
+                    <h4 id="dish-modal-price" class="font-black text-2xl text-appText">₹0</h4>
+                    <div id="dish-modal-action" class="flex-grow max-w-[200px]"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkout Drawer -->
+        <div id="modal-checkout" class="fixed inset-0 z-[100] hidden flex-col justify-end max-w-[430px] mx-auto">
+            <div class="absolute inset-0 bg-appText/50 backdrop-blur-sm modal-bg opacity-0 transition-opacity duration-300" onclick="closeCheckout()"></div>
+            <div id="checkout-sheet" class="bg-appBg w-full h-full flex flex-col transform translate-x-full transition-transform duration-400 z-10 text-appText border-x border-gray-100 shadow-2xl">
+                <div class="px-5 py-5 flex justify-between items-center border-b border-gray-200 sticky top-0 bg-white shadow-sm z-10 shrink-0">
+                    <div class="flex items-center gap-4"><button onclick="closeCheckout()" class="text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-arrow-left"></i></button><h3 class="font-black text-lg">Order Summary</h3></div>
+                </div>
+                <div class="overflow-y-auto p-5 flex-grow relative hide-scrollbar">
+                    <div id="loyalty-discount-banner" class="hidden mirror-green p-3 rounded-xl mb-5 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-greenGlow animate-fade-in"><i class="fa-solid fa-party-horn"></i> <span id="loyalty-banner-text">Premium Discount Applied!</span></div>
+                    
+                    <h4 class="text-xs font-bold text-appMuted uppercase tracking-wider mb-3">Your Items</h4>
+                    <div id="checkout-items" class="space-y-4 mb-8"></div>
+                    
+                    <div class="mirror-white rounded-[20px] p-5 mb-8 border border-gray-100 shadow-soft">
+                        <label class="text-xs font-bold text-appMuted uppercase tracking-widest block mb-2">Table No. / Name *</label>
+                        <input type="text" id="checkout-name" placeholder="E.g. Table 4 or John Doe" class="bg-gray-50 border border-gray-200 rounded-xl text-appText font-bold w-full px-4 py-3 outline-none focus:border-appBlue transition-all text-sm" required form="form-place-order">
+                    </div>
+                    
+                    <div class="mirror-white p-5 rounded-[20px] border border-gray-100 mb-4 shadow-soft">
+                        <div class="flex justify-between text-sm text-appMuted font-medium mb-3"><span>Subtotal</span><span id="bill-subtotal" class="text-appText font-bold">₹0</span></div>
+                        <div id="bill-discount-row" class="hidden flex justify-between text-sm font-bold text-appGreen mb-3"><span>Loyalty Discount</span><span id="bill-discount-amt">-₹0</span></div>
+                        <div class="flex justify-between font-black text-lg mt-4 pt-4 border-t border-gray-200 text-appText"><span>Grand Total</span><span id="checkout-final-total" class="text-appBlue">₹0</span></div>
+                    </div>
+                </div>
+                <div class="p-5 border-t border-gray-200 bg-white sticky bottom-0 shrink-0 pb-safe z-10">
+                    <form id="form-place-order">
+                        <button type="submit" id="btn-place-order" class="w-full mirror-green rounded-2xl py-4 h-[56px] font-black text-[15px] flex justify-between px-6 items-center shadow-greenGlow hover:scale-[1.02] transition-transform">
+                            <span>Confirm Order</span>
+                            <span id="checkout-btn-total" class="bg-white/20 px-3 py-1.5 rounded-xl border border-white/10">₹0 <i class="fa-solid fa-arrow-right text-[10px] ml-1"></i></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loyalty Modal -->
+        <div id="modal-loyalty" class="fixed inset-0 z-[120] hidden items-center justify-center p-5 max-w-[430px] mx-auto">
+            <div class="absolute inset-0 bg-appText/80 backdrop-blur-sm" onclick="closeLoyaltyModal()"></div>
+            <div class="mirror-white rounded-[32px] p-8 w-full max-w-[340px] relative z-10 text-center animate-fade-in-up shadow-2xl">
+                <button onclick="closeLoyaltyModal()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 rounded-full text-appMuted hover:bg-gray-200"><i class="fa-solid fa-xmark"></i></button>
+                <div class="w-16 h-16 mirror-green text-white rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-greenGlow"><i class="fa-solid fa-gift"></i></div>
+                <h2 class="text-xl font-black text-appText mb-1">Premium Member</h2>
+                <p class="text-xs font-semibold text-appMuted mb-6">Visit regularly to unlock huge discounts.</p>
+                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 text-left mb-6 shadow-inner">
+                    <div class="flex justify-between text-sm font-bold mb-2 text-appText"><span>Current Streak</span><span class="text-appGreen" id="loyalty-streak-txt">Day 1</span></div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-1.5 overflow-hidden"><div class="bg-appGreen h-2 rounded-full transition-all duration-1000" id="loyalty-progress-bar" style="width: 10%"></div></div>
+                    <p class="text-[10px] text-appMuted text-right font-medium" id="loyalty-next-reward">Complete 10 days for max discount!</p>
+                </div>
+                <button onclick="closeLoyaltyModal()" class="w-full mirror-blue text-white rounded-xl py-3.5 font-bold shadow-blueGlow">Awesome!</button>
+            </div>
+        </div>
+
+        <!-- Review Modal -->
+        <div id="modal-review" class="fixed inset-0 z-[120] hidden items-center justify-center p-5 max-w-[430px] mx-auto">
+            <div class="absolute inset-0 bg-appText/80 backdrop-blur-sm" onclick="closeReviewModal()"></div>
+            <div class="bg-white rounded-[32px] p-8 w-full max-w-[340px] relative z-10 text-center animate-fade-in-up shadow-2xl">
+                <button onclick="closeReviewModal()" class="absolute top-4 right-4 text-appMuted w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+                <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"><i class="fa-solid fa-star"></i></div>
+                <h2 class="text-xl font-black text-appText mb-2">Rate Your Meal</h2>
+                <p class="text-sm text-appMuted font-medium mb-6">How was your experience today?</p>
+                <div class="flex justify-center gap-2 mb-6" id="star-rating-container">
+                    <i class="fa-solid fa-star text-3xl text-gray-200 cursor-pointer star-icon transition-colors hover:scale-110 transform" data-val="1"></i>
+                    <i class="fa-solid fa-star text-3xl text-gray-200 cursor-pointer star-icon transition-colors hover:scale-110 transform" data-val="2"></i>
+                    <i class="fa-solid fa-star text-3xl text-gray-200 cursor-pointer star-icon transition-colors hover:scale-110 transform" data-val="3"></i>
+                    <i class="fa-solid fa-star text-3xl text-gray-200 cursor-pointer star-icon transition-colors hover:scale-110 transform" data-val="4"></i>
+                    <i class="fa-solid fa-star text-3xl text-gray-200 cursor-pointer star-icon transition-colors hover:scale-110 transform" data-val="5"></i>
+                </div>
+                <div id="review-feedback-area" class="hidden animate-fade-in">
+                    <textarea id="review-feedback" placeholder="Help us improve... (Optional)" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-medium mb-4 resize-none h-24 outline-none focus:border-appBlue"></textarea>
+                    <button id="btn-submit-review" class="w-full mirror-green text-white rounded-xl py-3.5 font-bold shadow-greenGlow flex items-center justify-center">Submit Feedback</button>
+                </div>
+                <div id="review-redirect-area" class="hidden animate-fade-in">
+                    <p class="text-sm font-bold text-appText mb-4">Glad you loved it! Share your experience on Google?</p>
+                    <button id="btn-google-redirect" class="w-full mirror-blue text-white rounded-xl py-3.5 font-bold shadow-blueGlow flex items-center justify-center gap-2"><i class="fa-brands fa-google"></i> Post on Google</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Modal (Order Confirm) -->
+        <div id="modal-success" class="fixed inset-0 bg-white/95 backdrop-blur-md z-[130] hidden flex-col items-center justify-center p-6 transition-opacity opacity-0 max-w-[430px] mx-auto">
+            <div class="w-24 h-24 mirror-green rounded-full flex items-center justify-center mb-6 shadow-greenGlow transform scale-0 transition-transform duration-500" id="success-icon-anim"><i class="fa-solid fa-check text-5xl text-white"></i></div>
+            <h2 class="text-2xl font-black text-appText text-center mb-2 animate-fade-in delay-100">Order Confirmed!</h2>
+            <p class="text-sm font-semibold text-appMuted text-center animate-fade-in delay-200">Connecting to WhatsApp...</p>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- HIGH-RES QR POSTER HTML                    -->
+        <!-- ========================================== -->
+        <!-- This wrapper keeps the poster perfectly structured for download but visually hidden from UI flow -->
+        <div id="poster-capture-wrapper" style="position: fixed; top: -9999px; left: -9999px; z-index: -9999; width: 1080px; height: 1440px;">
+            <!-- 1080x1440 Portrait High-Res Poster matching the Luxury Black & Gold Cafe theme -->
+            <div id="print-poster-container" class="w-[1080px] h-[1440px] bg-[#1a1a1a] relative flex flex-col items-center overflow-hidden font-sans border-[4px] border-[#2a2a2a]">
+
+                <!-- Dark textured background overlay -->
+                <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1080'); background-size: cover; mix-blend-mode: multiply;"></div>
+
+                <!-- Subtle food doodles / background icons -->
+                <div class="absolute top-10 left-10 text-white/5 text-8xl"><i class="fa-solid fa-pizza-slice"></i></div>
+                <div class="absolute top-40 right-10 text-white/5 text-8xl"><i class="fa-solid fa-burger"></i></div>
+                <div class="absolute top-[500px] left-20 text-white/5 text-8xl"><i class="fa-solid fa-martini-glass"></i></div>
+                <div class="absolute bottom-[400px] right-20 text-white/5 text-8xl"><i class="fa-solid fa-ice-cream"></i></div>
+
+                <!-- Header Logo Area -->
+                <div class="z-10 mt-16 flex flex-col items-center">
+                    <div class="flex items-center justify-center gap-4 mb-4 text-[#D4AF37]">
+                        <i class="fa-solid fa-utensils text-5xl"></i>
+                        <i class="fa-solid fa-bell-concierge text-7xl"></i>
+                        <i class="fa-solid fa-spoon text-5xl"></i>
+                    </div>
+                    <h1 class="text-[75px] font-serif font-bold text-white tracking-widest uppercase shadow-md leading-none" id="poster-rest-name" style="font-family: Georgia, serif;">DEMO CAFE</h1>
+                    <div class="flex items-center gap-3 mt-4">
+                        <div class="w-12 h-[2px] bg-[#D4AF37]"></div>
+                        <p class="text-[22px] font-bold text-[#D4AF37] tracking-[0.2em] uppercase">Good Food • Good Mood</p>
+                        <div class="w-12 h-[2px] bg-[#D4AF37]"></div>
+                    </div>
+                </div>
+
+                <!-- Cursive & Main Title -->
+                <div class="z-10 mt-6 flex flex-col items-center">
+                    <h2 class="text-[45px] text-[#D4AF37] italic font-serif mb-2" style="font-family: 'Times New Roman', Times, serif;">Delicious Food</h2>
+                    <h3 class="text-[65px] font-black text-white uppercase tracking-wide leading-none drop-shadow-lg">Scan & Explore</h3>
+
+                    <!-- Ribbon / Banner -->
+                    <div class="mt-4 relative bg-[#D4AF37] px-16 py-3 border-y-4 border-[#B5952F] shadow-xl">
+                        <!-- Pseudo ribbon ends -->
+                        <div class="absolute -left-6 top-1/2 -translate-y-1/2 w-0 h-0 border-y-[28px] border-y-transparent border-r-[24px] border-r-[#9A7B20]"></div>
+                        <div class="absolute -right-6 top-1/2 -translate-y-1/2 w-0 h-0 border-y-[28px] border-y-transparent border-l-[24px] border-l-[#9A7B20]"></div>
+                        <p class="text-[38px] font-black text-[#111] tracking-widest uppercase">Our Menu</p>
+                    </div>
+                </div>
+
+                <!-- Middle Content: Left Icons, QR, Right Icons -->
+                <div class="w-full px-12 mt-12 flex justify-between items-center z-10">
+
+                    <!-- Left Icons Column -->
+                    <div class="flex flex-col gap-10 w-[220px]">
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-20 h-20 rounded-full border-[3px] border-[#D4AF37] flex items-center justify-center mb-3 bg-[#1a1a1a]">
+                                <i class="fa-solid fa-bell-concierge text-4xl text-[#D4AF37]"></i>
+                            </div>
+                            <div class="h-[1px] w-12 bg-[#D4AF37]/50 mb-3"></div>
+                            <span class="text-[18px] font-bold text-white uppercase tracking-widest">Delicious<br>Food</span>
+                        </div>
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-20 h-20 rounded-full border-[3px] border-[#D4AF37] flex items-center justify-center mb-3 bg-[#1a1a1a]">
+                                <i class="fa-solid fa-percent text-4xl text-[#D4AF37]"></i>
+                            </div>
+                            <div class="h-[1px] w-12 bg-[#D4AF37]/50 mb-3"></div>
+                            <span class="text-[18px] font-bold text-white uppercase tracking-widest">Exclusive<br>Offers</span>
+                        </div>
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-20 h-20 rounded-full border-[3px] border-[#D4AF37] flex items-center justify-center mb-3 bg-[#1a1a1a]">
+                                <i class="fa-solid fa-star text-4xl text-[#D4AF37]"></i>
+                            </div>
+                            <div class="h-[1px] w-12 bg-[#D4AF37]/50 mb-3"></div>
+                            <span class="text-[18px] font-bold text-white uppercase tracking-widest">Great<br>Experience</span>
+                        </div>
+                    </div>
+
+                    <!-- Center QR Code -->
+                    <div class="relative bg-white p-6 rounded-[32px] border-[8px] border-[#D4AF37] shadow-[0_0_40px_rgba(212,175,55,0.2)]">
+                        <div id="poster-qrcode" style="width: 420px; height: 420px;" class="flex justify-center items-center"></div>
+                        <!-- Center Logo Overlay -->
+                        <div class="absolute inset-0 m-auto w-24 h-24 bg-black border-4 border-white rounded-xl flex flex-col items-center justify-center">
+                            <i class="fa-solid fa-bell-concierge text-3xl text-[#D4AF37] mb-1"></i>
+                            <span class="text-[10px] font-bold text-white uppercase text-center leading-tight truncate w-full px-1" id="poster-qr-center-name">Demo</span>
+                        </div>
+                    </div>
+
+                    <!-- Right Icons Column -->
+                    <div class="flex flex-col gap-10 w-[220px]">
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-20 h-20 rounded-full border-[3px] border-[#D4AF37] flex items-center justify-center mb-3 bg-[#1a1a1a]">
+                                <i class="fa-solid fa-book-open text-4xl text-[#D4AF37]"></i>
+                            </div>
+                            <div class="h-[1px] w-12 bg-[#D4AF37]/50 mb-3"></div>
+                            <span class="text-[18px] font-bold text-white uppercase tracking-widest">Live<br>Menu</span>
+                        </div>
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-20 h-20 rounded-full border-[3px] border-[#D4AF37] flex items-center justify-center mb-3 bg-[#1a1a1a]">
+                                <i class="fa-brands fa-whatsapp text-4xl text-[#D4AF37]"></i>
+                            </div>
+                            <div class="h-[1px] w-12 bg-[#D4AF37]/50 mb-3"></div>
+                            <span class="text-[18px] font-bold text-white uppercase tracking-widest">Order On<br>WhatsApp</span>
+                        </div>
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-20 h-20 rounded-full border-[3px] border-[#D4AF37] flex items-center justify-center mb-3 bg-[#1a1a1a]">
+                                <i class="fa-brands fa-google text-4xl text-[#D4AF37]"></i>
+                            </div>
+                            <div class="h-[1px] w-12 bg-[#D4AF37]/50 mb-3"></div>
+                            <span class="text-[18px] font-bold text-white uppercase tracking-widest">Review Us<br>On Google</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions Bar -->
+                <div class="z-10 flex border-[3px] border-[#D4AF37] rounded-3xl mt-10 overflow-hidden bg-black/60 backdrop-blur-md">
+                    <div class="flex items-center gap-4 px-10 py-5 border-r-[3px] border-[#D4AF37]">
+                        <i class="fa-solid fa-mobile-screen-button text-[45px] text-[#D4AF37]"></i>
+                        <span class="text-[22px] font-bold text-white uppercase leading-snug">Open Camera Or<br>QR Scanner</span>
+                    </div>
+                    <div class="flex items-center gap-4 px-10 py-5">
+                        <span class="text-[22px] font-bold text-white uppercase leading-snug text-center">Scan & Explore<br>Our Menu</span>
+                    </div>
+                </div>
+
+                <!-- Bottom Photo & Footer Area -->
+                <div class="w-full mt-auto relative z-10 flex flex-col">
+                    <!-- Restaurant Name Badge over image -->
+                    <div class="absolute -top-6 left-1/2 -translate-x-1/2 z-20 bg-black border-2 border-[#D4AF37] px-10 py-2 rounded-lg shadow-2xl">
+                        <span class="text-[28px] font-bold text-[#D4AF37] uppercase tracking-widest" id="poster-rest-name-2">DEMO CAFE</span>
+                    </div>
+
+                    <!-- Bottom Image -->
+                    <div class="h-[260px] w-full relative border-t-[4px] border-[#D4AF37]">
+                        <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1080" crossorigin="anonymous" class="w-full h-full object-cover opacity-80 brightness-75 grayscale-[20%]">
+                        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 to-black"></div>
+                    </div>
+
+                    <!-- Info Bar -->
+                    <div class="bg-black py-6 px-10 flex justify-between items-center border-t border-white/10 w-full relative z-20">
+                        <div class="flex items-center gap-4 max-w-[400px]">
+                            <i class="fa-solid fa-location-dot text-4xl text-[#D4AF37]"></i>
+                            <span class="text-[18px] font-medium text-white line-clamp-2 leading-tight" id="poster-address">123, Demo Street,<br>Foodie City, FC 123456</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <i class="fa-solid fa-phone text-3xl text-[#D4AF37]"></i>
+                            <span class="text-[24px] font-bold text-white" id="poster-phone">+91 98765 43210</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <i class="fa-solid fa-globe text-3xl text-[#D4AF37]"></i>
+                            <span class="text-[20px] font-medium text-white">Digital Menu Link</span>
+                        </div>
+                    </div>
+
+                    <!-- Follow Us Bar -->
+                    <div class="bg-black py-4 flex justify-center items-center gap-8 border-t border-white/10 relative z-20">
+                        <span class="text-[20px] font-bold text-[#D4AF37] uppercase tracking-widest">Follow Us On</span>
+                        <div class="flex items-center gap-6">
+                            <i class="fa-brands fa-facebook text-3xl text-[#D4AF37]"></i>
+                            <i class="fa-brands fa-instagram text-3xl text-[#D4AF37]"></i>
+                            <i class="fa-brands fa-whatsapp text-3xl text-[#D4AF37]"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div> <!-- /App Wrapper -->
+
+    <!-- FIREBASE & SUPABASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, set, push, get, update, onValue, increment, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+        import imageCompression from "https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/+esm";
+
+        const supabaseUrl = 'https://hianvppezhevucysqhut.supabase.co';
+        const supabaseKey = 'sb_publishable_NtHxETL5zLnblcdnQiH2gw_uRHWDLhJ';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        const BUCKET_NAME = 'proplay-assets';
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyCJPksNBsHNd1FqKG7TSEIOlWH8IpIBG4I",
+          authDomain: "tap-craves-menu.firebaseapp.com",
+          databaseURL: "https://tap-craves-menu-default-rtdb.firebaseio.com",
+          projectId: "tap-craves-menu",
+          storageBucket: "tap-craves-menu.firebasestorage.app",
+          messagingSenderId: "919254665070",
+          appId: "1:919254665070:web:c6da76f988bf2df767e37f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        let currentUser = null;
+        let customerRestaurantId = new URLSearchParams(window.location.search).get('r');
+        let isPreviewMode = false;
+        
+        let restaurantProfile = null;
+        let menuData = [];
+        window.ownerMenuData = []; 
+        let cart = {}; 
+        let activeCategory = 'All';
+        
+        let loyaltyConfig = { disc1: 5, disc10: 20 };
+        let userLoyaltyDays = 1; 
+        let appliedDiscountPercent = 0;
+        let editingDishId = null; 
+        let isDashboardInitialized = false;
+
+        const $ = (id) => document.getElementById(id);
+        
+        // Utils
+        const showToast = (msg, type = 'info') => {
+            const container = $('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-appGreen' : type === 'error' ? 'bg-red-500' : 'bg-appText';
+            toast.className = `px-4 py-3 rounded-xl text-white text-sm font-bold shadow-xl transition-all duration-300 transform translate-y-[-20px] opacity-0 flex items-center gap-3 ${bgClass}`;
+            let icon = type === 'success' ? '<i class="fa-solid fa-circle-check"></i>' : type === 'error' ? '<i class="fa-solid fa-circle-exclamation"></i>' : '<i class="fa-solid fa-circle-info text-blue-300"></i>';
+            toast.innerHTML = `${icon} <span>${escapeHTML(msg)}</span>`;
+            
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.classList.remove('translate-y-[-20px]', 'opacity-0'); });
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-20px]', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        const escapeHTML = (str) => {
+            if (!str) return '';
+            const p = document.createElement('p');
+            p.appendChild(document.createTextNode(str));
+            return p.innerHTML;
+        };
+
+        const formatDate = (ts) => {
+            const d = new Date(ts);
+            return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        };
+
+        const showLoader = (show, text="Loading Workspace...") => {
+            const l = $('global-loader');
+            if(show) { $('global-loader-text').innerText = text; l.classList.remove('hidden'); l.classList.add('flex'); setTimeout(()=>l.classList.remove('opacity-0'), 10); }
+            else { l.classList.add('opacity-0'); setTimeout(()=> { l.classList.add('hidden'); l.classList.remove('flex'); }, 300); }
+        };
+
+        const switchView = (view) => {
+            ['view-auth', 'view-wizard', 'view-dashboard', 'view-customer'].forEach(v => { 
+                const el = $(v); if(el) { el.classList.add('hidden'); el.classList.remove('flex', 'block'); }
+            });
+            if(view === 'auth') { $('view-auth').classList.remove('hidden'); $('view-auth').classList.add('flex'); }
+            if(view === 'wizard') { $('view-wizard').classList.remove('hidden'); $('view-wizard').classList.add('flex'); }
+            if(view === 'dashboard') { $('view-dashboard').classList.remove('hidden'); $('view-dashboard').classList.add('block'); }
+            if(view === 'customer') { $('view-customer').classList.remove('hidden'); $('view-customer').classList.add('block'); }
+        };
+
+        window.resolveMediaUrl = function(path) {
+            const fallback = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80';
+            if (!path || typeof path !== 'string' || path.trim() === '') return fallback;
+            if (path.startsWith('http') || path.startsWith('data:image')) return path; 
+            return `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${path}`;
+        };
+
+        const setButtonLoading = (btnId, isLoading, originalText = '') => {
+            const btn = $(btnId);
+            if (!btn) return;
+            if (isLoading) {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="spinner mr-2"></span> Processing...`;
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        };
+
+        function initApp() {
+            showLoader(true);
+            if (customerRestaurantId) {
+                switchView('customer');
+                loadCustomerView(customerRestaurantId);
+            } else {
+                onAuthStateChanged(auth, async (user) => {
+                    if (user && !customerRestaurantId) {
+                        currentUser = user;
+                        try {
+                            // Check if Profile exists in Database
+                            const snap = await get(ref(db, `restaurants/${user.uid}`));
+                            showLoader(false);
+                            if (snap.exists() && snap.val().restaurantName) {
+                                switchView('dashboard');
+                                initDashboard();
+                            } else {
+                                switchView('wizard');
+                            }
+                        } catch (e) {
+                            showLoader(false);
+                            console.error("Profile check error:", e);
+                            // Agar naya user banaya hai aur permission error aaye toh directly wizard par bhejo
+                            switchView('wizard');
+                        }
+                    } else if (!user && !customerRestaurantId) {
+                        currentUser = null; 
+                        showLoader(false); 
+                        switchView('auth');
+                    }
+                });
+            }
+        }
+
+        /* --- AUTH & WIZARD LOGIC --- */
+        $('btn-show-register').onclick = () => { $('auth-intro').classList.add('hidden'); $('form-register').classList.remove('hidden'); };
+        $('btn-show-login').onclick = () => { $('auth-intro').classList.add('hidden'); $('form-login').classList.remove('hidden'); };
+        $('back-to-intro-1').onclick = () => { $('form-login').classList.add('hidden'); $('auth-intro').classList.remove('hidden'); };
+        $('back-to-intro-2').onclick = () => { $('form-register').classList.add('hidden'); $('auth-intro').classList.remove('hidden'); };
+        
+        $('form-login').onsubmit = async (e) => { 
+            e.preventDefault(); 
+            const email = $('login-email').value.trim(); const pass = $('login-password').value;
+            const originalTxt = $('btn-login-submit').innerHTML;
+            setButtonLoading('btn-login-submit', true);
+            try { 
+                await signInWithEmailAndPassword(auth, email, pass); 
+            } catch(err) { 
+                showToast(err.message, "error"); 
+                setButtonLoading('btn-login-submit', false, originalTxt); 
+            }
+        };
+        
+        $('form-register').onsubmit = async (e) => { 
+            e.preventDefault(); 
+            const email = $('register-email').value.trim(); const pass = $('register-password').value;
+            const originalTxt = $('btn-register-submit').innerHTML;
+            setButtonLoading('btn-register-submit', true);
+            try { 
+                await createUserWithEmailAndPassword(auth, email, pass); 
+                // Notice: Not setting button state to false immediately because onAuthStateChanged will handle navigation
+            } catch(err) { 
+                showToast(err.message, "error"); 
+                setButtonLoading('btn-register-submit', false, originalTxt); 
+            }
+        };
+
+        $('btn-google-login').onclick = async () => { try { await signInWithPopup(auth, googleProvider); } catch(err) { showToast(err.message, "error"); } };
+        $('btn-google-register').onclick = async () => { try { await signInWithPopup(auth, googleProvider); } catch(err) { showToast(err.message, "error"); } };
+        
+        // Logout fixed: Removed location.reload() to prevent network interrupt error
+        window.signOutApp = async () => { 
+            showLoader(true, "Signing out...");
+            try { 
+                await signOut(auth); 
+                // onAuthStateChanged will handle the view switch automatically 
+            } catch(e) { 
+                showLoader(false); 
+                showToast(e.message, "error"); 
+            }
+        };
+        $('btn-logout-desk').onclick = window.signOutApp;
+
+        /* Wizard Nav Logic */
+        window.nextWizardStep = (c, n) => {
+            if(c===1){ $('wiz-form-1').classList.add('hidden'); $('wiz-step-2').classList.remove('opacity-40', 'pointer-events-none'); $('wiz-form-2').classList.remove('hidden'); }
+            if(c===2){ $('wiz-form-2').classList.add('hidden'); $('summary-rest').innerText=$('wiz-rest-name').value; $('summary-owner').innerText=$('wiz-owner-name').value; $('summary-phone').innerText='+91 '+$('wiz-whatsapp').value; $('wiz-step-3').classList.remove('opacity-40', 'pointer-events-none'); $('form-finish-wizard').classList.remove('hidden'); }
+        };
+
+        $('form-finish-wizard').onsubmit = async (e) => {
+            e.preventDefault(); 
+            const btn = $('btn-save-wizard'); const ogText = btn.innerHTML;
+            setButtonLoading('btn-save-wizard', true);
+            
+            const payload = { 
+                restaurantName: $('wiz-rest-name').value.trim(), 
+                ownerName: $('wiz-owner-name').value.trim(),
+                address: $('wiz-address').value.trim(), 
+                whatsapp: $('wiz-whatsapp').value.trim(), 
+                email: currentUser.email || '',
+                createdAt: Date.now() 
+            };
+            
+            try {
+                await set(ref(db, `restaurants/${currentUser.uid}`), payload); 
+                showToast("Profile created successfully!", "success");
+                setTimeout(() => location.reload(), 1000);
+            } catch(err) {
+                showToast(err.message, "error");
+                setButtonLoading('btn-save-wizard', false, ogText);
+            }
+        };
+
+        /* --- DASHBOARD LOGIC --- */
+        window.switchDashTab = (tabId) => {
+            document.querySelectorAll('.dash-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.dash-nav-btn-desk').forEach(el => { el.classList.remove('bg-appBlueLight', 'text-appBlue', 'font-bold'); el.classList.add('text-appMuted'); });
+            document.querySelectorAll('.dash-nav-btn-mob').forEach(el => { el.classList.remove('text-appBlue', 'font-bold'); el.classList.add('text-appMuted'); if(el.querySelector('.active-dot')) el.querySelector('.active-dot').classList.add('hidden'); });
+
+            const sec = $(`dash-tab-${tabId}`);
+            if(sec) sec.classList.remove('hidden');
+            
+            const deskBtn = document.querySelector(`aside .dash-nav-btn-desk[data-tab="${tabId}"]`);
+            if(deskBtn) deskBtn.classList.add('bg-appBlueLight', 'text-appBlue', 'font-bold');
+            
+            const mobBtn = document.querySelector(`.fixed.bottom-0 .dash-nav-btn-mob[data-tab="${tabId}"]`);
+            if(mobBtn) { mobBtn.classList.add('text-appBlue', 'font-bold'); mobBtn.querySelector('.active-dot').classList.remove('hidden'); }
+        };
+
+        function extractCategories(dataArr) {
+            let cats = [...new Set(dataArr.map(d => d.category))]; 
+            if(cats.length > 0 && !cats.includes('All')) cats.unshift('All');
+            return cats;
+        }
+
+        // Extremely Safe QR Initialization function
+        function initQRCodes(link) {
+            if(window.qrGeneratedFlag) return; // run once
+            try {
+                // Generate Poster QR
+                const pqr = $('poster-qrcode');
+                pqr.innerHTML = ''; 
+                new QRCode(pqr, { text: link, width: 420, height: 420, colorDark: "#000000", colorLight: "#FFFFFF", correctLevel: QRCode.CorrectLevel.H });
+                
+                // Generate Dashboard Mini QR
+                const dqr = $('preview-qrcode');
+                dqr.innerHTML = ''; 
+                new QRCode(dqr, { text: link, width: 160, height: 160, colorDark: "#000000", colorLight: "#FFFFFF", correctLevel: QRCode.CorrectLevel.L });
+                
+                window.qrGeneratedFlag = true;
+            } catch(e) {
+                console.error("QR Code Error:", e);
+            }
+        }
+
+        function initDashboard() {
+            if (isDashboardInitialized) return;
+            isDashboardInitialized = true;
+            
+            // Set Direct Link for copy
+            const storeLink = `${window.location.origin}${window.location.pathname}?r=${currentUser.uid}`;
+            $('share-link-input').value = storeLink; 
+
+            // Initialize QR immediately safely
+            initQRCodes(storeLink);
+            
+            // 1. Restaurant Profile
+            onValue(ref(db, `restaurants/${currentUser.uid}`), (snap) => {
+                if(snap.exists()) { 
+                    const d = snap.val(); restaurantProfile = d; 
+                    $('set-whatsapp').value = d.whatsapp || ''; $('set-gmap').value = d.gmapLink || ''; $('set-insta').value = d.instaLink || ''; $('set-address').value = d.address || ''; 
+                    if(d.loyaltySettings) { $('set-disc-1').value = d.loyaltySettings.disc1 || 5; $('set-disc-10').value = d.loyaltySettings.disc10 || 20; }
+                    
+                    const rName = d.restaurantName || "Store";
+                    const initial = rName.charAt(0).toUpperCase();
+                    $('dash-rest-name-desk').innerHTML = `${rName} <span class="text-base">👋</span>`; 
+                    $('dash-avatar-desk').innerText = initial;
+                    
+                    // Update Poster text seamlessly
+                    $('poster-rest-name').innerText = rName;
+                    const posterRestName2 = document.getElementById('poster-rest-name-2');
+                    if(posterRestName2) posterRestName2.innerText = rName;
+                    const posterQrCenterName = document.getElementById('poster-qr-center-name');
+                    if(posterQrCenterName) posterQrCenterName.innerText = rName.substring(0,8);
+
+                    $('poster-address').innerHTML = (d.address || 'Address not updated').replace(/\n/g, '<br>');
+                    $('poster-phone').innerText = '+91 ' + (d.whatsapp || '');
+                }
+            });
+
+            // 2. Orders & Home Stats
+            onValue(ref(db, `orders/${currentUser.uid}`), (snapshot) => {
+                let totalRev = 0; let count = 0; let orders = [];
+                if(snapshot.exists()){ 
+                    snapshot.forEach(c => { 
+                        const order = c.val(); order.id = c.key;
+                        orders.push(order);
+                        count++; totalRev += (order.totalAmount || 0); 
+                    }); 
+                }
+                $('stat-sales').innerText = `₹${totalRev.toLocaleString('en-IN')}`; $('stat-orders').innerText = count;
+                renderDashboardOrders(orders.sort((a,b)=> b.timestamp - a.timestamp));
+            });
+
+            // 3. Menu Sync (Including Best Dish Calculation)
+            onValue(ref(db, `menus/${currentUser.uid}`), (snapshot) => {
+                let items = [];
+                let bestDish = null;
+                let maxCount = -1;
+                
+                if(snapshot.exists()) {
+                    snapshot.forEach(child => { 
+                        let d = { id: child.key, ...child.val() };
+                        items.push(d); 
+                        if ((d.orderCount || 0) > maxCount) {
+                            maxCount = d.orderCount || 0;
+                            bestDish = d;
+                        }
+                    });
+                }
+                window.ownerMenuData = items;
+                $('stat-items').innerText = items.length;
+
+                if (bestDish && maxCount > 0) {
+                    $('stat-best-dish').innerText = bestDish.name;
+                    $('stat-best-dish-count').innerText = `${maxCount} Orders`;
+                } else {
+                    $('stat-best-dish').innerText = 'N/A';
+                    $('stat-best-dish-count').innerText = '0 Orders';
+                }
+
+                window.renderDashboardMenu();
+            });
+
+            // 4. Reviews
+            onValue(ref(db, `internal_reviews/${currentUser.uid}`), (snapshot) => {
+                const con = $('internal-reviews-list');
+                if(!snapshot.exists()) { con.innerHTML = '<p class="text-sm text-appMuted col-span-2">No feedback yet.</p>'; return; }
+                let revs = []; snapshot.forEach(child => { revs.push(child.val()); }); revs.sort((a,b) => b.time - a.time);
+                let htmlStr = '';
+                revs.forEach(d => {
+                    let stars = ''; for(let i=0; i<d.rating; i++) stars += '<i class="fa-solid fa-star text-amber-500"></i>';
+                    htmlStr += `<div class="p-5 bg-gray-50 border border-gray-100 rounded-[20px] shadow-sm"><div class="flex justify-between items-center mb-2"><span class="flex gap-1 text-sm">${stars}</span><span class="text-xs text-appMuted font-bold">${new Date(d.time).toLocaleDateString()}</span></div><p class="text-sm text-appText font-medium leading-relaxed">${escapeHTML(d.feedback) || '<span class="text-gray-400 italic">No written feedback</span>'}</p></div>`;
+                }); con.innerHTML = htmlStr;
+            });
+        }
+
+        // Settings Save
+        $('form-store-settings').onsubmit = async (e) => { 
+            e.preventDefault(); 
+            const ogText = $('btn-save-settings').innerHTML;
+            setButtonLoading('btn-save-settings', true);
+            try {
+                await update(ref(db, `restaurants/${currentUser.uid}`), { 
+                    whatsapp: $('set-whatsapp').value.trim(), 
+                    address: $('set-address').value.trim(), 
+                    gmapLink: $('set-gmap').value.trim(), 
+                    instaLink: $('set-insta').value.trim(), 
+                    loyaltySettings: { disc1: parseInt($('set-disc-1').value), disc10: parseInt($('set-disc-10').value) } 
+                }); 
+                showToast("Settings updated successfully", "success");
+            } catch(e) { showToast(e.message, "error"); }
+            finally { setButtonLoading('btn-save-settings', false, ogText); }
+        };
+
+           /* Orders Dashboard Render */
+        window.renderDashboardOrders = (ordersArr) => {
+            const tbody = $('orders-table-body');
+            if(ordersArr.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-appMuted font-medium">No orders yet.</td></tr>`; return; }
+            
+            window.allDashboardOrders = ordersArr;
+            
+            let htmlStr = '';
+            ordersArr.forEach(o => {
+                let pBadge = o.isPremium ? '<span class="px-2 py-1 bg-blue-100 text-appBlue border border-blue-200 text-[10px] rounded font-bold uppercase tracking-wider ml-2">Premium</span>' : '';
+                htmlStr += `<tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-5 py-4 font-bold text-appText">${escapeHTML(o.customerName) || 'Walk-in'}</td>
+                    <td class="px-5 py-4 text-xs font-semibold text-appMuted">${formatDate(o.timestamp)}</td>
+                    <td class="px-5 py-4 font-black text-appText">₹${o.totalAmount}</td>
+                    <td class="px-5 py-4">${pBadge || '<span class="text-appMuted text-xs font-bold">Standard</span>'}</td>
+                    <td class="px-5 py-4 text-right"><button onclick="window.viewOrderDetails('${o.id}')" class="text-xs bg-white hover:bg-gray-100 text-appText font-bold px-4 py-2 rounded-lg border border-gray-200 transition-colors shadow-sm">Details</button></td>
+                </tr>`;
+            });
+            tbody.innerHTML = htmlStr;
+        };
+
+        window.viewOrderDetails = (id) => {
+            const order = window.allDashboardOrders?.find(o => o.id === id);
+            if(!order) return;
+            let itemsHtml = order.items ? order.items.map(i => `<div class="flex justify-between items-center text-sm py-3 border-b border-gray-100 last:border-0"><span class="text-appText font-medium"><span class="font-black text-appBlue mr-2">${i.qty}x</span> ${escapeHTML(i.name)}</span><span class="font-black text-appText">₹${i.price * i.qty}</span></div>`).join('') : '<p class="text-xs text-appMuted">No items recorded</p>';
+            
+            $('order-modal-content').innerHTML = `
+                <div class="mb-5">
+                    <p class="text-[10px] text-appMuted font-bold uppercase tracking-widest mb-1">Customer / Table</p>
+                    <p class="text-xl font-black text-appText">${escapeHTML(order.customerName) || 'Walk-in'}</p>
+                </div>
+                <div class="mb-5">
+                    <p class="text-[10px] text-appMuted font-bold uppercase tracking-widest mb-1">Date & Time</p>
+                    <p class="text-sm font-bold text-appText">${formatDate(order.timestamp)}</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-[16px] p-5 mb-5 shadow-inner">
+                    <p class="text-[10px] font-bold text-appMuted uppercase tracking-widest mb-3 border-b border-gray-200 pb-2">Order Items</p>
+                    ${itemsHtml}
+                </div>
+                <div class="flex justify-between items-center mirror-green text-white p-5 rounded-[16px] shadow-greenGlow">
+                    <span class="font-bold">Total Paid</span>
+                    <span class="text-2xl font-black">₹${order.totalAmount}</span>
+                </div>
+            `;
+            const mod = $('modal-order-details');
+            mod.classList.remove('hidden'); mod.classList.add('flex');
+            setTimeout(() => { mod.classList.remove('opacity-0'); mod.querySelector('div').classList.remove('scale-95'); }, 10);
+        };
+        window.closeOrderModal = () => {
+            const mod = $('modal-order-details');
+            mod.classList.add('opacity-0'); mod.querySelector('div').classList.add('scale-95');
+            setTimeout(() => { mod.classList.add('hidden'); mod.classList.remove('flex'); }, 300);
+        };
+
+        /* Dashboard Menu Management */
+        let dashActiveCategory = 'All';
+        window.renderDashboardMenu = () => {
+            let data = window.ownerMenuData || [];
+            let cats = extractCategories(data);
+            
+            if (!cats.includes(dashActiveCategory)) dashActiveCategory = 'All';
+            
+            // Render category pills
+            $('dash-categories').innerHTML = cats.map(cat => `<div class="app-category-pill px-5 py-2.5 rounded-full text-sm font-bold cursor-pointer whitespace-nowrap shadow-sm border border-gray-200 ${dashActiveCategory === cat ? 'active' : 'bg-white text-appMuted'}" onclick="window.setDashCategory('${escapeHTML(cat)}')">${escapeHTML(cat)}</div>`).join('');
+            
+            // Update dropdown in drawer to match current real categories
+            let sel = $('dish-category-select');
+            let selHtml = `<option value="" disabled selected>Select</option>`;
+            cats.filter(c => c !== 'All').forEach(c => selHtml += `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`);
+            selHtml += `<option value="custom" class="text-appBlue font-black">+ New Category</option>`;
+            sel.innerHTML = selHtml;
+
+            // Filter data
+            let term = $('dash-menu-search')?.value.toLowerCase() || '';
+            let filtered = dashActiveCategory === 'All' ? [...data] : data.filter(d => d.category === dashActiveCategory);
+            if(term) filtered = filtered.filter(d => d.name.toLowerCase().includes(term) || d.desc.toLowerCase().includes(term));
+            
+            filtered.sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0));
+            
+            const con = $('dashboard-menu-list');
+            if (filtered.length === 0) {
+                con.innerHTML = `<div class="col-span-full py-12 text-center text-appMuted border-2 border-dashed border-gray-200 bg-white rounded-[24px]"><i class="fa-solid fa-plate-wheat text-4xl mb-4 text-gray-300"></i><p class="font-bold">No products found.</p></div>`;
+                return;
+            }
+
+            let htmlStr = '';
+            filtered.forEach(d => {
+                let typeIcon = d.type === 'nonveg' ? `<span class="w-3.5 h-3.5 border border-red-500 rounded flex items-center justify-center shrink-0"><span class="w-2 h-2 bg-red-500 rounded-full"></span></span>` : d.type === 'egg' ? `<span class="w-3.5 h-3.5 border border-amber-500 rounded flex items-center justify-center shrink-0"><span class="w-2 h-2 bg-amber-500 rounded-full"></span></span>` : `<span class="w-3.5 h-3.5 border border-green-500 rounded flex items-center justify-center shrink-0"><span class="w-2 h-2 bg-green-500 rounded-full"></span></span>`;
+
+                htmlStr += `
+                    <div class="mirror-white p-3 flex gap-4 items-center rounded-[20px] border border-gray-200 shadow-sm hover:shadow-md transition-shadow group relative">
+                        <div class="w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-gray-100">
+                            <img src="${window.resolveMediaUrl(d.imgUrl)}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'">
+                        </div>
+                        <div class="flex-grow pr-1 min-w-0">
+                            <h4 class="font-black text-appText text-sm mb-1 flex items-center gap-2 truncate">${escapeHTML(d.name)} ${typeIcon}</h4>
+                            <p class="text-[10px] text-appMuted uppercase font-bold tracking-wider">${escapeHTML(d.category)}</p>
+                            <span class="text-xs text-appText mt-1.5 flex items-center gap-1.5 font-bold"><i class="fa-solid fa-chart-simple text-appBlue"></i> ${d.orderCount || 0} orders</span>
+                        </div>
+                        <div class="flex flex-col items-end justify-between h-full py-1 shrink-0">
+                            <span class="font-black text-appText text-base mb-2">₹${d.price}</span>
+                            <div class="flex gap-2">
+                                <button onclick="window.editDish('${d.id}')" class="w-8 h-8 rounded-lg bg-gray-100 text-appText hover:bg-appBlue hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-pen text-xs"></i></button>
+                                <button onclick="window.deleteDish('${d.id}')" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-trash text-xs"></i></button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            con.innerHTML = htmlStr;
+        };
+
+        window.setDashCategory = (cat) => { dashActiveCategory = cat; window.renderDashboardMenu(); };
+
+        /* Dish Drawer/Modal Logic */
+        window.openDishDrawer = () => {
+            $('form-add-dish').reset(); 
+            $('dish-category-select').selectedIndex = 0; $('dish-type').selectedIndex = 0; 
+            $('dish-category').classList.add('hidden'); $('dish-category').required = false; 
+            $('upload-preview-box').classList.add('hidden'); $('upload-prompt').classList.remove('hidden');
+            currentSelectedFile = null; $('dish-image-preview').src = '';
+            editingDishId = null; 
+            $('drawer-dish-title').innerHTML = `<i class="fa-solid fa-circle-plus text-appBlue"></i> Add Product`;
+            $('btn-save-dish').innerText = "Save Product";
+            
+            const drw = $('drawer-dish'); drw.classList.remove('hidden'); drw.classList.add('flex');
+            setTimeout(() => { drw.classList.remove('opacity-0'); drw.querySelector('.mirror-white').classList.remove('scale-95'); }, 10);
+        };
+
+        window.closeDishDrawer = () => {
+            const drw = $('drawer-dish');
+            drw.classList.add('opacity-0'); drw.querySelector('.mirror-white').classList.add('scale-95');
+            setTimeout(() => { drw.classList.add('hidden'); drw.classList.remove('flex'); }, 300);
+        };
+
+        window.handleCategorySelect = (val) => {
+            const inputField = $('dish-category');
+            if(val === 'custom') { inputField.classList.remove('hidden'); inputField.value = ''; inputField.focus(); inputField.required = true; } 
+            else { inputField.classList.add('hidden'); inputField.value = val; inputField.required = false; }
+        };
+
+        window.deleteDish = async (id) => { 
+            if(confirm("Delete this product permanently?")) { 
+                try { 
+                    await remove(ref(db, `menus/${currentUser.uid}/${id}`)); 
+                    showToast("Product deleted", "success");
+                } catch(e) { showToast(e.message, "error"); } 
+            } 
+        };
+        
+        window.editDish = (id) => {
+            const dish = window.ownerMenuData?.find(m => m.id === id);
+            if(dish) {
+                window.openDishDrawer();
+                editingDishId = dish.id;
+                $('drawer-dish-title').innerHTML = `<i class="fa-solid fa-pen text-appBlue"></i> Edit Product`;
+                $('btn-save-dish').innerText = "Update Product";
+                
+                $('dish-name').value = dish.name; $('dish-price').value = dish.price; $('dish-desc').value = dish.desc;
+                if(dish.type) $('dish-type').value = dish.type;
+                
+                const catSelect = $('dish-category-select');
+                if(Array.from(catSelect.options).map(o=>o.value).includes(dish.category)) { 
+                    catSelect.value = dish.category; $('dish-category').classList.add('hidden'); $('dish-category').required = false; 
+                } else { 
+                    catSelect.value = 'custom'; $('dish-category').value = dish.category; $('dish-category').classList.remove('hidden'); $('dish-category').required = true; 
+                }
+                
+                $('upload-prompt').classList.add('hidden');
+                $('upload-preview-box').classList.remove('hidden'); 
+                $('dish-image-preview').src = window.resolveMediaUrl(dish.imgUrl);
+            }
+        };
+
+        let currentSelectedFile = null;
+        $('dish-image-file').addEventListener('change', (e) => {
+            const file = e.target.files[0]; if(!file) return; 
+            currentSelectedFile = file;
+            const reader = new FileReader();
+            reader.onload = function(evt) { 
+                $('upload-prompt').classList.add('hidden');
+                $('upload-preview-box').classList.remove('hidden'); 
+                $('dish-image-preview').src = evt.target.result; 
+            };
+            reader.readAsDataURL(file);
+        });
+
+        window.removeSelectedImage = () => {
+            currentSelectedFile = null;
+            $('dish-image-file').value = '';
+            $('upload-preview-box').classList.add('hidden');
+            $('upload-prompt').classList.remove('hidden');
+            $('dish-image-preview').src = '';
+        };
+
+        $('form-add-dish').onsubmit = async (e) => { 
+            e.preventDefault(); 
+            let finalCat = $('dish-category-select').value === 'custom' ? $('dish-category').value.trim() : $('dish-category-select').value;
+            if (!finalCat) return showToast("Select a valid category", "error");
+            
+            const btn = $('btn-save-dish'); const ogText = btn.innerText;
+            setButtonLoading('btn-save-dish', true);
+            
+            try {
+                let finalImagePath = '';
+                if (!currentSelectedFile && editingDishId) { 
+                    let existingDish = window.ownerMenuData.find(m => m.id === editingDishId);
+                    finalImagePath = existingDish.imgUrl || ''; 
+                    if(!finalImagePath && $('upload-preview-box').classList.contains('hidden')) throw new Error("Image required");
+                } 
+                else if (currentSelectedFile) {
+                    btn.innerHTML = `<span class="spinner mr-2"></span> Compressing...`;
+                    const compressedFile = await imageCompression(currentSelectedFile, { maxSizeMB: 0.5, maxWidthOrHeight: 1080, useWebWorker: true });
+                    btn.innerHTML = `<span class="spinner mr-2"></span> Uploading...`;
+                    const fileName = `tapcraves/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.jpg`;
+                    const { error } = await supabase.storage.from(BUCKET_NAME).upload(fileName, compressedFile, { cacheControl: '31536000' });
+                    if (error) throw new Error(error.message);
+                    finalImagePath = supabase.storage.from(BUCKET_NAME).getPublicUrl(fileName).data.publicUrl;
+                } else {
+                    throw new Error("Select an image for the dish!");
+                }
+                
+                const payload = { 
+                    name: $('dish-name').value.trim(), 
+                    category: finalCat, 
+                    type: $('dish-type').value, 
+                    desc: $('dish-desc').value.trim(), 
+                    price: parseFloat($('dish-price').value), 
+                    imgUrl: finalImagePath 
+                };
+
+                btn.innerHTML = `<span class="spinner mr-2"></span> Saving...`;
+                if (editingDishId) { 
+                    await update(ref(db, `menus/${currentUser.uid}/${editingDishId}`), payload); 
+                    showToast("Product updated", "success");
+                } else { 
+                    payload.orderCount = 0; 
+                    await push(ref(db, `menus/${currentUser.uid}`), payload); 
+                    showToast("Product added to menu", "success");
+                }
+                closeDishDrawer();
+            } catch (err) { 
+                showToast(err.message, "error"); 
+            } finally { 
+                setButtonLoading('btn-save-dish', false, ogText); 
+            }
+        };
+
+        /* Link & Poster Utils */
+        $('btn-copy-link').onclick = () => { navigator.clipboard.writeText($('share-link-input').value); showToast("Link copied to clipboard!", "success"); };
+        
+        window.downloadQRPoster = async () => {
+            const btn = $('btn-download-poster'); const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner border-white border-t-transparent mr-2 relative z-10"></span> Generating HD Poster...';
+            btn.disabled = true;
+
+            const wrapper = $('poster-capture-wrapper');
+            try {
+                // Ensure wrapper is placed stably in the DOM for html2canvas
+                wrapper.style.top = '0px';
+                wrapper.style.left = '0px';
+                wrapper.style.zIndex = '-9999';
+                wrapper.style.visibility = 'visible';
+                
+                // Allow some time for elements to flow perfectly
+                await new Promise(r => setTimeout(r, 600));
+
+                const posterElement = $('print-poster-container');
+                const canvas = await html2canvas(posterElement, {
+                    scale: 2, 
+                    useCORS: true,
+                    allowTaint: false,
+                    backgroundColor: '#1a1a1a',
+                    logging: false
+                });
+                
+                // Reset wrapper state securely
+                wrapper.style.top = '-9999px';
+                wrapper.style.left = '-9999px';
+                
+                const link = document.createElement('a');
+                link.download = `${restaurantProfile?.restaurantName || 'Menu'}-HD-Poster.png`;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+                showToast("Poster downloaded successfully!", "success");
+            } catch(error) {
+                console.error("Poster generation failed:", error);
+                showToast("Generation failed", "error");
+                wrapper.style.top = '-9999px';
+                wrapper.style.left = '-9999px';
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
+
+        /* PREVIEW MODE */
+        window.enterPreview = () => { customerRestaurantId = currentUser.uid; isPreviewMode = true; cart={}; switchView('customer'); loadCustomerView(currentUser.uid); $('btn-exit-preview').classList.remove('hidden'); };
+        $('btn-exit-preview').onclick = () => { customerRestaurantId = null; isPreviewMode = false; $('btn-exit-preview').classList.add('hidden'); cart = {}; switchView('dashboard'); };
+
+
+        /* ========================================== */
+        /* CUSTOMER VIEW LOGIC                        */
+        /* ========================================== */
+        async function loadCustomerView(uid) {
+            try {
+                const snap = await get(ref(db, `restaurants/${uid}`));
+                if(snap.exists()) {
+                    restaurantProfile = snap.val(); if(restaurantProfile.loyaltySettings) loyaltyConfig = restaurantProfile.loyaltySettings;
+                    $('cust-rest-name').innerText = restaurantProfile.restaurantName || "Store Name";
+                    $('cust-logo').innerText = (restaurantProfile.restaurantName || "S").charAt(0).toUpperCase();
+                    if(restaurantProfile.instaLink && restaurantProfile.instaLink.trim() !== '') { 
+                        $('cust-insta-link').classList.remove('hidden'); $('cust-insta-link').classList.add('flex'); $('cust-insta-link').href = restaurantProfile.instaLink; 
+                    } else {
+                        $('cust-insta-link').classList.remove('flex'); $('cust-insta-link').classList.add('hidden');
+                    }
+                    
+                    onValue(ref(db, `menus/${uid}`), (snapshot) => {
+                        showLoader(false);
+                        menuData = []; 
+                        if(snapshot.exists()) {
+                            snapshot.forEach(c => { menuData.push({ id: c.key, ...c.val() }); });
+                        }
+                        let cats = extractCategories(menuData);
+                        if (!cats.includes(activeCategory)) activeCategory = 'All';
+                        renderCustomerCategories(cats); 
+                        window.renderCustomerMenu(); 
+                        checkLoyaltyStatus();
+                    });
+                } else { showLoader(false); showToast("Restaurant not found", "error"); }
+            } catch (e) {
+                showLoader(false); showToast("Failed to load store", "error");
+            }
+        }
+
+        const catMap = { 'All': '🔥', 'Dishes': '🍛', 'Pizza': '🍕', 'Drinks': '🥤', 'Sweets': '🍰', 'Snacks': '🍟', 'Burger': '🍔' };
+
+        function renderCustomerCategories(cats) {
+            $('customer-categories').innerHTML = cats.map(cat => {
+                let catIcon = catMap[cat] || '🍽️';
+                if(!catMap[cat]) {
+                    if(cat.toLowerCase().includes('pizza')) catIcon = '🍕';
+                    else if(cat.toLowerCase().includes('burger')) catIcon = '🍔';
+                    else if(cat.toLowerCase().includes('drink')) catIcon = '🥤';
+                    else if(cat.toLowerCase().includes('sweet') || cat.toLowerCase().includes('dessert')) catIcon = '🍰';
+                }
+                const isActive = activeCategory === cat;
+                return `<div class="app-category-pill flex items-center gap-2 cursor-pointer snap-start px-4 py-2 rounded-full border border-gray-200 shadow-sm ${isActive ? 'active' : 'bg-white text-appMuted'}" onclick="window.setCustCategory('${escapeHTML(cat)}')"><span class="text-base">${catIcon}</span><span class="text-[12px] font-bold tracking-wide">${escapeHTML(cat)}</span></div>`;
+            }).join('');
+        }
+        
+        window.setCustCategory = (cat) => { activeCategory = cat; renderCustomerCategories(extractCategories(menuData)); window.renderCustomerMenu(); };
+
+        window.renderCustomerMenu = () => {
+            let term = $('cust-search')?.value.toLowerCase() || '';
+            let data = activeCategory === 'All' ? [...menuData] : menuData.filter(d => d.category === activeCategory);
+            if(term) data = data.filter(d => d.name.toLowerCase().includes(term) || d.desc.toLowerCase().includes(term));
+            
+            let topDishId = (activeCategory === 'All' && !term && data.length > 0) ? [...data].sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0))[0]?.id : null;
+            let htmlStr = '', topHtmlStr = '';
+
+            if (data.length === 0) {
+                $('customer-menu-list').innerHTML = `<div class="text-center text-appMuted py-12 border-2 border-dashed border-gray-200 rounded-[24px] bg-white"><i class="fa-solid fa-plate-wheat text-4xl mb-3 text-gray-300"></i><p class="font-bold">No items found.</p></div>`;
+                return;
+            }
+
+            data.forEach((dish) => {
+                const qty = cart[dish.id] || 0;
+                let btnHtml = qty === 0 
+                    ? `<button onclick="event.stopPropagation(); window.addToCart('${dish.id}')" class="bg-appGreen/10 text-appGreen font-black px-4 py-1.5 rounded-lg text-xs hover:bg-appGreen hover:text-white transition-colors w-16 uppercase tracking-wider shadow-sm">+ Add</button>`
+                    : `<div class="flex items-center justify-between bg-appGreen text-white px-2 py-1.5 rounded-lg text-xs font-bold w-20 shadow-md" onclick="event.stopPropagation()"><button onclick="window.removeFromCart('${dish.id}')" class="px-2 active:scale-90">-</button><span>${qty}</span><button onclick="window.addToCart('${dish.id}')" class="px-2 active:scale-90">+</button></div>`;
+                       
+                let typeIcon = dish.type === 'nonveg' ? `<span class="w-2.5 h-2.5 border border-red-500 rounded-[3px] flex items-center justify-center shrink-0"><span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span></span>` : dish.type === 'egg' ? `<span class="w-2.5 h-2.5 border border-amber-500 rounded-[3px] flex items-center justify-center shrink-0"><span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span></span>` : `<span class="w-2.5 h-2.5 border border-green-500 rounded-[3px] flex items-center justify-center shrink-0"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span></span>`;
+                
+                let isTop = dish.id === topDishId && dish.orderCount > 0;
+                let topBadge = isTop ? `<div class="absolute -top-3 left-3 mirror-green border-amber-400 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-greenGlow z-10 flex items-center gap-1"><i class="fa-solid fa-trophy text-amber-300"></i> Most Favourite</div>` : '';
+                let borderStyle = isTop ? 'border-2 border-appGreen shadow-greenGlow' : 'border border-gray-100 shadow-sm';
+
+                let card = `
+                    <div class="mirror-white rounded-[16px] p-2.5 flex gap-3.5 cursor-pointer relative ${borderStyle} mt-${isTop ? '4' : '0'} mb-4" onclick="window.openDishModal('${dish.id}')">
+                        ${topBadge}
+                        <div class="w-[95px] h-[95px] shrink-0 rounded-[12px] overflow-hidden bg-gray-100">
+                            <img src="${window.resolveMediaUrl(dish.imgUrl)}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-grow flex flex-col py-0.5 justify-center relative pr-1">
+                            <h4 class="font-bold text-appText text-[14px] leading-snug flex items-center gap-1.5">${escapeHTML(dish.name)} ${typeIcon}</h4>
+                            <p class="text-appMuted text-[10px] mt-1 line-clamp-2">${escapeHTML(dish.desc)}</p>
+                            <div class="flex justify-between items-center mt-auto pt-2">
+                                <span class="font-black text-appText text-[15px]">₹${dish.price}</span>
+                                ${btnHtml}
+                            </div>
+                        </div>
+                    </div>`;
+                if(isTop) topHtmlStr += card; else htmlStr += card;
+            });
+            $('customer-menu-list').innerHTML = topHtmlStr + htmlStr;
+        };
+
+        window.openDishModal = (id) => {
+            const d = menuData.find(m => m.id === id); if(!d) return;
+            $('dish-modal-img').src = window.resolveMediaUrl(d.imgUrl); 
+            $('dish-modal-name').innerText = d.name; 
+            $('dish-modal-price').innerText = `₹${d.price}`; 
+            $('dish-modal-desc').innerText = d.desc;
+            updateDishModalBtn(id); 
+            $('modal-dish-view').classList.remove('hidden'); $('modal-dish-view').classList.add('flex');
+            setTimeout(() => { document.querySelector('#modal-dish-view .modal-bg').classList.remove('opacity-0'); $('dish-view-sheet').classList.remove('translate-y-full'); }, 10);
+        };
+        window.closeDishModal = () => {
+            document.querySelector('#modal-dish-view .modal-bg').classList.add('opacity-0'); $('dish-view-sheet').classList.add('translate-y-full');
+            setTimeout(() => { $('modal-dish-view').classList.add('hidden'); $('modal-dish-view').classList.remove('flex'); }, 400);
+        };
+        function updateDishModalBtn(id) {
+            const c = $('dish-modal-action'); const qty = cart[id] || 0;
+            if(qty === 0) c.innerHTML = `<button onclick="window.addToCart('${id}')" class="w-full mirror-green text-white rounded-xl py-3.5 font-black text-[15px] shadow-greenGlow active:scale-[0.98]">Add to Order</button>`; 
+            else c.innerHTML = `<div class="flex items-center justify-between mirror-green text-white rounded-xl px-2 font-black text-lg w-full h-[50px] shadow-greenGlow"><button onclick="window.removeFromCart('${id}')" class="px-6 w-1/3 h-full">-</button><span class="w-1/3 text-center text-lg relative z-10">${qty}</span><button onclick="window.addToCart('${id}')" class="px-6 w-1/3 h-full">+</button></div>`;
+        }
+
+        window.addToCart = (id) => { cart[id] = (cart[id] || 0) + 1; updateCartUI(); updateDishModalBtn(id); window.renderCustomerMenu(); };
+        window.removeFromCart = (id) => { if(cart[id] > 1) cart[id]--; else delete cart[id]; updateCartUI(); updateDishModalBtn(id); window.renderCustomerMenu(); };
+
+        function updateCartUI() {
+            let i = 0, t = 0; Object.keys(cart).forEach(id => { const d = menuData.find(m => m.id === id); if(d) { i += cart[id]; t += d.price * cart[id]; } });
+            const fc = $('floating-cart');
+            if(i > 0) { fc.classList.remove('translate-y-64'); $('cart-item-count').innerText = `${i} Item${i>1?'s':''}`; $('cart-badge').innerText = i; $('cart-total').innerText = `₹${t}`; } 
+            else { fc.classList.add('translate-y-64'); if(!$('modal-checkout').classList.contains('hidden')) closeCheckout(); }
+            renderCheckoutItems();
+        }
+
+        window.openCheckout = () => { $('modal-checkout').classList.remove('hidden'); $('modal-checkout').classList.add('flex'); setTimeout(() => { document.querySelector('#modal-checkout .modal-bg').classList.remove('opacity-0'); $('checkout-sheet').classList.remove('translate-x-full'); }, 10); renderCheckoutItems(); };
+        window.closeCheckout = () => { document.querySelector('#modal-checkout .modal-bg').classList.add('opacity-0'); $('checkout-sheet').classList.add('translate-x-full'); setTimeout(() => { $('modal-checkout').classList.add('hidden'); $('modal-checkout').classList.remove('flex'); }, 400); };
+
+        function renderCheckoutItems() {
+            let htmlStr = ''; let t = 0;
+            Object.keys(cart).forEach(id => {
+                const d = menuData.find(m => m.id === id);
+                if(d) {
+                    t += d.price * cart[id];
+                    htmlStr += `
+                        <div class="flex gap-4 items-center bg-white p-3 rounded-[16px] border border-gray-100 shadow-sm">
+                            <div class="w-16 h-16 shrink-0 rounded-[10px] overflow-hidden bg-gray-100"><img src="${window.resolveMediaUrl(d.imgUrl)}" class="w-full h-full object-cover"></div>
+                            <div class="flex-grow pr-1">
+                                <h4 class="font-bold text-sm text-appText truncate">${escapeHTML(d.name)}</h4>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="font-black text-[15px] text-appText">₹${d.price}</span>
+                                    <div class="flex items-center justify-between bg-gray-50 border border-gray-200 px-1.5 py-1 rounded-lg text-xs w-16 font-bold shadow-sm">
+                                        <button onclick="window.removeFromCart('${id}')" class="px-2 text-appMuted hover:text-appText">-</button><span class="text-appText">${cart[id]}</span><button onclick="window.addToCart('${id}')" class="px-2 text-appGreen">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                }
+            });
+            $('checkout-items').innerHTML = htmlStr; $('bill-subtotal').innerText = `₹${t}`;
+            
+            let discountAmt = 0;
+            if (appliedDiscountPercent > 0) { discountAmt = Math.round(t * (appliedDiscountPercent / 100)); $('loyalty-discount-banner').classList.remove('hidden'); $('loyalty-banner-text').innerText = `Premium Customer! ${appliedDiscountPercent}% Discount Applied`; $('bill-discount-row').classList.remove('hidden'); $('bill-discount-amt').innerText = `-₹${discountAmt}`; } 
+            else { $('loyalty-discount-banner').classList.add('hidden'); $('bill-discount-row').classList.add('hidden'); }
+
+            $('checkout-final-total').innerText = `₹${t - discountAmt}`; $('checkout-btn-total').innerHTML = `₹${t - discountAmt} <i class="fa-solid fa-arrow-right text-[10px] ml-1"></i>`;
+        }
+
+        /* SMART LOYALTY */
+        function checkLoyaltyStatus() {
+            const lsKey = `tc_loyalty_${customerRestaurantId || 'guest'}`;
+            let ld = JSON.parse(localStorage.getItem(lsKey)) || { streak: 1, lastVisit: Date.now() };
+            const hrs = (Date.now() - ld.lastVisit) / 3600000;
+            if (hrs >= 24 && hrs < 72) ld.streak += 1; else if (hrs >= 72) ld.streak = 1;
+            ld.lastVisit = Date.now(); localStorage.setItem(lsKey, JSON.stringify(ld));
+            userLoyaltyDays = ld.streak;
+            if (userLoyaltyDays >= 10) appliedDiscountPercent = loyaltyConfig.disc10; else if (userLoyaltyDays >= 2) appliedDiscountPercent = loyaltyConfig.disc1;
+            $('loyalty-streak-txt').innerText = `Day ${userLoyaltyDays}`;
+            setTimeout(() => { $('loyalty-progress-bar').style.width = `${Math.min((userLoyaltyDays/10)*100, 100)}%`; }, 500);
+            
+            if (userLoyaltyDays === 1) $('loyalty-next-reward').innerText = `Return tomorrow for ${loyaltyConfig.disc1}% OFF!`;
+            else if (userLoyaltyDays < 10) $('loyalty-next-reward').innerText = `Complete 10 days for ${loyaltyConfig.disc10}% OFF!`;
+            else $('loyalty-next-reward').innerText = "Maximum Premium Discount Unlocked!";
+
+            if (appliedDiscountPercent > 0) $('reward-dot').classList.remove('hidden');
+        }
+        window.openLoyaltyModal = () => { $('modal-loyalty').classList.remove('hidden'); $('modal-loyalty').classList.add('flex'); $('reward-dot').classList.add('hidden'); setTimeout(()=>$('modal-loyalty').querySelector('div').classList.remove('scale-95'), 10); setTimeout(()=>$('modal-loyalty').classList.remove('opacity-0'), 10); };
+        window.closeLoyaltyModal = () => { $('modal-loyalty').classList.add('opacity-0'); $('modal-loyalty').querySelector('div').classList.add('scale-95'); setTimeout(()=> { $('modal-loyalty').classList.add('hidden'); $('modal-loyalty').classList.remove('flex'); }, 300); };
+
+        /* REVIEW */
+        let tempRating = 0;
+        window.openReviewModal = () => { $('modal-review').classList.remove('hidden'); $('modal-review').classList.add('flex'); setTimeout(()=>$('modal-review').querySelector('div').classList.remove('scale-95'), 10); setTimeout(()=>$('modal-review').classList.remove('opacity-0'), 10); };
+        window.closeReviewModal = () => { $('modal-review').classList.add('opacity-0'); $('modal-review').querySelector('div').classList.add('scale-95'); setTimeout(()=> { $('modal-review').classList.add('hidden'); $('modal-review').classList.remove('flex'); $('review-feedback-area').classList.add('hidden'); $('review-redirect-area').classList.add('hidden'); document.querySelectorAll('.star-icon').forEach(s => s.classList.replace('text-amber-500', 'text-gray-200')); }, 300); };
+        
+        document.querySelectorAll('.star-icon').forEach(star => {
+            star.onclick = (e) => {
+                tempRating = parseInt(e.target.dataset.val);
+                document.querySelectorAll('.star-icon').forEach(s => { if(parseInt(s.dataset.val) <= tempRating) { s.classList.replace('text-gray-200', 'text-amber-500'); } else { s.classList.replace('text-amber-500', 'text-gray-200'); } });
+                if(tempRating <= 3) { $('review-feedback-area').classList.remove('hidden'); $('review-redirect-area').classList.add('hidden'); }
+                else { $('review-feedback-area').classList.add('hidden'); $('review-redirect-area').classList.remove('hidden'); }
+            };
+        });
+
+        $('btn-submit-review').onclick = async () => { 
+            const og = $('btn-submit-review').innerText;
+            setButtonLoading('btn-submit-review', true);
+            try {
+                if(customerRestaurantId && !isPreviewMode) await push(ref(db, `internal_reviews/${customerRestaurantId}`), { rating: tempRating, feedback: $('review-feedback').value.trim(), time: Date.now() }); 
+                showToast("Feedback submitted successfully", "success"); 
+                closeReviewModal(); 
+            } catch(e) {
+                showToast(e.message, "error");
+            } finally {
+                setButtonLoading('btn-submit-review', false, og);
+            }
+        };
+        $('btn-google-redirect').onclick = () => { if(restaurantProfile?.gmapLink) window.open(restaurantProfile.gmapLink, '_blank'); closeReviewModal(); }
+
+        /* PLACE ORDER */
+        $('form-place-order').onsubmit = async (e) => {
+            e.preventDefault();
+            const custName = $('checkout-name').value.trim() || "Customer";
+            let txt = appliedDiscountPercent > 0 ? `*🌟 PREMIUM CUSTOMER 🌟*\n\n*Table/Name:* ${custName}\n\n*Order:*\n` : `*New Order* 🔔\n\n*Table/Name:* ${custName}\n\n*Order:*\n`;
+            let total = 0; let itemsToDB = [];
+
+            Object.keys(cart).forEach(id => {
+                const d = menuData.find(m => m.id === id);
+                if(d) {
+                    const sub = d.price * cart[id]; txt += `• ${cart[id]} x ${d.name} (₹${sub})\n`; total += sub; itemsToDB.push({ id, name: d.name, qty: cart[id], price: d.price });
+                    if (!isPreviewMode) update(ref(db, `menus/${customerRestaurantId}/${id}`), { orderCount: increment(cart[id]) }); 
+                }
+            });
+            
+            let finalAmt = total; let isPremium = appliedDiscountPercent > 0;
+            if(isPremium) { let disc = Math.round(total * (appliedDiscountPercent/100)); finalAmt -= disc; txt += `\nSubtotal: ₹${total}\nDiscount (${appliedDiscountPercent}%): -₹${disc}`; }
+            txt += `\n*Grand Total: ₹${finalAmt}*`;
+
+            const btn = $('btn-place-order'); const og = btn.innerHTML;
+            setButtonLoading('btn-place-order', true);
+
+            try {
+                if (!isPreviewMode) await push(ref(db, `orders/${customerRestaurantId}`), { customerName: custName, items: itemsToDB, totalAmount: finalAmt, timestamp: Date.now(), isPremium: isPremium }); 
+                
+                // Show Success Anim
+                const ms = $('modal-success'); ms.classList.remove('hidden'); ms.classList.add('flex');
+                setTimeout(()=> ms.classList.remove('opacity-0'), 10);
+                setTimeout(()=> $('success-icon-anim').classList.remove('scale-0'), 50);
+
+                const rawPhone = restaurantProfile?.whatsapp?.replace(/\D/g, '') || ""; const waNumber = rawPhone.length === 10 ? '91' + rawPhone : rawPhone;
+
+                setTimeout(() => {
+                    if (waNumber !== "") {
+                        window.location.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(txt)}`; 
+                    } else {
+                        showToast("Store WhatsApp not configured!", "error");
+                    }
+                    setTimeout(() => { 
+                        cart = {}; updateCartUI(); window.renderCustomerMenu(); 
+                        ms.classList.add('opacity-0'); setTimeout(()=> { ms.classList.add('hidden'); ms.classList.remove('flex'); $('success-icon-anim').classList.add('scale-0'); }, 300);
+                        window.closeCheckout(); $('checkout-name').value = ''; 
+                    }, 500);
+                }, 1500);
+            } catch(err) { 
+                showToast("Order placement failed", "error"); 
+            } finally {
+                setButtonLoading('btn-place-order', false, og);
+            }
+        };
+
+        initApp();
+    </script>
+</body>
+</html>
