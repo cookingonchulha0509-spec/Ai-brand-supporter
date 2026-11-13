@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TapCraves Partner — Restaurant Reputation & Feedback</title>
+    <title>TapCraves Partner — Business Reputation & Feedback</title>
     
     <!-- Google Fonts: Plus Jakarta Sans & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -187,7 +187,7 @@
             transform: scaleX(1);
         }
 
-        /* Print-Ready Table Standee Mode */
+        /* Print-Ready Standee Mode */
         @media print {
             html, body { height: auto !important; overflow: visible !important; }
             .view-layer, .tab-pane, #view-dashboard, #dashboard-scroll-area {
@@ -268,11 +268,11 @@
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-partner-600 text-white flex items-center justify-center shadow-sm">
-                        <i class="fa-solid fa-utensils text-sm"></i>
+                        <i class="fa-solid fa-store text-sm"></i>
                     </div>
                     <div>
                         <span class="font-display font-bold text-lg text-ink-950 tracking-tight block leading-tight">TapCraves</span>
-                        <span class="text-[11px] font-medium text-ink-500">Restaurant Partner</span>
+                        <span class="text-[11px] font-medium text-ink-500">Business Partner</span>
                     </div>
                 </div>
             </div>
@@ -280,7 +280,7 @@
             <div class="bg-white rounded-2xl border border-gray-200/90 shadow-card p-6 sm:p-8">
                 <div class="mb-6">
                     <h1 class="text-xl sm:text-2xl font-bold text-ink-950" id="auth-heading">Partner Login</h1>
-                    <p class="text-ink-500 mt-1 text-sm" id="auth-subtitle">Track guest feedback, resolve complaints & grow Google ratings.</p>
+                    <p class="text-ink-500 mt-1 text-sm" id="auth-subtitle">Track customer feedback, resolve issues & grow Google ratings.</p>
                 </div>
 
                 <div class="space-y-4">
@@ -303,7 +303,7 @@
 
                         <div>
                             <label class="block text-xs font-semibold text-ink-700 mb-1.5">Email Address</label>
-                            <input type="email" id="auth-email" required maxlength="120" class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-partner-600/15 focus:border-partner-600 outline-none transition-all" placeholder="owner@yourcafe.com">
+                            <input type="email" id="auth-email" required maxlength="120" class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-partner-600/15 focus:border-partner-600 outline-none transition-all" placeholder="owner@yourbusiness.com">
                         </div>
 
                         <div>
@@ -329,7 +329,7 @@
                 <div class="mt-6 pt-5 border-t border-gray-100 flex items-center justify-between text-xs">
                     <span class="text-ink-500" id="auth-toggle-prompt">New to TapCraves?</span>
                     <button type="button" id="btn-toggle-auth" class="text-partner-600 font-semibold hover:text-partner-700 transition-colors">
-                        Register your restaurant &rarr;
+                        Register your business &rarr;
                     </button>
                 </div>
             </div>
@@ -337,7 +337,7 @@
             <div class="mt-4 flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-card">
                 <div class="flex items-center gap-2.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span class="text-xs text-ink-600 font-medium">Explore sample restaurant dashboard</span>
+                    <span class="text-xs text-ink-600 font-medium">Explore sample business dashboard</span>
                 </div>
                 <button type="button" id="btn-guest-auth" class="text-xs font-semibold text-partner-600 hover:text-partner-700 flex items-center gap-1 transition-colors">
                     <span>Open Live Demo</span>
@@ -348,16 +348,16 @@
     </div>
 
     <!-- ==========================================
-         VIEW 2: OUTLET REGISTRATION SETUP
+         VIEW 2: BUSINESS REGISTRATION SETUP
     =========================================== -->
     <div id="view-setup" class="view-layer h-full w-full overflow-y-auto bg-surface p-4 md:p-8 justify-center">
         <div class="max-w-2xl w-full my-auto py-6">
             <div class="flex items-center justify-between mb-5">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-lg bg-partner-600 text-white flex items-center justify-center">
-                        <i class="fa-solid fa-utensils text-xs"></i>
+                        <i class="fa-solid fa-store text-xs"></i>
                     </div>
-                    <span class="font-display font-bold text-base text-ink-950">Outlet Setup</span>
+                    <span class="font-display font-bold text-base text-ink-950">Business Setup</span>
                 </div>
                 <button type="button" id="btn-setup-logout" class="text-xs font-semibold text-ink-600 hover:text-partner-600 flex items-center gap-1.5">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
@@ -366,20 +366,20 @@
 
             <div class="bg-white rounded-2xl shadow-card border border-gray-200 p-6 md:p-8">
                 <div class="mb-6 pb-5 border-b border-gray-100">
-                    <h2 class="text-xl md:text-2xl font-bold text-ink-950">Add your restaurant or cafe</h2>
-                    <p class="text-ink-500 text-sm mt-1">Connect your Google review link to generate table QR codes.</p>
+                    <h2 class="text-xl md:text-2xl font-bold text-ink-950">Add your business or shop</h2>
+                    <p class="text-ink-500 text-sm mt-1">Connect your Google review link to generate QR codes for your shop.</p>
                 </div>
                 
                 <form id="form-setup" class="space-y-5">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="col-span-1 md:col-span-2">
-                            <label class="block text-xs font-semibold text-ink-700 mb-1.5">Restaurant / Outlet Name *</label>
-                            <input type="text" id="setup-shop-name" required maxlength="100" class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-partner-600/15 focus:border-partner-600 outline-none" placeholder="e.g. Third Wave Coffee — Indiranagar">
+                            <label class="block text-xs font-semibold text-ink-700 mb-1.5">Business / Shop Name *</label>
+                            <input type="text" id="setup-shop-name" required maxlength="100" class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-partner-600/15 focus:border-partner-600 outline-none" placeholder="e.g. Urban Style Studio — Indiranagar">
                         </div>
 
                         <div class="col-span-1 md:col-span-2">
                             <label class="block text-xs font-semibold text-ink-700 mb-1">Google Business Review Link *</label>
-                            <p class="text-xs text-ink-500 mb-2">Guests giving 4★ or 5★ will be directed here to post a Google review.</p>
+                            <p class="text-xs text-ink-500 mb-2">Customers giving 4★ or 5★ will be directed here to post a Google review.</p>
                             <div class="relative">
                                 <i class="fa-brands fa-google absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 text-xs"></i>
                                 <input type="url" id="setup-google-url" required maxlength="400" class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-partner-600/15 focus:border-partner-600 outline-none" placeholder="https://g.page/r/...">
@@ -387,7 +387,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-ink-700 mb-1.5">Manager Contact Number *</label>
+                            <label class="block text-xs font-semibold text-ink-700 mb-1.5">Contact Number *</label>
                             <input type="tel" id="setup-mobile" required maxlength="25" class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-partner-600/15 focus:border-partner-600 outline-none" placeholder="+91 98765 43210">
                         </div>
 
@@ -398,7 +398,7 @@
                     </div>
 
                     <div class="border-t border-gray-100 pt-5">
-                        <h3 class="text-xs font-semibold text-ink-600 mb-3">Social & Menu Links (Optional)</h3>
+                        <h3 class="text-xs font-semibold text-ink-600 mb-3">Social & Website Links (Optional)</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div class="relative">
                                 <i class="fa-brands fa-instagram absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 text-sm"></i>
@@ -409,8 +409,8 @@
                                 <input type="url" id="setup-youtube" maxlength="300" class="w-full pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:border-partner-600 outline-none" placeholder="YouTube URL">
                             </div>
                             <div class="relative">
-                                <i class="fa-solid fa-book-open absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 text-sm"></i>
-                                <input type="url" id="setup-other" maxlength="300" class="w-full pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:border-partner-600 outline-none" placeholder="Digital Menu / Website">
+                                <i class="fa-solid fa-globe absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 text-sm"></i>
+                                <input type="url" id="setup-other" maxlength="300" class="w-full pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:border-partner-600 outline-none" placeholder="Website / Catalog Link">
                             </div>
                         </div>
                     </div>
@@ -438,21 +438,21 @@
             <div class="h-14 px-5 border-b border-gray-100 flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-xl bg-partner-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                        <i class="fa-solid fa-utensils text-xs"></i>
+                        <i class="fa-solid fa-store text-xs"></i>
                     </div>
                     <span class="font-display font-extrabold text-base text-ink-950 tracking-tight">TapCraves</span>
                 </div>
                 <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md bg-gray-100 text-ink-600">Partner</span>
             </div>
 
-            <!-- Outlet Identity Card inside Sidebar -->
+            <!-- Business Identity Card inside Sidebar -->
             <div class="p-3.5 pb-1">
                 <div class="p-3 rounded-2xl bg-surface border border-gray-200/70 flex items-center gap-3">
                     <div class="w-9 h-9 rounded-xl bg-ink-950 text-white flex items-center justify-center font-display font-bold text-xs shrink-0" id="sidebar-avatar">
                         TC
                     </div>
                     <div class="overflow-hidden flex-1">
-                        <p class="text-xs font-bold text-ink-950 truncate" id="sidebar-shop-name">Loading outlet...</p>
+                        <p class="text-xs font-bold text-ink-950 truncate" id="sidebar-shop-name">Loading business...</p>
                         <p class="text-[11px] text-ink-500 truncate" id="sidebar-owner-name">Manager</p>
                     </div>
                 </div>
@@ -471,11 +471,11 @@
                 </button>
                 <button class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition-all" data-target="dash-qr">
                     <i class="fa-solid fa-qrcode w-4 text-center"></i>
-                    <span>Table QR & Print</span>
+                    <span>QR & Print Standee</span>
                 </button>
                 <button class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition-all" data-target="dash-profile">
                     <i class="fa-solid fa-sliders w-4 text-center"></i>
-                    <span>Outlet Settings</span>
+                    <span>Business Settings</span>
                 </button>
             </div>
 
@@ -495,7 +495,7 @@
             <header class="h-14 bg-white/90 backdrop-blur-md border-b border-gray-200/80 px-4 md:px-7 flex justify-between items-center z-20 shrink-0">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-8 h-8 rounded-xl bg-partner-600 text-white flex md:hidden items-center justify-center shrink-0 shadow-sm">
-                        <i class="fa-solid fa-utensils text-xs"></i>
+                        <i class="fa-solid fa-store text-xs"></i>
                     </div>
                     <div class="min-w-0">
                         <h2 class="text-sm md:text-base font-bold text-ink-950 truncate" id="header-title">Home</h2>
@@ -504,9 +504,9 @@
                 </div>
                 
                 <div class="flex items-center gap-2">
-                    <button id="btn-test-customer-view" class="btn-tactile inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200/80 text-ink-900 transition-colors" title="Preview guest QR experience">
+                    <button id="btn-test-customer-view" class="btn-tactile inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200/80 text-ink-900 transition-colors" title="Preview customer QR page">
                         <i class="fa-regular fa-eye text-partner-600"></i>
-                        <span class="hidden sm:inline">Guest Preview</span>
+                        <span class="hidden sm:inline">Customer Preview</span>
                     </button>
 
                     <!-- Verification Status Pill -->
@@ -531,10 +531,10 @@
                     <div id="guest-banner" class="hidden bg-ink-950 text-white rounded-2xl p-3.5 px-4 mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-card">
                         <div class="flex items-center gap-3">
                             <span class="px-2.5 py-0.5 rounded-md bg-partner-600 text-[11px] font-semibold shrink-0">Demo Mode</span>
-                            <p class="text-xs text-gray-200">Sample outlet active. Register your real outlet to connect Google Reviews.</p>
+                            <p class="text-xs text-gray-200">Sample business active. Register your business to connect Google Reviews.</p>
                         </div>
                         <button id="btn-guest-signup" class="btn-tactile shrink-0 bg-white hover:bg-gray-100 text-ink-950 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
-                            Register Outlet &rarr;
+                            Register Business &rarr;
                         </button>
                     </div>
 
@@ -548,7 +548,7 @@
                             </div>
                         </div>
                         <button type="button" id="btn-fix-rejected-profile" class="hidden shrink-0 px-3.5 py-1.5 rounded-xl bg-white border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold nav-btn-direct" data-target="dash-profile">
-                            Edit Outlet Settings &rarr;
+                            Edit Business Settings &rarr;
                         </button>
                     </div>
 
@@ -590,8 +590,8 @@
                         <div id="overview-content">
                             <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
                                 <div>
-                                    <h3 class="text-base font-bold text-ink-950">Outlet Overview</h3>
-                                    <p class="text-xs text-ink-500">Live dine-in feedback & QR scan summary</p>
+                                    <h3 class="text-base font-bold text-ink-950">Business Overview</h3>
+                                    <p class="text-xs text-ink-500">Live customer feedback & QR scan summary</p>
                                 </div>
                                 <div class="inline-flex bg-white border border-gray-200 rounded-xl p-1 shadow-2xs" id="overview-range-select">
                                     <button type="button" data-range="all" class="range-btn px-3 py-1 rounded-lg text-xs font-semibold bg-ink-950 text-white">Recent</button>
@@ -657,7 +657,7 @@
 
                                     <div class="mt-6 pt-4 border-t border-gray-100">
                                         <div class="flex justify-between text-xs text-ink-500 mb-1.5">
-                                            <span>Happy Guests (4–5★ routed to Google)</span>
+                                            <span>Happy Customers (4–5★ routed to Google)</span>
                                             <span class="font-semibold text-ink-900 tabular-nums" id="stat-positive-label">0%</span>
                                         </div>
                                         <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -669,8 +669,8 @@
                                 <div class="lg:col-span-7 bg-white rounded-2xl shadow-card border border-gray-200/90 overflow-hidden flex flex-col">
                                     <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
                                         <div>
-                                            <h3 class="text-sm font-bold text-ink-950">Latest Guest Feedback</h3>
-                                            <p class="text-xs text-ink-500">Tap any unread note to mark resolved</p>
+                                            <h3 class="text-sm font-bold text-ink-950">Latest Customer Feedback</h3>
+                                            <p class="text-xs text-ink-500">Tap any unread review to mark as resolved</p>
                                         </div>
                                         <button class="btn-tactile text-xs font-semibold text-partner-600 hover:text-partner-700 bg-partner-50 hover:bg-partner-100 px-3 py-1.5 rounded-lg nav-btn-direct" data-target="dash-feedback">
                                             Open Inbox &rarr;
@@ -691,7 +691,7 @@
                             <div class="p-4 border-b border-gray-100 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-gray-50/70">
                                 <div class="relative flex-1 max-w-sm">
                                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 text-xs"></i>
-                                    <input type="text" id="feedback-search" class="w-full pl-9 pr-3.5 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:border-partner-600 outline-none" placeholder="Search guest name, table or comment...">
+                                    <input type="text" id="feedback-search" class="w-full pl-9 pr-3.5 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:border-partner-600 outline-none" placeholder="Search customer name, tag or comment...">
                                 </div>
 
                                 <div class="flex items-center justify-between md:justify-end gap-2.5">
@@ -742,21 +742,21 @@
                                         <i class="fa-regular fa-comment-dots text-lg"></i>
                                     </div>
                                     <h4 class="text-sm font-bold text-ink-900">No feedback matches this filter</h4>
-                                    <p class="text-xs text-ink-500 max-w-xs mt-1">When diners scan your table QR code and submit feedback, it appears here immediately.</p>
+                                    <p class="text-xs text-ink-500 max-w-xs mt-1">When customers scan your QR code and submit feedback, it appears here immediately.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- ==========================================
-                         TAB 3: TABLE QR & PRINT STANDEE
+                         TAB 3: QR & PRINT STANDEE
                     =========================================== -->
                     <div id="dash-qr" class="tab-pane">
                         <div id="qr-unverified-warning" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex items-start gap-3.5">
                             <i id="qr-warning-icon" class="fa-solid fa-clock text-amber-600 text-sm mt-0.5"></i>
                             <div class="flex-1">
                                 <h4 id="qr-warning-title" class="text-xs font-bold text-amber-900">Account Verification Pending</h4>
-                                <p id="qr-warning-desc" class="text-xs text-amber-800 mt-1 leading-relaxed">Your outlet is currently under review. Once approved by admin, your table QR download and public link will unlock automatically.</p>
+                                <p id="qr-warning-desc" class="text-xs text-amber-800 mt-1 leading-relaxed">Your business is currently under review. Once approved by admin, your QR download and public link will unlock automatically.</p>
                             </div>
                         </div>
 
@@ -769,7 +769,7 @@
                                             <i class="fa-solid fa-star text-[10px]"></i>
                                             <span>RATE YOUR VISIT</span>
                                         </div>
-                                        <h4 class="font-display font-extrabold text-lg text-ink-950 truncate" id="qr-card-shop-name">Your Restaurant</h4>
+                                        <h4 class="font-display font-extrabold text-lg text-ink-950 truncate" id="qr-card-shop-name">Your Business</h4>
                                         <p class="text-xs font-semibold text-partner-600 mt-0.5 mb-4 hidden" id="qr-table-label-preview"></p>
                                         <p class="text-[11px] text-ink-500 mb-4" id="qr-table-sub">Scan with your phone camera</p>
                                         
@@ -795,14 +795,14 @@
                                 
                                 <div class="lg:col-span-7 space-y-5">
                                     <div>
-                                        <h3 class="text-xl font-bold text-ink-950">Table QR & Standee Studio</h3>
-                                        <p class="text-ink-500 text-sm mt-1 leading-relaxed">Print this QR for dining tables, billing folders, or takeaway boxes. Guests giving 1–3★ message you privately; 4–5★ guests go to Google Reviews.</p>
+                                        <h3 class="text-xl font-bold text-ink-950">QR Code & Print Standee</h3>
+                                        <p class="text-ink-500 text-sm mt-1 leading-relaxed">Print this QR for your billing counter, reception desk, or packaging. Customers giving 1–3★ message you privately; 4–5★ customers go to Google Reviews.</p>
                                     </div>
 
                                     <div>
-                                        <label class="block text-xs font-semibold text-ink-700 mb-1.5">Table / Counter Tag (Optional)</label>
-                                        <input type="text" id="qr-table-input" maxlength="40" class="w-full max-w-xs px-3.5 py-2 bg-white border border-gray-300 rounded-xl text-sm focus:border-partner-600 outline-none" placeholder="e.g. Table 4, Counter, Delivery">
-                                        <p class="text-[11px] text-ink-400 mt-1">Automatically tags incoming feedback with this table name.</p>
+                                        <label class="block text-xs font-semibold text-ink-700 mb-1.5">Counter / Location Tag (Optional)</label>
+                                        <input type="text" id="qr-table-input" maxlength="40" class="w-full max-w-xs px-3.5 py-2 bg-white border border-gray-300 rounded-xl text-sm focus:border-partner-600 outline-none" placeholder="e.g. Counter 1, Reception, Delivery">
+                                        <p class="text-[11px] text-ink-400 mt-1">Automatically tags incoming feedback with this counter or location name.</p>
                                     </div>
                                     
                                     <div>
@@ -824,11 +824,11 @@
                                         </button>
                                         <button id="btn-print-qr" class="btn-tactile bg-ink-950 hover:bg-ink-900 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2">
                                             <i class="fa-solid fa-print"></i>
-                                            <span>Print Table Standee</span>
+                                            <span>Print QR Standee</span>
                                         </button>
                                         <button id="btn-preview-landing" class="btn-tactile bg-white hover:bg-gray-50 text-ink-800 border border-gray-300 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2">
                                             <i class="fa-solid fa-arrow-up-right-from-square text-partner-600"></i>
-                                            <span>Test Guest Flow</span>
+                                            <span>Test Customer Flow</span>
                                         </button>
                                     </div>
                                 </div>
@@ -837,19 +837,19 @@
                     </div>
 
                     <!-- ==========================================
-                         TAB 4: OUTLET PROFILE & SETTINGS
+                         TAB 4: BUSINESS PROFILE & SETTINGS
                     =========================================== -->
                     <div id="dash-profile" class="tab-pane">
                         <div class="bg-white rounded-2xl shadow-card border border-gray-200/90 p-6 md:p-8">
                             <div class="mb-6 pb-4 border-b border-gray-100">
-                                <h3 class="text-base font-bold text-ink-950">Outlet Profile & Links</h3>
+                                <h3 class="text-base font-bold text-ink-950">Business Profile & Links</h3>
                                 <p class="text-xs text-ink-500 mt-0.5">Updates reflect immediately on your customer QR page.</p>
                             </div>
 
                             <form id="form-update-profile" class="space-y-5">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div class="col-span-1 md:col-span-2">
-                                        <label class="block text-xs font-semibold text-ink-700 mb-1.5">Restaurant / Shop Name</label>
+                                        <label class="block text-xs font-semibold text-ink-700 mb-1.5">Business / Shop Name</label>
                                         <input type="text" id="prof-shop-name" required maxlength="100" class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:border-partner-600 outline-none">
                                     </div>
                                     <div class="col-span-1 md:col-span-2">
@@ -857,7 +857,7 @@
                                         <input type="url" id="prof-google-url" required maxlength="400" class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:border-partner-600 outline-none">
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-semibold text-ink-700 mb-1.5">Manager Phone Number</label>
+                                        <label class="block text-xs font-semibold text-ink-700 mb-1.5">Business Phone Number</label>
                                         <input type="tel" id="prof-mobile" required maxlength="25" class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:border-partner-600 outline-none">
                                     </div>
                                     <div>
@@ -867,7 +867,7 @@
                                 </div>
 
                                 <div class="pt-4 border-t border-gray-100">
-                                    <h4 class="text-xs font-semibold text-ink-600 mb-3">Social & Menu Links</h4>
+                                    <h4 class="text-xs font-semibold text-ink-600 mb-3">Social & Website Links</h4>
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div class="relative">
                                             <i class="fa-brands fa-instagram absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 text-sm"></i>
@@ -878,8 +878,8 @@
                                             <input type="url" id="prof-youtube" maxlength="300" class="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:border-partner-600 outline-none" placeholder="YouTube URL">
                                         </div>
                                         <div class="relative">
-                                            <i class="fa-solid fa-book-open absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 text-sm"></i>
-                                            <input type="url" id="prof-other" maxlength="300" class="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:border-partner-600 outline-none" placeholder="Digital Menu / Website URL">
+                                            <i class="fa-solid fa-globe absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 text-sm"></i>
+                                            <input type="url" id="prof-other" maxlength="300" class="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:border-partner-600 outline-none" placeholder="Website / Catalog URL">
                                         </div>
                                     </div>
                                 </div>
@@ -915,12 +915,12 @@
             <button class="nav-btn relative flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 text-ink-500" data-target="dash-qr">
                 <span class="mobile-nav-indicator absolute top-0 w-9 h-[3px] rounded-b-full bg-partner-600"></span>
                 <i class="fa-solid fa-qrcode text-[15px] mb-1"></i>
-                <span class="text-[10px] font-semibold">Table QR</span>
+                <span class="text-[10px] font-semibold">QR Code</span>
             </button>
             <button class="nav-btn relative flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 text-ink-500" data-target="dash-profile">
                 <span class="mobile-nav-indicator absolute top-0 w-9 h-[3px] rounded-b-full bg-partner-600"></span>
                 <i class="fa-solid fa-sliders text-[15px] mb-1"></i>
-                <span class="text-[10px] font-semibold">Outlet</span>
+                <span class="text-[10px] font-semibold">Business</span>
             </button>
         </nav>
     </div>
@@ -928,10 +928,10 @@
     <!-- ==========================================
          VIEW 4: CUSTOMER PUBLIC LANDING PAGE
     =========================================== -->
-    <div id="view-customer" class="view-layer min-h-full w-full overflow-y-auto bg-surface sm:p-6 flex-col items-center justify-center">
+    <div id="view-customer" class="view-layer min-h-full w-full overflow-y-auto bg-surface sm:p-6 flex-col items-center sm:justify-center">
         
         <div id="owner-preview-bar" class="hidden fixed top-4 z-50 bg-ink-950 text-white px-4 py-2 rounded-full shadow-elevated flex items-center gap-3 text-xs">
-            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-partner-500"></span> Guest Preview</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-partner-500"></span> Customer Preview</span>
             <button id="btn-exit-customer-preview" class="underline font-semibold hover:text-partner-100">Back to Dashboard</button>
         </div>
 
@@ -961,7 +961,7 @@
             <div class="w-12 h-12 rounded-2xl bg-gray-100 text-ink-400 flex items-center justify-center mx-auto mb-4">
                 <i class="fa-solid fa-store-slash text-lg"></i>
             </div>
-            <h2 class="text-lg font-bold text-ink-950 mb-1">Outlet Page Unavailable</h2>
+            <h2 class="text-lg font-bold text-ink-950 mb-1">Business Page Unavailable</h2>
             <p class="text-ink-500 text-xs leading-relaxed">This QR code link is either inactive or awaiting verification.</p>
         </div>
 
@@ -973,7 +973,7 @@
                 </div>
                 <h1 class="text-xl sm:text-2xl font-bold text-ink-950" id="pub-shop-name">Loading...</h1>
                 <div class="mt-1.5 flex items-center justify-center gap-2">
-                    <span class="text-xs text-ink-500 font-medium">Dine-in & Takeaway Feedback</span>
+                    <span class="text-xs text-ink-500 font-medium">Customer Feedback</span>
                     <span id="pub-table-badge" class="hidden px-2 py-0.5 rounded-full bg-partner-100 text-partner-700 text-[11px] font-semibold"></span>
                 </div>
             </div>
@@ -996,8 +996,8 @@
 
                 <div id="feedback-form-area">
                     <div class="text-center mb-4">
-                        <h2 class="text-base sm:text-lg font-bold text-ink-950">How was your food & service today?</h2>
-                        <p class="text-xs text-ink-500 mt-1" id="star-prompt-label">Tap a star to rate your visit</p>
+                        <h2 class="text-base sm:text-lg font-bold text-ink-950">How was your experience today?</h2>
+                        <p class="text-xs text-ink-500 mt-1" id="star-prompt-label">Tap a star to rate our service</p>
                         
                         <div class="flex justify-center gap-3 text-4xl mt-4 select-none" id="pub-stars">
                             <i class="fa-solid fa-star star-btn" data-val="1"></i>
@@ -1014,11 +1014,11 @@
                             <div class="flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-2 min-w-0">
                                     <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-[11px] shrink-0">
-                                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                        <i class="fa-solid fa-pen-to-square"></i>
                                     </span>
                                     <div class="min-w-0">
                                         <h3 class="text-xs font-bold text-ink-950 truncate">Quick Google Review</h3>
-                                        <p class="text-[10px] text-ink-500 truncate">Slide, customize &amp; paste on Google</p>
+                                        <p class="text-[10px] text-ink-500 truncate">Slide, edit &amp; paste on Google</p>
                                     </div>
                                 </div>
                                 <span id="pre-review-counter" class="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full tabular-nums shrink-0">1 / 1</span>
@@ -1038,9 +1038,9 @@
                                     <button type="button" id="btn-pre-next" class="btn-tactile w-8 h-8 rounded-lg bg-white border border-gray-200 hover:border-emerald-500 text-ink-700 flex items-center justify-center text-xs" title="Next review">
                                         <i class="fa-solid fa-chevron-right"></i>
                                     </button>
-                                    <button type="button" id="btn-pre-shuffle" class="btn-tactile px-2.5 h-8 rounded-lg bg-white border border-gray-200 hover:border-emerald-500 text-ink-700 text-[11px] font-semibold flex items-center gap-1" title="Random review">
+                                    <button type="button" id="btn-pre-shuffle" class="btn-tactile px-2.5 h-8 rounded-lg bg-white border border-gray-200 hover:border-emerald-500 text-ink-700 text-[11px] font-semibold flex items-center gap-1" title="Next suggestion">
                                         <i class="fa-solid fa-shuffle text-[10px] text-emerald-600"></i>
-                                        <span>Next Idea</span>
+                                        <span>Next</span>
                                     </button>
                                 </div>
 
@@ -1075,12 +1075,12 @@
                             <div id="routing-low-card" class="hidden space-y-4">
                                 <div class="bg-partner-50/70 p-4 rounded-2xl border border-partner-200/80 space-y-3">
                                     <div>
-                                        <h3 class="text-sm font-bold text-ink-950">We’re sorry it wasn’t 5-star!</h3>
-                                        <p class="text-xs text-ink-600 mt-0.5">Send a direct note to our Restaurant Manager so we can fix this right away.</p>
+                                        <h3 class="text-sm font-bold text-ink-950">We’re sorry your experience wasn’t 5-star!</h3>
+                                        <p class="text-xs text-ink-600 mt-0.5">Send a direct message to our manager so we can resolve this right away.</p>
                                     </div>
 
                                     <div class="flex flex-wrap gap-1.5" id="pub-issue-tags">
-                                        <button type="button" class="issue-chip px-2.5 py-1 rounded-full bg-white border border-gray-200 text-[11px] font-medium text-ink-700 hover:border-partner-600">Food Taste</button>
+                                        <button type="button" class="issue-chip px-2.5 py-1 rounded-full bg-white border border-gray-200 text-[11px] font-medium text-ink-700 hover:border-partner-600">Product Quality</button>
                                         <button type="button" class="issue-chip px-2.5 py-1 rounded-full bg-white border border-gray-200 text-[11px] font-medium text-ink-700 hover:border-partner-600">Slow Service</button>
                                         <button type="button" class="issue-chip px-2.5 py-1 rounded-full bg-white border border-gray-200 text-[11px] font-medium text-ink-700 hover:border-partner-600">Staff Behavior</button>
                                         <button type="button" class="issue-chip px-2.5 py-1 rounded-full bg-white border border-gray-200 text-[11px] font-medium text-ink-700 hover:border-partner-600">Cleanliness</button>
@@ -1088,11 +1088,11 @@
                                     </div>
 
                                     <div class="grid grid-cols-2 gap-2">
-                                        <input type="text" id="pub-customer-name" maxlength="80" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl focus:border-partner-600 outline-none text-xs" placeholder="Your Name / Table">
+                                        <input type="text" id="pub-customer-name" maxlength="80" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl focus:border-partner-600 outline-none text-xs" placeholder="Your Name">
                                         <input type="tel" id="pub-customer-phone" maxlength="20" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl focus:border-partner-600 outline-none text-xs" placeholder="Phone (Optional)">
                                     </div>
 
-                                    <textarea id="pub-comment" rows="3" maxlength="1000" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl focus:border-partner-600 outline-none text-xs resize-none" placeholder="Tell us what went wrong..."></textarea>
+                                    <textarea id="pub-comment" rows="3" maxlength="1000" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl focus:border-partner-600 outline-none text-xs resize-none" placeholder="Tell us what we can improve..."></textarea>
 
                                     <button id="btn-submit-pub-feedback" class="btn-tactile w-full bg-partner-600 hover:bg-partner-700 text-white py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 shadow-sm">
                                         <i class="fa-solid fa-paper-plane text-[11px]"></i>
@@ -1114,7 +1114,7 @@
                                         <i class="fa-solid fa-heart text-sm"></i>
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-bold text-ink-950">Glad you loved your experience!</h3>
+                                        <h3 class="text-sm font-bold text-ink-950">Glad you liked our service!</h3>
                                         <p class="text-xs text-ink-600 mt-1" id="high-route-subtitle">It takes 10 seconds to support our team by posting this on Google Reviews.</p>
                                     </div>
 
@@ -1128,7 +1128,7 @@
                                 <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200 space-y-2">
                                     <label class="block text-[11px] font-semibold text-ink-600">Want to leave a quick compliment for our staff? (Optional)</label>
                                     <div class="flex gap-2">
-                                        <input type="text" id="pub-high-comment" maxlength="400" class="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:border-emerald-600 outline-none" placeholder="e.g. Great coffee & warm staff!">
+                                        <input type="text" id="pub-high-comment" maxlength="400" class="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:border-emerald-600 outline-none" placeholder="e.g. Great service and helpful staff!">
                                         <button id="btn-submit-high-note" class="btn-tactile shrink-0 bg-ink-950 hover:bg-ink-900 text-white px-3.5 py-2 rounded-xl text-xs font-semibold">
                                             Save
                                         </button>
@@ -1150,7 +1150,7 @@
     </div>
 
     <!-- ==========================================
-         JAVASCRIPT & FIREBASE ENGINE (SECURED & UPGRADED)
+         JAVASCRIPT & FIREBASE ENGINE
     =========================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -1206,11 +1206,11 @@
         let currentSafeGoogleUrl = '#';
 
         const DEMO_PRE_REVIEWS = [
-            "Amazing food quality and very welcoming staff! Definitely coming back with friends soon.",
-            "Loved the coffee and warm ambiance. Quick service even during busy hours—highly recommended!",
-            "Freshly prepared dishes with great presentation. One of the best dining spots around!",
-            "Super hygienic place, polite team, and delicious flavors. Worth every penny!",
-            "Had a wonderful dine-in experience today. Prompt billing and attentive table service!"
+            "Great product quality and very helpful staff! Smooth experience overall, will definitely visit again.",
+            "Very polite team and quick service even during busy hours. Highly recommended!",
+            "Clean place, genuine products, and fair pricing. One of the best businesses around.",
+            "Really satisfied with the service and attention to detail. Worth every penny!",
+            "Had a great visit today. Prompt billing and attentive customer support."
         ];
 
         // DOM Helpers
@@ -1345,17 +1345,11 @@
             return copiedSync;
         }
 
-        // --- FAST STARTUP ROUTING ---
+        // --- URL ROUTING PARAMS ---
         const urlParams = new URLSearchParams(window.location.search);
         const rawUrlShopId = urlParams.get('shopId');
         const urlShopId = rawUrlShopId ? rawUrlShopId.trim() : null;
         const urlTable = (urlParams.get('table') || '').trim().slice(0, 40);
-
-        if (urlShopId !== null) {
-            initCustomerView(urlShopId, false, urlTable);
-        } else {
-            initOwnerApp();
-        }
 
         // ==========================================
         // CUSTOMER LANDING PAGE ENGINE
@@ -1369,7 +1363,7 @@
             2: 'Below expectations',
             3: 'Okay, could be better',
             4: 'Good experience!',
-            5: 'Loved everything!'
+            5: 'Excellent experience!'
         };
 
         function resetPreReviewState() {
@@ -1424,7 +1418,7 @@
             el('private-feedback-accordion').classList.remove('expanded');
             hide('routing-low-card');
             hide('routing-high-card');
-            el('star-prompt-label').textContent = 'Tap a star to rate your visit';
+            el('star-prompt-label').textContent = 'Tap a star to rate our service';
             resetPreReviewState();
         }
 
@@ -1439,17 +1433,17 @@
             hide('customer-404');
             show('customer-skeleton');
 
-            activeTableParam = (tableLabel || '').trim().slice(0, 40);
-            resetCustomerFormUI();
-
-            // Path Traversal Protection
-            if (!isValidFirebaseKey(shopId)) {
-                hide('customer-skeleton');
-                show('customer-404');
-                return;
-            }
-
             try {
+                activeTableParam = (tableLabel || '').trim().slice(0, 40);
+                resetCustomerFormUI();
+
+                // Path Traversal Protection
+                if (!isValidFirebaseKey(shopId)) {
+                    hide('customer-skeleton');
+                    show('customer-404');
+                    return;
+                }
+
                 let shop = null;
                 let preReviewsNode = null;
 
@@ -1481,14 +1475,14 @@
                 const scanSessionKey = `tc_scanned_${shopId}`;
                 if (!isOwnerPreview && !isDemoSandbox && !sessionStorage.getItem(scanSessionKey)) {
                     sessionStorage.setItem(scanSessionKey, '1');
-                    runTransaction(ref(db, `shops/${shopId}/scanCount`), (current) => (current || 0) + 1);
+                    runTransaction(ref(db, `shops/${shopId}/scanCount`), (current) => (current || 0) + 1).catch(() => {});
                     push(ref(db, `qrAnalytics/${shopId}`), {
                         timestamp: serverTimestamp(),
                         ...(activeTableParam ? { tableNo: activeTableParam } : {})
-                    });
+                    }).catch(() => {});
                 }
 
-                el('pub-shop-name').textContent = shop.name || 'Restaurant';
+                el('pub-shop-name').textContent = shop.name || 'Business';
                 el('pub-shop-monogram').textContent = getInitials(shop.name);
 
                 currentSafeGoogleUrl = isSafeHttpUrl(shop.googleReviewUrl) ? shop.googleReviewUrl : '#';
@@ -1541,7 +1535,7 @@
                     socialsContainer.innerHTML += `<a href="${escapeAttr(shop.youtube)}" target="_blank" rel="noopener noreferrer" class="${pillClass}"><i class="fa-brands fa-youtube text-red-600"></i> YouTube</a>`;
                 }
                 if (isSafeHttpUrl(shop.otherLinks)) {
-                    socialsContainer.innerHTML += `<a href="${escapeAttr(shop.otherLinks)}" target="_blank" rel="noopener noreferrer" class="${pillClass}"><i class="fa-solid fa-book-open text-partner-600"></i> Menu</a>`;
+                    socialsContainer.innerHTML += `<a href="${escapeAttr(shop.otherLinks)}" target="_blank" rel="noopener noreferrer" class="${pillClass}"><i class="fa-solid fa-globe text-partner-600"></i> Website</a>`;
                 }
             } catch (error) {
                 console.error(error);
@@ -1649,10 +1643,10 @@
         }
 
         pubStars.forEach(star => {
-            star.addEventListener('mouseenter', (e) => paintStars(parseInt(e.target.dataset.val)));
+            star.addEventListener('mouseenter', (e) => paintStars(parseInt(e.currentTarget.dataset.val)));
             star.addEventListener('mouseleave', () => paintStars(customerRating));
             star.addEventListener('click', (e) => {
-                customerRating = parseInt(e.target.dataset.val);
+                customerRating = parseInt(e.currentTarget.dataset.val);
                 paintStars(customerRating);
                 el('star-prompt-label').textContent = `${customerRating}.0 ★ — ${ratingPrompts[customerRating]}`;
                 
@@ -1687,7 +1681,7 @@
         async function saveCustomerFeedback(rating, commentText, guestName, guestPhone) {
             const targetShopId = urlShopId || currentShopId;
             if (!isValidFirebaseKey(targetShopId)) {
-                throw new Error('Invalid outlet reference.');
+                throw new Error('Invalid business reference.');
             }
             const cleanRating = Math.min(5, Math.max(1, parseInt(rating) || 1));
             const tagsPrefix = selectedIssueTags.size > 0 ? `[${Array.from(selectedIssueTags).join(', ')}] ` : '';
@@ -1700,7 +1694,7 @@
                     id: 'demo-' + Date.now(),
                     rating: cleanRating,
                     comment: fullComment,
-                    customerName: safeName || 'Table Guest',
+                    customerName: safeName || 'Customer',
                     ...(safePhone ? { customerPhone: safePhone } : {}),
                     ...(activeTableParam ? { tableNo: activeTableParam } : {}),
                     timestamp: Date.now(),
@@ -1733,7 +1727,7 @@
 
             try {
                 await saveCustomerFeedback(customerRating, comment, customerName, customerPhone);
-                el('success-title').textContent = 'Sent directly to Restaurant Manager';
+                el('success-title').textContent = 'Sent directly to Business Manager';
                 el('success-subtitle').textContent = 'Thank you for letting us know. Our manager will review this immediately.';
                 show('success-google-wrap');
                 hide('feedback-form-area');
@@ -1774,7 +1768,7 @@
                 if (user) {
                     isDemoSandbox = false;
                     currentUserId = user.uid;
-                    el('sidebar-owner-name').textContent = user.displayName || user.email || "Restaurant Manager";
+                    el('sidebar-owner-name').textContent = user.displayName || user.email || "Business Manager";
                     hide('guest-banner');
 
                     try {
@@ -1828,13 +1822,13 @@
         let isLoginMode = true;
         el('btn-toggle-auth').addEventListener('click', () => {
             isLoginMode = !isLoginMode;
-            el('auth-heading').textContent = isLoginMode ? 'Partner Login' : 'Register Your Outlet';
-            el('auth-subtitle').textContent = isLoginMode ? 'Track guest feedback, resolve complaints & grow Google ratings.' : 'Set up your restaurant QR feedback system in 2 minutes.';
+            el('auth-heading').textContent = isLoginMode ? 'Partner Login' : 'Register Your Business';
+            el('auth-subtitle').textContent = isLoginMode ? 'Track customer feedback, resolve issues & grow Google ratings.' : 'Set up your shop QR feedback system in 2 minutes.';
             el('btn-submit-auth').innerHTML = isLoginMode 
                 ? '<span>Sign In</span><i class="fa-solid fa-arrow-right text-xs"></i>' 
                 : '<span>Create Partner Account</span><i class="fa-solid fa-arrow-right text-xs"></i>';
             el('auth-toggle-prompt').textContent = isLoginMode ? 'New to TapCraves?' : 'Already have a partner account?';
-            el('btn-toggle-auth').innerHTML = isLoginMode ? 'Register your restaurant &rarr;' : 'Sign in instead &rarr;';
+            el('btn-toggle-auth').innerHTML = isLoginMode ? 'Register your business &rarr;' : 'Sign in instead &rarr;';
 
             if (isLoginMode) {
                 hide('register-name-field');
@@ -1888,7 +1882,7 @@
                 const existingUserSnap = await get(userRef);
                 if (!existingUserSnap.exists()) {
                     await set(userRef, {
-                        name: u.displayName || 'Restaurant Partner',
+                        name: u.displayName || 'Business Partner',
                         email: u.email || '',
                         role: 'owner',
                         createdAt: serverTimestamp()
@@ -1912,7 +1906,7 @@
             hasMoreFeedback = false;
             hasInitialFeedbackLoaded = true;
             shopDataCache = {
-                name: 'Bombay Canteen & Coffee Bar',
+                name: 'Metro Prime Store & Services',
                 googleReviewUrl: 'https://www.google.com/maps',
                 mobile: '+91 98201 55412',
                 whatsapp: '+91 98201 55412',
@@ -1923,10 +1917,10 @@
                 scanCount: 214
             };
             liveFeedbackItems = [
-                { id: 'd1', rating: 2, customerName: 'Priya Nair', tableNo: 'Table 9', customerPhone: '9820155412', comment: '[Slow Service] Starter took 30 mins and AC near window was warm.', timestamp: Date.now() - 1000 * 60 * 24, read: false },
-                { id: 'd2', rating: 5, customerName: 'Aarav Mehta', tableNo: 'Table 4', comment: 'Amazing Butter Chicken Kulcha & Cold Brew! Rahul’s hospitality was top-notch.', timestamp: Date.now() - 1000 * 60 * 75, read: false },
-                { id: 'd3', rating: 3, customerName: 'Rohan Kapoor', tableNo: 'Table 2', customerPhone: '9811122334', comment: '[Food Taste] Pasta was slightly salty, though dessert made up for it.', timestamp: Date.now() - 1000 * 60 * 60 * 5, read: true },
-                { id: 'd4', rating: 4, customerName: 'Sneha Gupta', tableNo: 'Table 7', comment: 'Loved the ambiance and quick billing!', timestamp: Date.now() - 1000 * 60 * 60 * 32, read: true }
+                { id: 'd1', rating: 2, customerName: 'Priya Nair', tableNo: 'Counter 2', customerPhone: '9820155412', comment: '[Slow Service] Waiting time at billing counter was a bit long today.', timestamp: Date.now() - 1000 * 60 * 24, read: false },
+                { id: 'd2', rating: 5, customerName: 'Aarav Mehta', tableNo: 'Counter 1', comment: 'Great product variety and very helpful staff! Smooth checkout.', timestamp: Date.now() - 1000 * 60 * 75, read: false },
+                { id: 'd3', rating: 3, customerName: 'Rohan Kapoor', tableNo: 'Desk 3', customerPhone: '9811122334', comment: '[Billing / Price] Pricing clarity can be improved, though staff was polite.', timestamp: Date.now() - 1000 * 60 * 60 * 5, read: true },
+                { id: 'd4', rating: 4, customerName: 'Sneha Gupta', tableNo: 'Main Store', comment: 'Clean store and quick service!', timestamp: Date.now() - 1000 * 60 * 60 * 32, read: true }
             ];
             olderFeedbackItems = [];
 
@@ -1939,7 +1933,7 @@
             el('stat-qr-scans').textContent = shopDataCache.scanCount;
             dismissBootLoader();
             showView('view-dashboard');
-            showToast('Demo Outlet Loaded!');
+            showToast('Demo Business Loaded!');
         });
 
         el('btn-forgot-pwd').addEventListener('click', async () => {
@@ -1987,10 +1981,10 @@
                 return showToast('Please enter a valid https:// Google Review URL', 'error');
             }
             if ((instagram && !isSafeHttpUrl(instagram)) || (youtube && !isSafeHttpUrl(youtube)) || (otherLinks && !isSafeHttpUrl(otherLinks))) {
-                return showToast('Social and menu links must start with http:// or https://', 'error');
+                return showToast('Social and website links must start with http:// or https://', 'error');
             }
 
-            setBtnLoading('btn-submit-setup', true, 'Creating outlet...');
+            setBtnLoading('btn-submit-setup', true, 'Creating business...');
             try {
                 const newShopRef = push(ref(db, 'shops'));
                 const shopId = newShopRef.key;
@@ -2016,10 +2010,10 @@
 
                 currentShopId = shopId;
                 localStorage.setItem(`tc_shop_${currentUserId}`, shopId);
-                showToast('Outlet registered successfully!');
+                showToast('Business registered successfully!');
                 await loadDashboard();
             } catch (error) {
-                showToast('Could not save outlet details.', 'error');
+                showToast('Could not save business details.', 'error');
             } finally {
                 setBtnLoading('btn-submit-setup', false);
             }
@@ -2062,7 +2056,7 @@
             } catch (error) {
                 console.error('loadDashboard error:', error);
                 setDashboardLoadingState(false);
-                showToast('Error syncing outlet profile.', 'error');
+                showToast('Error syncing business profile.', 'error');
                 return true;
             }
         }
@@ -2070,7 +2064,7 @@
         function getGeneratedCustomerUrl() {
             const baseUrl = (window.location.origin && window.location.origin !== 'null')
                 ? (window.location.origin + window.location.pathname)
-                : window.location.href.split('?')[0];
+                : window.location.href.split('?')[0].split('#')[0];
             const tableVal = (el('qr-table-input')?.value || '').trim();
             return tableVal
                 ? `${baseUrl}?shopId=${currentShopId}&table=${encodeURIComponent(tableVal)}`
@@ -2145,14 +2139,14 @@
 
                     statusAlert.className = 'rounded-2xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border bg-rose-50 border-rose-200 text-rose-900';
                     statusIcon.className = 'fa-solid fa-circle-xmark text-rose-600 text-base mt-0.5';
-                    statusTitle.textContent = 'Outlet Verification Rejected';
-                    statusDesc.textContent = shop.rejectReason ? `Reason: ${shop.rejectReason}` : 'Please review your Google Review URL and outlet details.';
+                    statusTitle.textContent = 'Business Verification Rejected';
+                    statusDesc.textContent = shop.rejectReason ? `Reason: ${shop.rejectReason}` : 'Please review your Google Review URL and business details.';
                     show('status-alert-banner');
                     show('btn-fix-rejected-profile');
 
                     el('qr-warning-icon').className = 'fa-solid fa-circle-xmark text-rose-600 text-sm mt-0.5';
-                    el('qr-warning-title').textContent = 'Outlet Verification Rejected';
-                    el('qr-warning-desc').textContent = shop.rejectReason ? `Reason: ${shop.rejectReason}` : 'Public QR is locked until outlet details are approved by admin.';
+                    el('qr-warning-title').textContent = 'Business Verification Rejected';
+                    el('qr-warning-desc').textContent = shop.rejectReason ? `Reason: ${shop.rejectReason}` : 'Public QR is locked until business details are approved by admin.';
                     el('qr-overlay-label').textContent = 'Verification Rejected';
                 } else if (isSuspended) {
                     badge.className = 'px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700 border border-gray-300 flex items-center gap-1.5';
@@ -2160,15 +2154,15 @@
 
                     statusAlert.className = 'rounded-2xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border bg-gray-100 border-gray-300 text-ink-900';
                     statusIcon.className = 'fa-solid fa-ban text-gray-600 text-base mt-0.5';
-                    statusTitle.textContent = 'Outlet Access Suspended';
+                    statusTitle.textContent = 'Business Access Suspended';
                     statusDesc.textContent = 'Your public QR page has been temporarily disabled by an administrator.';
                     show('status-alert-banner');
                     hide('btn-fix-rejected-profile');
 
                     el('qr-warning-icon').className = 'fa-solid fa-ban text-gray-600 text-sm mt-0.5';
-                    el('qr-warning-title').textContent = 'Outlet Suspended';
-                    el('qr-warning-desc').textContent = 'Your QR code is inactive while the outlet is suspended.';
-                    el('qr-overlay-label').textContent = 'Outlet Suspended';
+                    el('qr-warning-title').textContent = 'Business Suspended';
+                    el('qr-warning-desc').textContent = 'Your QR code is inactive while the business is suspended.';
+                    el('qr-overlay-label').textContent = 'Business Suspended';
                 } else {
                     badge.className = 'px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5';
                     badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span><span class="hidden sm:inline">Pending Review</span><span class="sm:hidden">Pending</span>';
@@ -2176,7 +2170,7 @@
 
                     el('qr-warning-icon').className = 'fa-solid fa-clock text-amber-600 text-sm mt-0.5';
                     el('qr-warning-title').textContent = 'Account Verification Pending';
-                    el('qr-warning-desc').textContent = 'Your outlet is currently under review. Once approved by admin, your table QR download and public link will unlock automatically.';
+                    el('qr-warning-desc').textContent = 'Your business is currently under review. Once approved by admin, your QR download and public link will unlock automatically.';
                     el('qr-overlay-label').textContent = 'Awaiting Verification';
                 }
 
@@ -2447,7 +2441,7 @@
             const fullContainer = el('full-feedback-list');
             
             if (cachedFeedbacks.length === 0) {
-                recentContainer.innerHTML = `<div class="p-8 text-center text-ink-400 text-xs">No guest reviews yet. Print your table QR to start collecting feedback.</div>`;
+                recentContainer.innerHTML = `<div class="p-8 text-center text-ink-400 text-xs">No customer reviews yet. Print your QR code to start collecting feedback.</div>`;
                 fullContainer.innerHTML = '';
                 el('feedback-count-label').textContent = '0';
                 hide('inbox-scroll-sentinel');
@@ -2462,7 +2456,7 @@
                     : (fb.rating === 3 ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-partner-50 text-partner-700 border-partner-200');
                 const unreadRowClass = fb.read ? 'bg-white' : (isLow ? 'bg-partner-50/40' : 'bg-blue-50/30');
                 const unreadDot = fb.read ? '' : `<span class="w-2 h-2 rounded-full ${isLow ? 'bg-partner-600' : 'bg-blue-600'} shrink-0" title="Unread"></span>`;
-                const guestLabel = fb.customerName ? sanitizeHTML(fb.customerName) : 'Dine-in Guest';
+                const guestLabel = fb.customerName ? sanitizeHTML(fb.customerName) : 'Customer';
                 const tableChip = fb.tableNo ? `<span class="px-2 py-0.5 rounded-md bg-gray-100 text-ink-600 text-[11px] font-semibold">${sanitizeHTML(fb.tableNo)}</span>` : '';
 
                 let whatsappAction = '';
@@ -2532,7 +2526,7 @@
             }
         }
 
-        // Safe Delegated Click Listener for Feedback Rows (No Inline Onclick XSS)
+        // Safe Delegated Click Listener for Feedback Rows
         const handleFeedbackListClick = (e) => {
             if (e.target.closest('[data-no-mark-read="true"]')) return;
             const row = e.target.closest('.fb-item-row');
@@ -2585,11 +2579,11 @@
         el('btn-export-csv').addEventListener('click', () => {
             if (cachedFeedbacks.length === 0) return showToast('No feedback data to export.', 'error');
             const escapeCSV = (val) => `"${String(val || '').replace(/"/g, '""')}"`;
-            const headers = ['Date', 'Rating', 'Guest Name', 'Table', 'Phone', 'Comment', 'Status'];
+            const headers = ['Date', 'Rating', 'Customer Name', 'Location / Counter', 'Phone', 'Comment', 'Status'];
             const rows = cachedFeedbacks.map(fb => [
                 fb.timestamp ? new Date(fb.timestamp).toLocaleString('en-IN') : '',
                 fb.rating || '',
-                fb.customerName || 'Dine-in Guest',
+                fb.customerName || 'Customer',
                 fb.tableNo || '',
                 fb.customerPhone || '',
                 fb.comment || '',
@@ -2600,7 +2594,7 @@
             const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8;' });
             const blobUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            const safeName = (shopDataCache?.name || 'outlet').replace(/[^a-z0-9]/gi, '-').toLowerCase();
+            const safeName = (shopDataCache?.name || 'business').replace(/[^a-z0-9]/gi, '-').toLowerCase();
             link.setAttribute('href', blobUrl);
             link.setAttribute('download', `tapcraves-feedback-${safeName}.csv`);
             document.body.appendChild(link);
@@ -2648,7 +2642,7 @@
             if ((candidate.instagram && !isSafeHttpUrl(candidate.instagram)) ||
                 (candidate.youtube && !isSafeHttpUrl(candidate.youtube)) ||
                 (candidate.otherLinks && !isSafeHttpUrl(candidate.otherLinks))) {
-                return showToast('Social and menu links must start with http:// or https://', 'error');
+                return showToast('Social and website links must start with http:// or https://', 'error');
             }
 
             const changedUpdates = {};
@@ -2676,7 +2670,7 @@
                 Object.assign(shopDataCache, changedUpdates);
                 if (wasRejected) delete shopDataCache.rejectReason;
                 populateDashboardUI(shopDataCache);
-                showToast(wasRejected ? 'Outlet updated & resubmitted for verification!' : 'Outlet settings updated!');
+                showToast(wasRejected ? 'Business updated & resubmitted for verification!' : 'Business settings updated!');
             } catch (error) {
                 showToast('Failed to update settings.', 'error');
             } finally {
@@ -2698,7 +2692,7 @@
 
             if (dataUrl) {
                 const link = document.createElement('a');
-                const safeName = (shopDataCache?.name || 'Outlet').replace(/[^a-z0-9]/gi, '-').toLowerCase();
+                const safeName = (shopDataCache?.name || 'Business').replace(/[^a-z0-9]/gi, '-').toLowerCase();
                 const tableSuffix = (el('qr-table-input')?.value || '').trim().replace(/[^a-z0-9]/gi, '-').toLowerCase();
                 link.download = `tapcraves-qr-${safeName}${tableSuffix ? '-' + tableSuffix : ''}.png`;
                 link.href = dataUrl;
@@ -2757,17 +2751,23 @@
             const titles = {
                 'dash-overview': 'Home',
                 'dash-feedback': 'Reviews & Alerts',
-                'dash-qr': 'Table QR & Print',
-                'dash-profile': 'Outlet Settings'
+                'dash-qr': 'QR & Print Standee',
+                'dash-profile': 'Business Settings'
             };
             el('header-title').textContent = titles[targetId] || 'Home';
         };
 
-        switchTab('dash-overview');
-
         document.querySelectorAll('.nav-btn, .nav-btn-direct').forEach(btn => {
             btn.addEventListener('click', (e) => switchTab(e.currentTarget.dataset.target));
         });
+
+        // Boot app AFTER all variables and listeners are initialized
+        if (urlShopId !== null) {
+            initCustomerView(urlShopId, false, urlTable);
+        } else {
+            switchTab('dash-overview');
+            initOwnerApp();
+        }
     </script>
 </body>
 </html>
